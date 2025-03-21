@@ -1,0 +1,16 @@
+.container {
+  display: grid;
+  grid-template-columns: 30% 50% 20%;
+  position: relative;
+}
+video {
+  max-height: calc(100dvh - 440px);
+}
+
+iframe {
+  width: 100%;
+  /* height: max(25vh, 40vw); */
+  aspect-ratio: 16/9;
+  max-height: calc(100dvh - 440px);
+  pointer-events: none;
+}
