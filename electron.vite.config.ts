@@ -16,6 +16,14 @@ export default defineConfig({
     plugins: [externalizeDepsPlugin()]
   },
   renderer: {
+    build: {
+      rollupOptions: {
+        input: {
+          main: "./src/renderer/index.html",
+          password: "./src/renderer/password.html"
+        }
+      }
+    },
     resolve: {
       alias: {
         "@renderer": resolve("src/renderer/src")

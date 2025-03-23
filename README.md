@@ -1,6 +1,6 @@
-# node-music-stream-app
+# aimer-live-cd-app
 
-An Electron application with React and TypeScript
+An Music player application for Aimer's fan.
 
 ## Recommended IDE Setup
 

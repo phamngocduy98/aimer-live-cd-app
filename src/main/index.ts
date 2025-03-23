@@ -55,9 +55,9 @@ function createPasswordWindow(): Promise<AppConfig | null> {
       useContentSize: true
     });
 
-    // if (is.dev) {
-    //   passwordWindow.webContents.openDevTools();
-    // }
+    if (is.dev) {
+      passwordWindow.webContents.openDevTools();
+    }
 
     // Load password input HTML
     if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
@@ -151,7 +151,7 @@ async function initializeApp(): Promise<void> {
   }
 
   // Set app user model id for windows
-  electronApp.setAppUserModelId("vn.io.btxa.music");
+  electronApp.setAppUserModelId("vn.io.btxa.music.aimer");
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
@@ -203,7 +203,7 @@ function createWindow(): void {
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
-    mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"]);
+    mainWindow.loadURL(`${process.env["ELECTRON_RENDERER_URL"]}/index.html`);
   } else {
     mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
   }
