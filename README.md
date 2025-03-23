@@ -1,6 +1,21 @@
-# aimer-live-cd-app
+# Aimer live CD Music Player
 
 An Music player application for Aimer's fan.
+
+# Screenshots
+
+| ![](/screenshots/mobile2.png) | ![](/screenshots/mobile4.png) | ![](/screenshots/mobile3.png) | ![](/screenshots/mobile1.png) | ![](/screenshots/mobile5.png) |
+| ----------------------------- | ----------------------------- | ----------------------------- | ----------------------------- | ----------------------------- |
+
+![App 1](/screenshots/app1.png "App 1")
+
+![App 5](/screenshots/app5.png "App 5")
+
+![App 6](/screenshots/app6.png "App 6")
+
+![App 4](/screenshots/app4.png "App 4")
+
+# Dev
 
 ## Recommended IDE Setup
 
