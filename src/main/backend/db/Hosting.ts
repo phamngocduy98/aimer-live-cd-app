@@ -5,7 +5,7 @@ export enum HostingProvider {
   AWARD_SPACE = "awardspace.net"
 }
 
-interface IFtpCredential {
+export interface IFtpCredential {
   host: string;
   user: string;
   password: string;

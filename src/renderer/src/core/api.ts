@@ -2,6 +2,13 @@ import axios from "axios";
 import { Album, AlbumDetail } from "./Album";
 import { Song } from "./Song";
 
+export interface Host {
+  _id: string;
+  host: string;
+  provider: string;
+  path?: string;
+}
+
 // Declare the electronAPI type to avoid TypeScript errors
 declare global {
   interface Window {
@@ -43,6 +50,45 @@ export class AppAPI {
   }
   async artistTopTracks(name: string): Promise<Song[]> {
     const resp = await axios.get<Song[]>("/artist/" + name + "/top-tracks");
+    return resp.data;
+  }
+
+  async getHosts(): Promise<Host[]> {
+    const resp = await axios.get<Host[]>("/hosts");
+    return resp.data;
+  }
+
+  async deleteHost(id: string): Promise<void> {
+    await axios.delete(`/hosts/${id}`);
+  }
+
+  async pingHost(hostId: string): Promise<{
+    available: boolean;
+    files: { fileName: string; parts: string; title: string; fileCount: number }[];
+    status?: number;
+  }> {
+    const resp = await axios.get<{
+      available: boolean;
+      files: { fileName: string; parts: string; title: string; fileCount: number }[];
+      status?: number;
+    }>(`/hosts/${hostId}/ping`);
+    return resp.data;
+  }
+
+async createHost(data: {
+  host: string;
+  provider: string;
+  path?: string;
+  ftpCredential: {
+    host: string;
+    port?: number;
+    username: string;
+    password: string;
+    secure?: boolean;
+  };
+  ftpRoot: string;
+}): Promise<string> {
+    const resp = await axios.post<string>("/hosts", data);
     return resp.data;
   }
 }

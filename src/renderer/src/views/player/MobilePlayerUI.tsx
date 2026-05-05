@@ -15,7 +15,7 @@ import {
 
 import styled from "@emotion/styled";
 import Grid from "@mui/material/Unstable_Grid2";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import ReactPlayer from "react-player";
 import { AppAPI } from "../../core/api";
 import { router } from "../../router";
@@ -34,15 +34,87 @@ import { QueueList } from "./FloatingQueueList";
 import "./player.css";
 import { isVideo } from "../../core/Video";
 
+const getDominantColor = async (imageUrl: string): Promise<{ r: number; g: number; b: number } | null> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = imageUrl;
+    img.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          resolve(null);
+          return;
+        }
+        const scale = 50 / Math.max(img.width, img.height);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        const colorCounts: Record<string, number> = {};
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          const a = data[i + 3];
+          if (a < 128) continue;
+          const key = `${r},${g},${b}`;
+          colorCounts[key] = (colorCounts[key] || 0) + 1;
+        }
+        let maxCount = 0;
+        let dominant: string | null = null;
+        for (const [key, count] of Object.entries(colorCounts)) {
+          if (count > maxCount) {
+            maxCount = count;
+            dominant = key;
+          }
+        }
+        if (dominant) {
+          const [r, g, b] = dominant.split(",").map(Number);
+          resolve({ r, g, b });
+        } else {
+          resolve(null);
+        }
+      } catch (e) {
+        resolve(null);
+      }
+    };
+    img.onerror = () => resolve(null);
+  });
+};
+
 export const MobilePlayer: React.FC = () => {
   const dispatch = useAppDispatch();
   const { playingTrack } = useAppSelector((state) => state.player);
+  const [dominantColor, setDominantColor] = useState<{ r: number; g: number; b: number } | null>(null);
+
+  useEffect(() => {
+    const albumId = playingTrack?.album?._id;
+    if (!albumId) {
+      setDominantColor(null);
+      return;
+    }
+    const coverUrl = `${AppAPI.HOST}/album/${albumId}/cover`;
+    getDominantColor(coverUrl)
+      .then((color) => setDominantColor(color))
+      .catch(() => setDominantColor(null));
+  }, [playingTrack?.album?._id]);
+
+  const gradientStart = dominantColor
+    ? `rgba(${dominantColor.r}, ${dominantColor.g}, ${dominantColor.b}, 0.28)`
+    : `rgba(225, 222, 184, 0.28)`;
+  const gradientEnd = dominantColor
+    ? `rgba(${dominantColor.r}, ${dominantColor.g}, ${dominantColor.b}, 0)`
+    : `rgba(225, 222, 184, 0)`;
+
   return (
     <Box
       sx={{
         width: "100dvw",
         height: "100dvh",
-        backgroundImage: `linear-gradient(rgba(225, 222, 184, 0.28) 0%, rgba(225, 222, 184, 0) 90.67%)`,
+        backgroundImage: `linear-gradient(${gradientStart} 0%, ${gradientEnd} 90.67%)`,
         backgroundColor: "#000",
         display: "flex",
         flexDirection: "column",

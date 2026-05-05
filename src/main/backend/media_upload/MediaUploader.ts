@@ -1,8 +1,7 @@
 import { Readable } from "stream";
 
 import { getAesStream, PARTSIZE } from "../const.js";
-import { IHosting } from "../db/Hosting.js";
-import { WithDocument } from "../utils/type.js";
+import { IFtpCredential } from "../db/Hosting.js";
 
 const extList: string[] = [".audio", ".unknown", ".jpg", ".png"];
 
@@ -97,11 +96,11 @@ export class MediaUploader {
     return { fileCount: partNo };
   }
 
-  async init(hosting: WithDocument<IHosting>) {
-    this.uploadLimit = hosting.ftpLimit;
+  async init(_ftpRoot: string, _path: string = "", _ftpCredential: IFtpCredential, ftpLimit: number, ftpExt: string[]): Promise<void> {
+    this.uploadLimit = ftpLimit;
 
-    this.allowedExt = hosting.ftpExt.filter((ext) => ext[0] === "+");
-    this.deniedExt = hosting.ftpExt.filter((ext) => ext[0] === "-");
+    this.allowedExt = ftpExt.filter((ext) => ext[0] === "+");
+    this.deniedExt = ftpExt.filter((ext) => ext[0] === "-");
   }
 
   async uploadFile(upBuff: Readable | Buffer, getFileName: () => string): Promise<string> {

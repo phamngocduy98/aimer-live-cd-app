@@ -41,7 +41,7 @@ export async function uploadSongAPI(
     } (Skip ${skipPart} parts, Limit ${limitPart} parts)...`
   );
   const ftpMediaUploader = new FtpMediaUploader();
-  await ftpMediaUploader.init(hosting);
+  await ftpMediaUploader.init(hosting.ftpRoot, hosting.path, hosting.ftpCredential, hosting.ftpLimit, hosting.ftpExt);
   const { fileCount } = await ftpMediaUploader.encryptAndUpload(
     buffer,
     String(songBuilder._id._id),
