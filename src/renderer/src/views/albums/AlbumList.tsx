@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Album } from "../../core/Album";
 import { AppAPI, appAPI } from "../../core/api";
 import "./albums.css";
@@ -48,6 +48,24 @@ export const Albums: React.FC = () => {
   useEffect(() => {
     appAPI.listAlbums().then((al) => setAlbums(al));
   }, []);
+
+  const groupedAlbums = useMemo(() => {
+    return albums.reduce((acc, album) => {
+      const year = album.year ?? "Unknown";
+      if (!acc[year]) acc[year] = [];
+      acc[year].push(album);
+      return acc;
+    }, {} as Record<string | number, Album[]>);
+  }, [albums]);
+
+  const sortedYears = useMemo(() => {
+    return Object.keys(groupedAlbums).sort((a, b) => {
+      if (a === "Unknown") return 1;
+      if (b === "Unknown") return -1;
+      return Number(b) - Number(a);
+    });
+  }, [groupedAlbums]);
+
   return (
     <div
       style={{
@@ -60,10 +78,19 @@ export const Albums: React.FC = () => {
     >
       <ArtistItem />
       <Grid container spacing={2} style={{ padding: "24px", background: "black" }}>
-        {albums.map((album) => (
-          <Grid key={album._id} item xs={6} sm={4} md={3} lg={2}>
-            <AlbumItem album={album} />
-          </Grid>
+        {sortedYears.map((year) => (
+          <React.Fragment key={year}>
+            <Grid item xs={12}>
+              <Typography variant="h6" sx={{ color: "text.secondary", mb: 1 }}>
+                {year}
+              </Typography>
+            </Grid>
+            {groupedAlbums[year].map((album) => (
+              <Grid key={album._id} item xs={6} sm={4} md={3} lg={2}>
+                <AlbumItem album={album} />
+              </Grid>
+            ))}
+          </React.Fragment>
         ))}
       </Grid>
     </div>

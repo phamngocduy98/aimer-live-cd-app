@@ -177,7 +177,8 @@ export async function handleGetAlbums(req, res) {
     {},
     {
       title: 1,
-      artist: 1
+      artist: 1,
+      year: 1
     }
   )
     .skip(page * pageSize)

@@ -6,6 +6,7 @@ export interface Album {
   cover?: string;
   title: string;
   artist: string;
+  year?: number;
 }
 
 export interface AlbumDetail extends Album {

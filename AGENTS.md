@@ -26,6 +26,12 @@
   - Entry HTML: `src/renderer/index.html`
   - Password page: `src/renderer/password.html`
   - Source code: `src/renderer/src/`
+    - Components: `src/renderer/src/components/`
+      - `Sidebar.tsx` - Main navigation drawer
+      - `TopNavBar.tsx` - Top navigation bar with search and user menu
+      - `dialogs/ManageHostsDialog.tsx` - Host management dialog
+      - `dialogs/AddHostDialog.tsx` - Add new host dialog
+      - `types.ts` - Shared type definitions for components
 
 ## Important Notes
 
@@ -36,3 +42,13 @@
 - Electron Builder configuration in `electron-builder.yml`
 - Password generation script: `pnpm passgen` (src/main/backend/passgen.ts)
 - Implement client API call in `src\renderer\src\core\api.ts`
+
+## Environment Variables
+
+- Env vars are loaded via encrypted `electron-store` config (no `.env` file needed)
+- First run prompts for config (AES_PW, MongoDB credentials) via password window
+- `src/main/index.ts` decrypts stored config and sets `process.env` on startup
+- Critical vars:
+  - `AES_PW`: 64-char hex string (32 bytes) for AES-256-CTR stream encryption
+  - `MONGO_DB_HOST/USER/PW`: MongoDB connection details
+- Password generation script `pnpm passgen` can generate a valid `AES_PW`
