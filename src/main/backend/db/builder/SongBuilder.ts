@@ -39,7 +39,6 @@ export class SongBuilder extends ContentBuilder<ISong> {
         hostingList: [],
         fileCount: 0,
         fileExtension,
-        fileList: [],
 
         iv: this.iv.toString("hex")
       });

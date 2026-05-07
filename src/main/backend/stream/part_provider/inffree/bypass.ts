@@ -38,7 +38,7 @@ class ByPassHosting {
     });
     if (typeof mres.data != "string" || !mres.data.includes("aes.js")) {
       // contains this: <script type="text/javascript" src="/aes.js"></script>
-      console.log(`[Refresh token] ${host}: valid ${token}`);
+      console.log(`[ ${`Refresh token`.padStart(15)} ] ${host}: valid ${token}`);
       this.tokens[host] = {
         value: token
       };

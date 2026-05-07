@@ -19,7 +19,6 @@ export interface ISong {
   fileExtension: string;
   hostingList: IHosting[];
   fileCount: number;
-  fileList: string[];
 
   album: IAlbum;
 
@@ -60,9 +59,6 @@ export const songSchema = new Schema<ISong>({
     type: "Number"
   },
 
-  fileList: {
-    type: ["String"]
-  },
   fileCount: {
     type: "Number"
   },

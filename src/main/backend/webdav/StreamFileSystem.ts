@@ -347,8 +347,7 @@ export class StreamFileSystem extends FileSystem {
       .populate("trackList", {
         hostingList: 0,
         iv: 0,
-        album: 0,
-        fileList: 0
+        album: 0
       })
       .lean()
       .exec();

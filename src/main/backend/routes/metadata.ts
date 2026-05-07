@@ -202,14 +202,12 @@ export async function handleGetAlbum(req, res) {
     .populate("trackList", {
       hostingList: 0,
       iv: 0,
-      album: 0,
-      fileList: 0
+      album: 0
     })
     .populate("videoList", {
       hostingList: 0,
       iv: 0,
-      album: 0,
-      fileList: 0
+      album: 0
     })
     .lean()
     .exec();
@@ -330,8 +328,7 @@ export async function handleGetAlbumCover(req, res) {
 export async function handleGetSong(req, res) {
   const song = await Song.findById(req.params.id, {
     iv: 0,
-    hostingList: 0,
-    fileList: 0
+    hostingList: 0
   })
     .populate("album", {
       trackList: 0,
@@ -362,7 +359,7 @@ export async function handleGetArtistTopTracks(req, res) {
     {
       artist: req.params.name
     },
-    { iv: 0, hostingList: 0, fileList: 0 }
+    { iv: 0, hostingList: 0 }
   )
     .populate("album", { title: 1, artist: 1 })
     .exec();

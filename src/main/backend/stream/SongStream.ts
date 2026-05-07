@@ -1,20 +1,17 @@
 import { Response } from "express";
 import MultiStream from "multistream";
 import http from "node:http";
-import { Readable, Transform, Writable } from "node:stream";
+import { Readable, Writable } from "node:stream";
 import { PARTSIZE } from "../const.js";
 import { IHosting } from "../db/Hosting.js";
-import { ISong } from "../db/Song.js";
 import { parseRange } from "../utils/http.js";
-import { DbDocument, WithDocument } from "../utils/type.js";
-import { contentType } from "./contentType.js";
-import { getPartProvider } from "./part_provider/index.js";
-import { StreamFilePart } from "./StreamFilePart.js";
-import { cache } from "./MyStreamCache.js";
-import { Types } from "mongoose";
-import { StreamInfo } from "./StreamInfo.js";
 import { removeStreamPadding } from "../utils/removeStreamPadding.js";
 import { fail } from "../utils/reqUtils.js";
+import { contentType } from "./contentType.js";
+import { cache } from "./MyStreamCache.js";
+import { getPartProvider } from "./part_provider/index.js";
+import { StreamFilePart } from "./StreamFilePart.js";
+import { StreamInfo } from "./StreamInfo.js";
 
 export class SongStream {
   constructor(private reqHeaders: http.IncomingHttpHeaders) {}
@@ -71,11 +68,9 @@ export class SongStream {
     const partSize = Math.min(PARTSIZE, info.hostingList[0].ftpLimit); // temp fix
     const range = parseRange(this.reqHeaders["range"], info.size);
 
-    const fileList =
-      info.fileList ??
-      [...Array(info.fileCount)].map(
-        (_, i) => `${info.id}${i > 0 ? `_${i}` : ""}.${info.fileExtension}`
-      );
+    const fileList = [...Array(info.fileCount)].map(
+      (_, i) => `${info.id}${i > 0 ? `_${i}` : ""}.${info.fileExtension}`
+    );
 
     const parts = this.getParts(fileList, partSize, info.size, range.start, range.end);
 

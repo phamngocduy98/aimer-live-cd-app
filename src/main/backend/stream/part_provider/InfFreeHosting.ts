@@ -13,10 +13,10 @@ export class InfinitiveFreeHosting extends HostingPartProvider {
     responseType: "stream" | "text" = "stream",
     hostPath: string = `${this.hosting.host}${this.hosting.path}`
   ): Promise<AxiosResponse<any, any>> {
-    if (fileName.endsWith(".flac")) {
-      // TODO: load hosting.ftpExt from DB and get proper file name extension.
-      return super.get(fileName + ".mp3", headers, retryCount, responseType, hostPath);
-    }
+    // if (fileName.endsWith(".flac")) {
+    //   // TODO: load hosting.ftpExt from DB and get proper file name extension.
+    //   return super.get(fileName + ".mp3", headers, retryCount, responseType, hostPath);
+    // }
     return super.get(
       fileName,
       {

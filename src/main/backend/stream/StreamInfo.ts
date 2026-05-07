@@ -10,9 +10,4 @@ export interface StreamInfo {
   fileCount: number;
   iv: string;
   fileExtension: string;
-
-  /**
-   * @deprecated
-   */
-  fileList?: string[];
 }

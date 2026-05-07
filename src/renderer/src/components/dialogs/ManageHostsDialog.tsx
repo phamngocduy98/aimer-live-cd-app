@@ -7,7 +7,6 @@ import {
   List,
   ListItem,
   ListItemText,
-  ListItemSecondaryAction,
   Typography,
   CircularProgress,
   Box,
@@ -50,8 +49,9 @@ export const ManageHostsDialog: React.FC<ManageHostsDialogProps> = ({
                     <ListItemText
                       primary={host.host}
                       secondary={`${host.provider}${host.path ? ` • ${host.path}` : ''}`}
+                      sx={{ flex: 1 }}
                     />
-                    <ListItemSecondaryAction sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+                    <Box sx={{ display: "flex", gap: 1, alignItems: "center", ml: 2 }}>
                       <Button
                         size="small"
                         variant="outlined"
@@ -63,7 +63,7 @@ export const ManageHostsDialog: React.FC<ManageHostsDialogProps> = ({
                       <IconButton edge="end" onClick={() => onDeleteHost(host._id)} size="small">
                         <DeleteIcon fontSize="small" />
                       </IconButton>
-                    </ListItemSecondaryAction>
+                    </Box>
                   </Box>
 
                   {pingResults[host._id] && (
