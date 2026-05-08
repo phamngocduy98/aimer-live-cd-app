@@ -22,12 +22,13 @@ const darkTheme = createTheme({
 });
 
 const MyListItem = styled(ListItem)({
-  padding: "0 8px"
+  padding: "0 8px",
+  color: "#919191"
 });
 
 const MyListItemButton = styled(ListItemButton)({
   "&:hover": {
-    borderRadius: "8px"
+    borderRadius: "8px",
   }
 });
 
@@ -35,7 +36,7 @@ const MyListSubheader = styled(ListSubheader)({
   fontSize: "12px",
   lineHeight: "36px",
   marginLeft: "8px",
-  backgroundColor: "rgb(36, 36, 41)"
+  backgroundColor: "rgb(0, 0, 0)"
 });
 
 interface SidebarProps {
@@ -57,7 +58,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerWidth }) => {
           userSelect: "none"
         }}
         PaperProps={{
-          sx: { backgroundColor: "rgb(36, 36, 41)" }
+          sx: { backgroundColor: "rgb(0, 0, 0)" }
         }}
         variant="permanent"
         anchor="left"

@@ -61,9 +61,103 @@ export class SongStream {
     throw Error("No part available");
   }
 
-  stream(info: StreamInfo, outputSteam: Writable, res?: Response) {
+  private async pingAndValidateParts(info: StreamInfo): Promise<Map<string, IHosting[]>> {
+    const allPartFiles = [...Array(info.fileCount)].map(
+      (_, i) => `${info.id}${i > 0 ? `_${i}` : ""}.${info.fileExtension}`
+    );
+
+    const partToHosts = new Map<string, IHosting[]>();
+    allPartFiles.forEach(file => partToHosts.set(file, []));
+
+    // Helper to parse part filename into base UUID and part number (matches HostingPartProvider logic)
+    const parsePartFile = (partFile: string) => {
+      const match = partFile.match(/^(.+?)(?:_(\d+))?\.[^.]+$/);
+      if (!match) return null;
+      const baseUuid = match[1];
+      const suffix = match[2];
+      let partNumber: number;
+      if (suffix === undefined) {
+        partNumber = 1; // No suffix = first part
+      } else {
+        partNumber = parseInt(suffix, 10) + 1; // _N suffix = part N+1
+      }
+      return { baseUuid, partNumber };
+    };
+
+    const pingPromises = info.hostingList.map(async (hosting) => {
+      try {
+        const provider = getPartProvider(hosting, this.reqHeaders);
+        const pingResult = await provider.ping();
+        if (!pingResult?.available || !Array.isArray(pingResult.files)) return;
+
+        // Build map of base UUID to part ranges from ping result
+        const baseToParts = new Map<string, string>();
+        for (const f of pingResult.files) {
+          baseToParts.set(f.fileName, f.parts); // f.fileName = base UUID, f.parts = "1-11" or "1,3-5"
+        }
+
+        // Check each part file against this host's available parts
+        allPartFiles.forEach(partFile => {
+          const parsed = parsePartFile(partFile);
+          if (!parsed) return;
+          const { baseUuid, partNumber } = parsed;
+          const partsRange = baseToParts.get(baseUuid);
+          if (!partsRange) return;
+
+          // Check if partNumber is within the range(s)
+          const ranges = partsRange.split(',');
+          let partExists = false;
+          for (const range of ranges) {
+            const [startStr, endStr] = range.split('-');
+            const start = parseInt(startStr, 10);
+            const end = endStr ? parseInt(endStr, 10) : start;
+            if (partNumber >= start && partNumber <= end) {
+              partExists = true;
+              break;
+            }
+          }
+
+          if (partExists) {
+            partToHosts.get(partFile)?.push(hosting);
+          }
+        });
+      } catch (e) {
+        console.log(`[${"Ping".padStart(15)}] Host ${hosting.host} failed: ${e}`);
+      }
+    });
+
+    await Promise.all(pingPromises);
+
+    const missingParts = [...partToHosts.entries()]
+      .filter(([_, hosts]) => hosts.length === 0)
+      .map(([part]) => part);
+
+    if (missingParts.length > 0) {
+      throw new Error(`File corrupted: missing parts ${missingParts.join(", ")}`);
+    }
+
+    return partToHosts;
+  }
+
+  async stream(info: StreamInfo, outputSteam: Writable, res?: Response) {
     let multiStream: MultiStream | null = null;
     let headerSent = false; // TODO: temp fix
+
+    // Pre-ping and validate all parts
+    let partToAvailableHosts: Map<string, IHosting[]> = new Map();
+
+    try {
+      partToAvailableHosts = await this.pingAndValidateParts(info);
+      console.log(`[ ${"Stream".padStart(15)} ] All parts validated. Available hosts per part: ${
+        JSON.stringify([...partToAvailableHosts].map(([f, h]) => [f, h.map(x => x.host)]))
+      }`);
+    } catch (e: any) {
+      console.error(`[ ${"Stream".padStart(15)} ] Validation failed: ${e.message}`);
+      if (res) {
+        fail(res, e.message, 500);
+      }
+      return;
+    }
 
     const partSize = Math.min(PARTSIZE, info.hostingList[0].ftpLimit); // temp fix
     const range = parseRange(this.reqHeaders["range"], info.size);
@@ -86,24 +180,26 @@ export class SongStream {
       }
 
       try {
-        const hosting = info.hostingList[partIdx % info.hostingList.length];
-        const fileName = parts[partIdx].fileName;
+        const currentPart = parts[partIdx];
+        const partFileName = currentPart.fileName;
+        const availableHosts = partToAvailableHosts.get(partFileName) || [];
+        const selectedHost = availableHosts[partIdx % availableHosts.length];
 
-        let stream = cache.get(fileName);
+        let stream = cache.get(partFileName);
         if (stream) {
-          cb(null, removeStreamPadding(stream, parts[partIdx]));
+          cb(null, removeStreamPadding(stream, currentPart));
         } else {
-          const newCacheStream = cache.set(fileName);
+          const newCacheStream = cache.set(partFileName);
           try {
-            stream = await this.streamPart(info, parts[partIdx], hosting);
-            console.log(`[ ${"MultiStream".padStart(15)} ] ${parts[partIdx].fileName}: Ready`);
+            stream = await this.streamPart(info, currentPart, selectedHost);
+            console.log(`[ ${"MultiStream".padStart(15)} ] ${partFileName}: Ready from ${selectedHost.host}`);
             stream.pipe(newCacheStream);
-            cb(null, removeStreamPadding(cache.get(fileName)!, parts[partIdx]));
+            cb(null, removeStreamPadding(cache.get(partFileName)!, currentPart));
           } catch (e) {
             console.log(
               `[ ${"Stream part".padStart(15)} ] ${
                 info.id
-              }: Part ${partIdx} fail to get from source`
+              }: Part ${partIdx} failed from ${selectedHost.host}: ${e}`
             );
             newCacheStream.destroy(e as Error);
             cb(e as Error, null);
