@@ -18,15 +18,23 @@ export async function handleStreamAudio(req, res) {
     return fail(res, "Song not found", 404);
   }
   let errorMessages: string[] = [];
+  let status: number = 404;
   try {
     const stream = new SongStream(req.headers);
-    await stream.stream(song, res, res);
+    const { stream: audioStream, metadata } = await stream.stream(song);
+    res.writeHead(metadata.status, metadata.statusMessage, metadata.headers);
+    audioStream.pipe(res);
+    audioStream.on("error", (e) => {
+      console.error("[Stream Error]", e);
+      res.destroy(e);
+    });
     return;
   } catch (e) {
+    status = (e as any).status || 404;
     errorMessages.push((e as Error).message);
   }
 
-  fail(res, errorMessages.join(". "), 404);
+  fail(res, errorMessages.join(". "), status);
 }
 
 // GET /api/stream/video/:id
@@ -40,6 +48,7 @@ export async function handleStreamVideo(req, res) {
   }
 
   let errorMessages: string[] = [];
+  let status: number = 404;
   try {
     const stream = new SongStream(req.headers);
 
@@ -49,11 +58,18 @@ export async function handleStreamVideo(req, res) {
       res.end();
     });
 
-    stream.stream(video, res, res);
+    const { stream: videoStream, metadata } = await stream.stream(video);
+    res.writeHead(metadata.status, metadata.statusMessage, metadata.headers);
+    videoStream.pipe(res);
+    videoStream.on("error", (e) => {
+      console.error("[Stream Error]", e);
+      res.destroy(e);
+    });
     return;
   } catch (e) {
+    status = (e as any).status || 404;
     errorMessages.push((e as Error).message);
   }
 
-  fail(res, errorMessages.join(". "), 404);
+  fail(res, errorMessages.join(". "), status);
 }

@@ -1,12 +1,10 @@
-import { Response } from "express";
 import MultiStream from "multistream";
 import http from "node:http";
-import { Readable, Writable } from "node:stream";
+import { Readable } from "node:stream";
 import { PARTSIZE } from "../const.js";
 import { IHosting } from "../db/Hosting.js";
 import { parseRange } from "../utils/http.js";
 import { removeStreamPadding } from "../utils/removeStreamPadding.js";
-import { fail } from "../utils/reqUtils.js";
 import { contentType } from "./contentType.js";
 import { cache } from "./MyStreamCache.js";
 import { getPartProvider } from "./part_provider/index.js";
@@ -139,9 +137,9 @@ export class SongStream {
     return partToHosts;
   }
 
-  async stream(info: StreamInfo, outputSteam: Writable, res?: Response) {
+  async stream(info: StreamInfo): Promise<{ stream: MultiStream; metadata: Record<string, any> }> {
     let multiStream: MultiStream | null = null;
-    let headerSent = false; // TODO: temp fix
+
 
     // Pre-ping and validate all parts
     let partToAvailableHosts: Map<string, IHosting[]> = new Map();
@@ -153,10 +151,9 @@ export class SongStream {
       }`);
     } catch (e: any) {
       console.error(`[ ${"Stream".padStart(15)} ] Validation failed: ${e.message}`);
-      if (res) {
-        fail(res, e.message, 500);
-      }
-      return;
+      const error = new Error(e.message);
+      (error as any).status = 500;
+      throw error;
     }
 
     const partSize = Math.min(PARTSIZE, info.hostingList[0].ftpLimit); // temp fix
@@ -226,13 +223,6 @@ export class SongStream {
     multiStream = new MultiStream(streamFactory)
       .on("error", (e) => {
         console.error("[Error] MultiStream " + e);
-        if (!headerSent) {
-          // send error message to client
-          fail(res, e.message, 500);
-        } else {
-          // close the stream
-          res?.destroy(e);
-        }
       })
       .on("end", () => {
         console.log(`[ ${"MultiStream".padStart(15)} ] Ended`);
@@ -246,15 +236,18 @@ export class SongStream {
         range.start
       }-${range.end}/${info.size} (len=${range.end - range.start + 1})`
     );
-    res?.writeHead(206, "Partial Content", {
-      "Accept-Ranges": "bytes",
-      "Content-Length": range.end - range.start + 1,
-      "content-range": `bytes ${range.start}-${range.end}/${info.size}`,
-      "Content-Type": _contentType,
-      "cache-control": "public, max-age=60"
-    });
-    headerSent = true;
-    multiStream.pipe(outputSteam);
+    const metadata = {
+      status: 206,
+      statusMessage: "Partial Content",
+      headers: {
+        "Accept-Ranges": "bytes",
+        "Content-Length": range.end - range.start + 1,
+        "content-range": `bytes ${range.start}-${range.end}/${info.size}`,
+        "Content-Type": _contentType,
+        "cache-control": "public, max-age=60"
+      }
+    };
+    return { stream: multiStream!, metadata };
   }
 
   stopStream() {

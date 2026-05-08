@@ -212,7 +212,12 @@ export class StreamFileSystem extends FileSystem {
         const outStream = new PassThrough();
 
         const stream = new SongStream({});
-        stream.stream(song, outStream);
+        const { stream: fileStream } = await stream.stream(song);
+        fileStream.pipe(outStream);
+        fileStream.on("error", (e) => {
+          console.log("[READ] Stream error", e);
+          outStream.destroy(e);
+        });
 
         return callback(undefined, outStream);
       } catch (e) {
