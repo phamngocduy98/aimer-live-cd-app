@@ -2,7 +2,7 @@ import path from "node:path";
 import { Readable } from "node:stream";
 import { readFile } from "node:fs/promises";
 import { PARTSIZE } from "../const.js";
-import { Aes } from "../crypto/aes.js";
+import { Aes } from "../lib/crypto/aes.js";
 import { Album } from "../db/Album.js";
 import { Hosting, IHosting } from "../db/Hosting.js";
 import { dbClient } from "../db/Mongo.js";

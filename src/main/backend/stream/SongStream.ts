@@ -4,12 +4,12 @@ import { Readable } from "node:stream";
 import { PARTSIZE } from "../const.js";
 import { IHosting } from "../db/Hosting.js";
 import { parseRange } from "../utils/http.js";
-import { removeStreamPadding } from "../utils/removeStreamPadding.js";
-import { contentType } from "./contentType.js";
+import { removeStreamPadding } from "../lib/stream/removeStreamPadding.js";
+import { contentType } from "./dto/contentType.js";
 import { cache } from "./MyStreamCache.js";
 import { getPartProvider } from "./part_provider/index.js";
-import { StreamFilePart } from "./StreamFilePart.js";
-import { StreamInfo } from "./StreamInfo.js";
+import { StreamFilePart } from "./dto/StreamFilePart.js";
+import { StreamInfo } from "./dto/StreamInfo.js";
 
 export class SongStream {
   constructor(private reqHeaders: http.IncomingHttpHeaders) {}

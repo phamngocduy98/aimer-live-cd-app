@@ -5,13 +5,13 @@ import { getAesStream, PARTSIZE } from "../../const.js";
 import { IHosting } from "../../db/Hosting.js";
 import { Song } from "../../db/Song.js";
 import { Video } from "../../db/Video.js";
-import { resp2string, waitStreamClose } from "../../utils/stream2buffer.js";
+import { resp2string, waitStreamClose } from "../../lib/stream/stream2buffer.js";
 import { WithDocument } from "../../utils/type.js";
-import { StreamFilePart } from "../StreamFilePart.js";
-import { StreamInfo } from "../StreamInfo.js";
+import { StreamFilePart } from "../dto/StreamFilePart.js";
+import { StreamInfo } from "../dto/StreamInfo.js";
 import fs from "fs";
 import { FtpMediaUploader } from "../../media_upload/FtpMediaUploader.js";
-export class HostingPartProvider {
+export class StreamProvider {
   constructor(
     protected hosting: IHosting,
     private headers: http.IncomingHttpHeaders

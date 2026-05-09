@@ -1,7 +1,7 @@
 import * as dotenv from "dotenv";
 dotenv.config();
 // import { parseFile } from "music-metadata";
-import { Aes } from "./crypto/aes.js";
+import { Aes } from "./lib/crypto/aes.js";
 
 const aes = new Aes(process.env.DB_STORE_PW!);
 console.log(aes.encrypt("aj2Lxpq8l74X"));

@@ -1,10 +1,10 @@
 import http from "node:http";
-import { HostingPartProvider } from "./HostingPartProvider.js";
-import { resp2string } from "../../utils/stream2buffer.js";
+import { StreamProvider } from "./StreamProvider.js";
+import { resp2string } from "../../lib/stream/stream2buffer.js";
 import { byPassHosting } from "./inffree/bypass.js";
 import { AxiosResponse } from "axios";
 
-export class InfinitiveFreeHosting extends HostingPartProvider {
+export class InfinitiveFreeHosting extends StreamProvider {
   token: string = "";
   async get(
     fileName: string,

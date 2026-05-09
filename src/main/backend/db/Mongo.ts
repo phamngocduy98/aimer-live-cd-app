@@ -1,5 +1,5 @@
 import mongoose, { connect } from "mongoose";
-import { Aes } from "../crypto/aes.js";
+import { Aes } from "../lib/crypto/aes.js";
 import { DbDocument } from "../utils/type.js";
 import { Hosting, IHosting } from "./Hosting.js";
 

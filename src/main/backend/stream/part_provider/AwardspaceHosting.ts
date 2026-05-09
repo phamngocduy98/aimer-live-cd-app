@@ -1,8 +1,8 @@
 import http from "node:http";
-import { HostingPartProvider } from "./HostingPartProvider.js";
+import { StreamProvider } from "./StreamProvider.js";
 import { AxiosResponse } from "axios";
 
-export class AwardspaceHosting extends HostingPartProvider {
+export class AwardspaceHosting extends StreamProvider {
   token: string = "";
   async get(
     fileName: string,
