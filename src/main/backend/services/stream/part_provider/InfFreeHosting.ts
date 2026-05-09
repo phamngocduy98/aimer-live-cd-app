@@ -1,22 +1,17 @@
 import http from "node:http";
-import { StreamProvider } from "./StreamProvider.js";
-import { resp2string } from "../../../utils/stream/stream2buffer.js";
+import { HttpStreamProvider } from "./HttpStreamProvider.js";
 import { byPassHosting } from "../providers/inffree/bypass.js";
 import { AxiosResponse } from "axios";
 
-export class InfinitiveFreeHosting extends StreamProvider {
+export class InfinitiveFreeHosting extends HttpStreamProvider {
   token: string = "";
   async get(
     fileName: string,
     headers?: http.IncomingHttpHeaders,
     retryCount: number = 0,
     responseType: "stream" | "text" = "stream",
-    hostPath: string = `${this.hosting.host}${this.hosting.path}`
+    hostPath?: string
   ): Promise<AxiosResponse<any, any>> {
-    // if (fileName.endsWith(".flac")) {
-    //   // TODO: load hosting.ftpExt from DB and get proper file name extension.
-    //   return super.get(fileName + ".mp3", headers, retryCount, responseType, hostPath);
-    // }
     return super.get(
       fileName,
       {
@@ -36,13 +31,11 @@ export class InfinitiveFreeHosting extends StreamProvider {
     res: AxiosResponse<any, any>,
     responseType: "stream" | "text" = "stream"
   ) {
-    // call super to handle 404
     const superres = await super.handleResponse(statusCode, res, responseType);
 
     if (res.headers["content-type"]?.includes("text/html")) {
       if (superres.data.includes("aes.js")) {
-        // console.log("Refreshing token");
-        this.token = await byPassHosting.refreshToken(`http://${this.hosting.host}`);
+        this.token = await byPassHosting.refreshToken(`http://${this.host}`);
         throw Error("Token refreshed. Please try again");
       } else if (superres.data.includes("errors/404")) {
         throw Error("404 Not found");

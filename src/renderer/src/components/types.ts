@@ -34,7 +34,11 @@ export interface AddHostDialogProps {
   open: boolean;
   onClose: () => void;
   newHost: NewHostState;
-  onNewHostChange: (field: string) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent) => void;
+  onNewHostChange: (
+    field: string
+  ) => (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent
+  ) => void;
   onSubmit: () => void;
 }
 

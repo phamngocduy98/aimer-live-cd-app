@@ -26,12 +26,7 @@ export const ManageHostsDialog: React.FC<ManageHostsDialogProps> = ({
   onAddHostClick
 }) => {
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="sm"
-      fullWidth
-    >
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>Manage Hosts</DialogTitle>
       <DialogContent>
         {isLoadingHosts ? (
@@ -39,16 +34,17 @@ export const ManageHostsDialog: React.FC<ManageHostsDialogProps> = ({
         ) : (
           <List>
             {hosts.length === 0 ? (
-              <Typography sx={{ padding: 2, color: "text.secondary" }}>
-                No hosts found.
-              </Typography>
+              <Typography sx={{ padding: 2, color: "text.secondary" }}>No hosts found.</Typography>
             ) : (
               hosts.map((host) => (
-                <ListItem key={host._id} sx={{ flexDirection: "column", alignItems: "flex-start", py: 1 }}>
+                <ListItem
+                  key={host._id}
+                  sx={{ flexDirection: "column", alignItems: "flex-start", py: 1 }}
+                >
                   <Box sx={{ display: "flex", alignItems: "center", width: "100%" }}>
                     <ListItemText
                       primary={host.host}
-                      secondary={`${host.provider}${host.path ? ` • ${host.path}` : ''}`}
+                      secondary={`${host.provider}${host.path ? ` • ${host.path}` : ""}`}
                       sx={{ flex: 1 }}
                     />
                     <Box sx={{ display: "flex", gap: 1, alignItems: "center", ml: 2 }}>

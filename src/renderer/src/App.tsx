@@ -36,14 +36,14 @@ function App() {
   const [pingResults, setPingResults] = useState<Record<string, PingResult>>({});
   const [isAddHostDialogOpen, setIsAddHostDialogOpen] = useState(false);
   const [newHost, setNewHost] = useState<NewHostState>({
-    host: '',
-    provider: 'infinityfree.net',
-    path: '/audio',
-    ftpHost: 'ftpupload.net',
+    host: "",
+    provider: "infinityfree.net",
+    path: "/audio",
+    ftpHost: "ftpupload.net",
     ftpPort: 21,
-    ftpUsername: '',
-    ftpPassword: '',
-    ftpRoot: '/htdocs'
+    ftpUsername: "",
+    ftpPassword: "",
+    ftpRoot: "/htdocs"
   });
 
   useEffect(() => {
@@ -65,21 +65,21 @@ function App() {
   const handleDeleteHost = async (hostId: string) => {
     try {
       await appAPI.deleteHost(hostId);
-      setHosts(prev => prev.filter(host => host._id !== hostId));
+      setHosts((prev) => prev.filter((host) => host._id !== hostId));
     } catch (err) {
       console.error("Failed to delete host:", err);
     }
   };
 
   const triggerPing = async (hostId: string) => {
-    setPingResults(prev => ({
+    setPingResults((prev) => ({
       ...prev,
       [hostId]: { loading: true, available: null, files: [] }
     }));
 
     try {
       const result = await appAPI.pingHost(hostId);
-      setPingResults(prev => ({
+      setPingResults((prev) => ({
         ...prev,
         [hostId]: {
           loading: false,
@@ -88,20 +88,22 @@ function App() {
         }
       }));
     } catch (err) {
-      setPingResults(prev => ({
+      setPingResults((prev) => ({
         ...prev,
         [hostId]: { loading: false, available: false, files: [], error: "Ping failed" }
       }));
     }
   };
 
-  const handleNewHostChange = (field: string) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent) => {
-    let value: string | number = event.target.value;
-    if ('type' in event.target && event.target.type === 'number') {
-      value = Number(event.target.value);
-    }
-    setNewHost(prev => ({ ...prev, [field]: value }));
-  };
+  const handleNewHostChange =
+    (field: string) =>
+    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent) => {
+      let value: string | number = event.target.value;
+      if ("type" in event.target && event.target.type === "number") {
+        value = Number(event.target.value);
+      }
+      setNewHost((prev) => ({ ...prev, [field]: value }));
+    };
 
   const handleAddHost = async () => {
     try {
@@ -122,14 +124,14 @@ function App() {
       setHosts(updatedHosts);
       setIsAddHostDialogOpen(false);
       setNewHost({
-        host: '',
-        provider: 'infinityfree.net',
-        path: '/audio',
-        ftpHost: 'ftpupload.net',
+        host: "",
+        provider: "infinityfree.net",
+        path: "/audio",
+        ftpHost: "ftpupload.net",
         ftpPort: 21,
-        ftpUsername: '',
-        ftpPassword: '',
-        ftpRoot: '/htdocs'
+        ftpUsername: "",
+        ftpPassword: "",
+        ftpRoot: "/htdocs"
       });
     } catch (err) {
       console.error("Failed to add host:", err);

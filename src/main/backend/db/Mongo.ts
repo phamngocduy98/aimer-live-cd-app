@@ -55,6 +55,16 @@ class DbClient {
     }
   }
 
+  private decryptHostingPasswords(hosting: DbDocument<IHosting>, aes: Aes): void {
+    if (hosting.upload?.type === "ftp") {
+      hosting.upload.ftpCredential.password = aes.decrypt(hosting.upload.ftpCredential.password);
+    } else if ((hosting as any).ftpCredential) {
+      (hosting as any).ftpCredential.password = aes.decrypt(
+        (hosting as any).ftpCredential.password
+      );
+    }
+  }
+
   async listHosting(): Promise<DbDocument<IHosting>[]> {
     if (!this._isConnected) {
       await this.connect();
@@ -65,7 +75,7 @@ class DbClient {
 
     const hostingsList = await Hosting.find({});
     const aes = new Aes(this._dbStorePw);
-    hostingsList.forEach((h) => (h.ftpCredential.password = aes.decrypt(h.ftpCredential.password)));
+    hostingsList.forEach((h) => this.decryptHostingPasswords(h, aes));
     return hostingsList;
   }
 
@@ -80,9 +90,7 @@ class DbClient {
     const hosting = await Hosting.findById(hostId);
     if (hosting === null) return null;
 
-    hosting.ftpCredential.password = new Aes(this._dbStorePw).decrypt(
-      hosting.ftpCredential.password
-    );
+    this.decryptHostingPasswords(hosting, new Aes(this._dbStorePw));
     return hosting;
   }
 }

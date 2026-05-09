@@ -1,17 +1,17 @@
 import { Readable } from "stream";
 
 import { getAesStream, PARTSIZE } from "../../config/const.js";
-import { IFtpCredential } from "../../models/Hosting.js";
+import { UploadConfig } from "../../models/Hosting.js";
 
 const extList: string[] = [".audio", ".unknown", ".jpg", ".png"];
 
-export class MediaUploader {
+export abstract class MediaUploader {
   uploadLimit: number = Number.MAX_VALUE;
   allowedExt: string[] = [];
   deniedExt: string[] = [];
-  /**
-   * @return fileNames of uploaded file
-   */
+
+  abstract init(config: UploadConfig): Promise<void>;
+
   async encryptAndUpload(
     buffer: Buffer,
     name: string,
@@ -30,7 +30,6 @@ export class MediaUploader {
     );
   }
 
-  // ext: extension starting with dot (eg: .mp3)
   getUploadExt(uploadExt: string) {
     let i = 0;
     if (this.allowedExt.length > 0) {
@@ -39,14 +38,14 @@ export class MediaUploader {
         return this.allowedExt[i++].slice(1);
       };
     }
-    const mExtList = !this.deniedExt.includes(uploadExt) ? [uploadExt, ...extList] : extList;
+    const deniedExtList = this.deniedExt.map((e) => `.${e.slice(1)}`);
+    const mExtList = !deniedExtList.includes(uploadExt) ? [uploadExt, ...extList] : extList;
     return () => {
       if (i >= mExtList.length) throw Error("FtpMediaUploader.mExtList");
       return mExtList[i++].slice(1);
     };
   }
 
-  /* upload */
   async upload(
     buffer: Buffer,
     name: string,
@@ -82,7 +81,6 @@ export class MediaUploader {
             break;
           } catch (e) {
             if (++retry > 3) throw Error("Max try exceeded");
-            // delay random 1-30s
             await new Promise((rs) => setTimeout(rs, 1000 + Math.floor(Math.random() * 30000)));
             console.log(`[ ${`Part ${partNo}/${maxFileCount}`.padStart(15)} ] Retry ${retry}/3`);
           }
@@ -96,16 +94,11 @@ export class MediaUploader {
     return { fileCount: partNo };
   }
 
-  async init(_ftpRoot: string, _path: string = "", _ftpCredential: IFtpCredential, ftpLimit: number, ftpExt: string[]): Promise<void> {
-    this.uploadLimit = ftpLimit;
-
-    this.allowedExt = ftpExt.filter((ext) => ext[0] === "+");
-    this.deniedExt = ftpExt.filter((ext) => ext[0] === "-");
-  }
-
-  async uploadFile(upBuff: Readable | Buffer, getFileName: () => string): Promise<string> {
-    throw Error("Not implemented");
-  }
+  abstract uploadFile(
+    upBuff: Readable | Buffer,
+    getFileName: () => string,
+    uploadPath?: string
+  ): Promise<string>;
 
   async end() {}
 }

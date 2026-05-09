@@ -9,6 +9,9 @@
   - Node: `pnpm typecheck:node` (tsconfig.node.json)
   - Web: `pnpm typecheck:web` (tsconfig.web.json)
 - Format: `pnpm format` (Prettier)
+- Test: `pnpm test` (vitest run)
+- Test watch: `pnpm test:watch` (vitest watch mode)
+- Test coverage: `pnpm test:coverage` (vitest with V8 coverage)
 
 ## Build Commands
 
@@ -32,6 +35,21 @@
       - `dialogs/ManageHostsDialog.tsx` - Host management dialog
       - `dialogs/AddHostDialog.tsx` - Add new host dialog
       - `types.ts` - Shared type definitions for components
+- Backend (`src/main/backend/`): Layered architecture
+  - `config/` - App configuration (constants, env)
+  - `models/` - Mongoose schema definitions (Album, Song, Video, Hosting)
+  - `db/` - Data access layer (Mongo.ts, builder pattern)
+  - `routes/` - Express HTTP route handlers
+  - `services/` - Business logic
+    - `mediaUpload/` - FTP media upload service
+    - `stream/` - Audio/video streaming logic
+      - `dto/` - Stream data transfer objects
+      - `part_provider/` - Hosting-specific stream providers
+      - `providers/` - Third-party bypass utilities
+  - `utils/` - Pure utility modules (crypto, stream, cache, http, log)
+  - `types/` - Shared TypeScript type definitions
+  - `scripts/` - Standalone scripts and PHP assets
+  - `webdav/` - WebDAV server integration
 
 ## Important Notes
 
@@ -40,7 +58,7 @@
 - ESLint cache is enabled (`.eslintcache`)
 - Built files go to `./out/` directory
 - Electron Builder configuration in `electron-builder.yml`
-- Password generation script: `pnpm passgen` (src/main/backend/passgen.ts)
+- Password generation script: `pnpm passgen` (src/main/backend/scripts/passgen.ts)
 - Implement client API call in `src\renderer\src\core\api.ts`
 
 ## Environment Variables

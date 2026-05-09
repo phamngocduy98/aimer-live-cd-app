@@ -21,19 +21,14 @@ export const AddHostDialog: React.FC<AddHostDialogProps> = ({
   onSubmit
 }) => {
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="sm"
-      fullWidth
-    >
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>Add New Host</DialogTitle>
       <DialogContent>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
           <TextField
             label="Host Name"
             value={newHost.host}
-            onChange={onNewHostChange('host')}
+            onChange={onNewHostChange("host")}
             fullWidth
             required
             helperText="A friendly name for this host"
@@ -41,7 +36,7 @@ export const AddHostDialog: React.FC<AddHostDialogProps> = ({
           <TextField
             label="Host Path (HTTP URL)"
             value={newHost.path}
-            onChange={onNewHostChange('path')}
+            onChange={onNewHostChange("path")}
             fullWidth
             helperText="URL path for streaming (e.g., /audio). Combined with host for HTTP access."
           />
@@ -50,7 +45,7 @@ export const AddHostDialog: React.FC<AddHostDialogProps> = ({
             <Select
               value={newHost.provider}
               label="Provider"
-              onChange={onNewHostChange('provider')}
+              onChange={onNewHostChange("provider")}
             >
               <MenuItem value="infinityfree.net">infinityfree.net</MenuItem>
               <MenuItem value="awardspace.net">awardspace.net</MenuItem>
@@ -59,7 +54,7 @@ export const AddHostDialog: React.FC<AddHostDialogProps> = ({
           <TextField
             label="FTP Host"
             value={newHost.ftpHost}
-            onChange={onNewHostChange('ftpHost')}
+            onChange={onNewHostChange("ftpHost")}
             fullWidth
             required
             helperText="Default: ftpupload.net"
@@ -68,14 +63,14 @@ export const AddHostDialog: React.FC<AddHostDialogProps> = ({
             label="FTP Port"
             type="number"
             value={newHost.ftpPort}
-            onChange={onNewHostChange('ftpPort')}
+            onChange={onNewHostChange("ftpPort")}
             fullWidth
             required
           />
           <TextField
             label="FTP Username"
             value={newHost.ftpUsername}
-            onChange={onNewHostChange('ftpUsername')}
+            onChange={onNewHostChange("ftpUsername")}
             fullWidth
             required
           />
@@ -83,14 +78,14 @@ export const AddHostDialog: React.FC<AddHostDialogProps> = ({
             label="FTP Password"
             type="password"
             value={newHost.ftpPassword}
-            onChange={onNewHostChange('ftpPassword')}
+            onChange={onNewHostChange("ftpPassword")}
             fullWidth
             required
           />
           <TextField
             label="FTP Root Directory"
             value={newHost.ftpRoot}
-            onChange={onNewHostChange('ftpRoot')}
+            onChange={onNewHostChange("ftpRoot")}
             fullWidth
             required
             helperText="FTP server directory (e.g., /htdocs/audio)"
@@ -99,7 +94,9 @@ export const AddHostDialog: React.FC<AddHostDialogProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={onSubmit} variant="contained">Add Host</Button>
+        <Button onClick={onSubmit} variant="contained">
+          Add Host
+        </Button>
       </DialogActions>
     </Dialog>
   );

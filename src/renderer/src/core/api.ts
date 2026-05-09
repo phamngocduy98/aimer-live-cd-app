@@ -75,19 +75,19 @@ export class AppAPI {
     return resp.data;
   }
 
-async createHost(data: {
-  host: string;
-  provider: string;
-  path?: string;
-  ftpCredential: {
+  async createHost(data: {
     host: string;
-    port?: number;
-    username: string;
-    password: string;
-    secure?: boolean;
-  };
-  ftpRoot: string;
-}): Promise<string> {
+    provider: string;
+    path?: string;
+    ftpCredential: {
+      host: string;
+      port?: number;
+      username: string;
+      password: string;
+      secure?: boolean;
+    };
+    ftpRoot: string;
+  }): Promise<string> {
     const resp = await axios.post<string>("/hosts", data);
     return resp.data;
   }

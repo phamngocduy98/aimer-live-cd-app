@@ -1,8 +1,16 @@
-import { model, Schema, Types } from "mongoose";
+import { model, Schema } from "mongoose";
 
 export enum HostingProvider {
   INFINITVE_FREE = "infinityfree.net",
   AWARD_SPACE = "awardspace.net"
+}
+
+export enum UploadStrategy {
+  FTP = "ftp"
+}
+
+export enum StreamStrategy {
+  HTTP = "http"
 }
 
 export interface IFtpCredential {
@@ -12,55 +20,41 @@ export interface IFtpCredential {
   port: number;
 }
 
-export interface IHosting {
+// Upload configs
+export interface IFtpUploadConfig {
+  type: UploadStrategy.FTP;
   ftpCredential: IFtpCredential;
-  ftpRoot: string; // /htdocs/audio
-  ftpLimit: number; // bytes
-  ftpExt: string[]; // ["+mp3", "-flac"]
-
-  host: string;
+  ftpRoot: string;
   path: string;
-  provider: HostingProvider;
+  ftpLimit: number;
+  ftpExt: string[];
 }
 
-const ftpCredentialSchema = new Schema<IFtpCredential>({
-  host: {
-    type: "String"
-  },
-  user: {
-    type: "String"
-  },
-  password: {
-    type: "String"
-  },
-  port: {
-    type: "Number"
-  }
-});
+export type UploadConfig = IFtpUploadConfig;
+
+// Stream configs
+export interface IHttpStreamConfig {
+  type: StreamStrategy.HTTP;
+  host: string;
+  path: string;
+  partSize: number;
+  antiHotlink?: HostingProvider;
+}
+
+export type StreamConfig = IHttpStreamConfig;
+
+export interface IHosting {
+  name: string;
+  upload: UploadConfig;
+  stream: StreamConfig;
+  provider?: HostingProvider;
+}
 
 export const hostingSchema = new Schema<IHosting>({
-  ftpCredential: {
-    type: ftpCredentialSchema
-  },
-  ftpRoot: {
-    type: "String"
-  },
-  ftpLimit: {
-    type: "Number"
-  },
-  ftpExt: {
-    type: ["String"]
-  },
-
-  host: {
-    type: "String"
-  },
-  path: {
-    type: "String"
-  },
-  provider: {
-    type: "String"
-  }
+  name: { type: String, required: true },
+  upload: { type: Schema.Types.Mixed, required: true },
+  stream: { type: Schema.Types.Mixed, required: true },
+  provider: { type: String }
 });
 
 export const Hosting = model("Hosting", hostingSchema, "hostings");

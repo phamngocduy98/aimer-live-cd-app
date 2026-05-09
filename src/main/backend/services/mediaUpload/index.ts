@@ -2,10 +2,21 @@ import { IAudioMetadata, parseBuffer } from "music-metadata";
 import { dbClient } from "../../db/Mongo.js";
 
 import { AlbumBuilder, SongBuilder, VideoBuilder } from "../../db/builder/index.js";
+import { UploadConfig, UploadStrategy } from "../../models/Hosting.js";
 import { FtpMediaUploader } from "./FtpMediaUploader.js";
+import { MediaUploader } from "./MediaUploader.js";
 
 function isVideo(meta: IAudioMetadata) {
   return meta.format.trackInfo != null && meta.format.trackInfo.length > 0;
+}
+
+export function getMediaUploader(uploadConfig: UploadConfig): MediaUploader {
+  switch (uploadConfig.type) {
+    case UploadStrategy.FTP:
+      return new FtpMediaUploader();
+    default:
+      throw new Error(`Unknown upload strategy: ${(uploadConfig as any).type}`);
+  }
 }
 
 export async function uploadSongAPI(
@@ -37,12 +48,13 @@ export async function uploadSongAPI(
     `[ ${"Upload+".padStart(
       15
     )} ] Uploading ${songBuilder._id.toString()} (${songBuilder.title()}) to ${
-      hosting.host
+      hosting.name
     } (Skip ${skipPart} parts, Limit ${limitPart} parts)...`
   );
-  const ftpMediaUploader = new FtpMediaUploader();
-  await ftpMediaUploader.init(hosting.ftpRoot, hosting.path, hosting.ftpCredential, hosting.ftpLimit, hosting.ftpExt);
-  const { fileCount } = await ftpMediaUploader.encryptAndUpload(
+
+  const uploader = getMediaUploader(hosting.upload);
+  await uploader.init(hosting.upload);
+  const { fileCount } = await uploader.encryptAndUpload(
     buffer,
     String(songBuilder._id._id),
     fileExtension,
@@ -50,7 +62,7 @@ export async function uploadSongAPI(
     skipPart,
     limitPart
   );
-  await ftpMediaUploader.end();
+  await uploader.end();
 
   const uploadDuration = (Date.now() - startTimestamp) / 1000;
   const speed = Math.floor(buffer.length / 1000 / uploadDuration);

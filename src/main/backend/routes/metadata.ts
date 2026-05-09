@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import { PARTSIZE } from "../config/const.js";
 import { Aes } from "../utils/crypto/aes.js";
 import { Album } from "../models/Album.js";
-import { Hosting, IHosting } from "../models/Hosting.js";
+import { Hosting, IHosting, UploadStrategy, StreamStrategy } from "../models/Hosting.js";
 import { dbClient } from "../db/Mongo.js";
 import { Song } from "../models/Song.js";
 import { Video } from "../models/Video.js";
@@ -17,14 +17,17 @@ const __dirname = path.resolve();
 
 // GET /api/hosts
 export async function handleGetHosts(req, res) {
-const hostings = await Hosting.find(
-  {},
-  {
-    host: 1,
-    provider: 1,
-    path: 1
-  }
-)
+  const hostings = await Hosting.find(
+    {},
+    {
+      name: 1,
+      provider: 1,
+      "upload.type": 1,
+      "stream.type": 1,
+      "stream.host": 1,
+      "stream.path": 1
+    }
+  )
     .lean()
     .exec();
   res.send(hostings);
@@ -37,24 +40,45 @@ export async function handleCreateHost(req, res) {
   try {
     const aes = new Aes(process.env.DB_STORE_PW!);
 
-    // Map frontend username to backend user field
     const ftpCredential = req.body?.ftpCredential;
     if (ftpCredential?.username && !ftpCredential?.user) {
       ftpCredential.user = ftpCredential.username;
       delete ftpCredential.username;
     }
 
-    const data: IHosting = {
-      ftpLimit: PARTSIZE,
-      ftpExt: [],
-      ...req.body,
-      ftpCredential: {
-        ...ftpCredential,
-        password: aes.encrypt(ftpCredential?.password)
-      } as IHosting["ftpCredential"]
+    const name = req.body?.name ?? req.body?.host ?? "unknown";
+    const provider = req.body?.provider;
+    const ftpRoot = req.body?.ftpRoot ?? "/htdocs";
+    const ftpPath = req.body?.path ?? "/audio";
+    const ftpLimit = req.body?.ftpLimit ?? PARTSIZE;
+    const ftpExt = req.body?.ftpExt ?? [];
+    const streamConfig = {
+      type: StreamStrategy.HTTP,
+      host: req.body?.host ?? ftpCredential?.host ?? name,
+      path: ftpPath,
+      partSize: ftpLimit,
+      ...(provider ? { antiHotlink: provider } : {})
     };
+
+    const data: IHosting = {
+      name,
+      upload: {
+        type: UploadStrategy.FTP,
+        ftpCredential: {
+          ...ftpCredential,
+          password: aes.encrypt(ftpCredential?.password)
+        },
+        ftpRoot,
+        path: ftpPath,
+        ftpLimit,
+        ftpExt
+      },
+      stream: streamConfig,
+      ...(provider ? { provider } : {})
+    };
+
     let host = await Hosting.findOne({
-      host: req.body?.host
+      name
     });
     if (host == null) {
       host = new Hosting(data);
@@ -64,31 +88,30 @@ export async function handleCreateHost(req, res) {
 
     await host.save();
 
-    // ftpHost
-    const ftpHost = {
-      ...data,
-      ftpCredential: {
-        ...data.ftpCredential,
-        password: ftpCredential?.password
-      }
-    };
-
+    // FTP setup: create directory and upload PHP files
     const up = new FtpMediaUploader();
-    await up.init(ftpHost.ftpRoot, ftpHost.path, ftpHost.ftpCredential, ftpHost.ftpLimit, ftpHost.ftpExt);
+    const plainCredential = { ...ftpCredential, password: ftpCredential?.password };
+    const setupConfig = {
+      type: UploadStrategy.FTP,
+      ftpCredential: plainCredential,
+      ftpRoot,
+      path: ftpPath,
+      ftpLimit,
+      ftpExt
+    };
+    await up.init(setupConfig);
 
-    // Create FTP directory (ftpRoot + path) for first-time setup
-    await up.ftpClient?.mkdir(`${host.ftpRoot}${host.path}`);
+    await up.ftpClient?.mkdir(`${ftpRoot}${ftpPath}`);
 
-    // Upload PHP files to ftpRoot only (without path)
     await up.uploadFile(
       await readFile(path.join(__dirname, "src", "php", "sync.php")),
       () => "sync.php",
-      ""  // upload to ftpRoot only
+      ""
     );
     await up.uploadFile(
       await readFile(path.join(__dirname, "src", "php", "status.php")),
       () => "status.php",
-      ""  // upload to ftpRoot only
+      ""
     );
     await up.end();
     ok(res, `${host.id}`);
@@ -103,7 +126,6 @@ export async function handleDeleteHost(req, res) {
   if (req.params.id.length !== 12 && req.params.id.length !== 24)
     return fail(res, "Invalid request");
 
-  // remove hosting from song
   const upResult = await Song.updateMany(
     {
       hostingList: req.params.id
@@ -127,7 +149,7 @@ export async function handleDeleteHost(req, res) {
     }
   );
   console.log(`Updated ${upVResult.modifiedCount} videos!`);
-  // delete song without any hosting
+
   const delResult = await Song.deleteMany({
     hostingList: []
   });
@@ -139,10 +161,9 @@ export async function handleDeleteHost(req, res) {
   });
   console.log(`Deleted ${delVResult.deletedCount} videos!`);
 
-  // delete host from database
   const delHostResult = await Hosting.findByIdAndDelete(req.params.id);
   if (delHostResult) {
-    console.log(`Deleted host: ${delHostResult.host}`);
+    console.log(`Deleted host: ${delHostResult.name}`);
   } else {
     console.log(`Host not found: ${req.params.id}`);
   }
@@ -294,15 +315,15 @@ export async function handleGetAlbumBackup(req, res) {
     res.send({
       hosted: [...hosted].map((hostId) => ({
         id: hostingsMap[hostId].id,
-        host: hostingsMap[hostId].host
+        host: hostingsMap[hostId].name
       })),
       patialHosted: [...patialHosted].map((hostId) => ({
         id: hostingsMap[hostId].id,
-        host: hostingsMap[hostId].host
+        host: hostingsMap[hostId].name
       })),
       notHosted: [...notHosted].map((hostId) => ({
         id: hostingsMap[hostId].id,
-        host: hostingsMap[hostId].host
+        host: hostingsMap[hostId].name
       }))
     });
     res.end();

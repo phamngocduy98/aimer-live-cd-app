@@ -54,7 +54,6 @@ export async function handleStreamVideo(req, res) {
 
     req.on("error", (e) => {
       console.error("[Error] Client request " + e);
-      stream.stopStream();
       res.end();
     });
 

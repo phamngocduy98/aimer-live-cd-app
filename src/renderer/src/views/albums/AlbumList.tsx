@@ -50,12 +50,15 @@ export const Albums: React.FC = () => {
   }, []);
 
   const groupedAlbums = useMemo(() => {
-    return albums.reduce((acc, album) => {
-      const year = album.year ?? "Unknown";
-      if (!acc[year]) acc[year] = [];
-      acc[year].push(album);
-      return acc;
-    }, {} as Record<string | number, Album[]>);
+    return albums.reduce(
+      (acc, album) => {
+        const year = album.year ?? "Unknown";
+        if (!acc[year]) acc[year] = [];
+        acc[year].push(album);
+        return acc;
+      },
+      {} as Record<string | number, Album[]>
+    );
   }, [albums]);
 
   const sortedYears = useMemo(() => {

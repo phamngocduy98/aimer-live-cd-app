@@ -34,7 +34,9 @@ import { QueueList } from "./FloatingQueueList";
 import "./player.css";
 import { isVideo } from "../../core/Video";
 
-const getDominantColor = async (imageUrl: string): Promise<{ r: number; g: number; b: number } | null> => {
+const getDominantColor = async (
+  imageUrl: string
+): Promise<{ r: number; g: number; b: number } | null> => {
   return new Promise((resolve) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
@@ -88,7 +90,9 @@ const getDominantColor = async (imageUrl: string): Promise<{ r: number; g: numbe
 export const MobilePlayer: React.FC = () => {
   const dispatch = useAppDispatch();
   const { playingTrack } = useAppSelector((state) => state.player);
-  const [dominantColor, setDominantColor] = useState<{ r: number; g: number; b: number } | null>(null);
+  const [dominantColor, setDominantColor] = useState<{ r: number; g: number; b: number } | null>(
+    null
+  );
 
   useEffect(() => {
     const albumId = playingTrack?.album?._id;

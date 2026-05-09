@@ -1,6 +1,6 @@
 import { MediaUploader } from "./MediaUploader.js";
 
-import { IFtpCredential } from "../../models/Hosting.js";
+import { UploadConfig, UploadStrategy } from "../../models/Hosting.js";
 import { MyFtp } from "./MyFtp.js";
 
 export class FtpMediaUploader extends MediaUploader {
@@ -8,19 +8,27 @@ export class FtpMediaUploader extends MediaUploader {
   ftpRoot: string = "";
   path: string = "";
 
-  async init(ftpRoot: string, path: string, ftpCredential: IFtpCredential, ftpLimit: number, ftpExt: string[]): Promise<void> {
-    this.uploadLimit = ftpLimit;
-    this.allowedExt = ftpExt.filter((ext) => ext[0] === "+");
-    this.deniedExt = ftpExt.filter((ext) => ext[0] === "-");
+  async init(config: UploadConfig): Promise<void> {
+    if (config.type !== UploadStrategy.FTP) {
+      throw new Error(`FtpMediaUploader requires FTP upload config, got ${config.type}`);
+    }
 
-    this.ftpRoot = ftpRoot;
-    this.path = path;
+    this.uploadLimit = config.ftpLimit;
+    this.allowedExt = config.ftpExt.filter((ext) => ext[0] === "+");
+    this.deniedExt = config.ftpExt.filter((ext) => ext[0] === "-");
 
-    this.ftpClient = new MyFtp(ftpCredential);
+    this.ftpRoot = config.ftpRoot;
+    this.path = config.path;
+
+    this.ftpClient = new MyFtp(config.ftpCredential);
     await this.ftpClient.connect();
   }
 
-  async uploadFile(upBuff: Buffer, getFileName: () => string, uploadPath?: string): Promise<string> {
+  async uploadFile(
+    upBuff: Buffer,
+    getFileName: () => string,
+    uploadPath?: string
+  ): Promise<string> {
     if (this.ftpClient == null) throw Error("FTP client not init");
     const fileName = getFileName();
     const pathToUse = uploadPath ?? this.path;

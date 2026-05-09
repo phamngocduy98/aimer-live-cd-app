@@ -2,7 +2,7 @@ import MultiStream from "multistream";
 import http from "node:http";
 import { Readable } from "node:stream";
 import { PARTSIZE } from "../../config/const.js";
-import { IHosting } from "../../models/Hosting.js";
+import { IHosting, IHttpStreamConfig, StreamStrategy } from "../../models/Hosting.js";
 import { parseRange } from "../../utils/http.js";
 import { removeStreamPadding } from "../../utils/stream/removeStreamPadding.js";
 import { contentType } from "./dto/contentType.js";
@@ -10,6 +10,13 @@ import { cache } from "./MyStreamCache.js";
 import { getPartProvider } from "./part_provider/index.js";
 import { StreamFilePart } from "./dto/StreamFilePart.js";
 import { StreamInfo } from "./dto/StreamInfo.js";
+
+function getPartSize(hosting: IHosting): number {
+  if (hosting.stream.type === StreamStrategy.HTTP) {
+    return (hosting.stream as IHttpStreamConfig).partSize;
+  }
+  return PARTSIZE;
+}
 
 export class SongStream {
   constructor(private reqHeaders: http.IncomingHttpHeaders) {}
@@ -47,7 +54,7 @@ export class SongStream {
       return stream;
     } catch (e: any) {
       console.log(
-        `[ ${"Stream part".padStart(15)} ] ${info.id}: Hosting ${hosting.host} Failed: ${e}`
+        `[ ${"Stream part".padStart(15)} ] ${info.id}: Hosting ${hosting.name} Failed: ${e}`
       );
       for (let host of info.hostingList) {
         if (!triedHosting.has(host)) {
@@ -65,9 +72,8 @@ export class SongStream {
     );
 
     const partToHosts = new Map<string, IHosting[]>();
-    allPartFiles.forEach(file => partToHosts.set(file, []));
+    allPartFiles.forEach((file) => partToHosts.set(file, []));
 
-    // Helper to parse part filename into base UUID and part number (matches HostingPartProvider logic)
     const parsePartFile = (partFile: string) => {
       const match = partFile.match(/^(.+?)(?:_(\d+))?\.[^.]+$/);
       if (!match) return null;
@@ -75,9 +81,9 @@ export class SongStream {
       const suffix = match[2];
       let partNumber: number;
       if (suffix === undefined) {
-        partNumber = 1; // No suffix = first part
+        partNumber = 1;
       } else {
-        partNumber = parseInt(suffix, 10) + 1; // _N suffix = part N+1
+        partNumber = parseInt(suffix, 10) + 1;
       }
       return { baseUuid, partNumber };
     };
@@ -88,25 +94,22 @@ export class SongStream {
         const pingResult = await provider.ping();
         if (!pingResult?.available || !Array.isArray(pingResult.files)) return;
 
-        // Build map of base UUID to part ranges from ping result
         const baseToParts = new Map<string, string>();
         for (const f of pingResult.files) {
-          baseToParts.set(f.fileName, f.parts); // f.fileName = base UUID, f.parts = "1-11" or "1,3-5"
+          baseToParts.set(f.fileName, f.parts);
         }
 
-        // Check each part file against this host's available parts
-        allPartFiles.forEach(partFile => {
+        allPartFiles.forEach((partFile) => {
           const parsed = parsePartFile(partFile);
           if (!parsed) return;
           const { baseUuid, partNumber } = parsed;
           const partsRange = baseToParts.get(baseUuid);
           if (!partsRange) return;
 
-          // Check if partNumber is within the range(s)
-          const ranges = partsRange.split(',');
+          const ranges = partsRange.split(",");
           let partExists = false;
           for (const range of ranges) {
-            const [startStr, endStr] = range.split('-');
+            const [startStr, endStr] = range.split("-");
             const start = parseInt(startStr, 10);
             const end = endStr ? parseInt(endStr, 10) : start;
             if (partNumber >= start && partNumber <= end) {
@@ -120,7 +123,7 @@ export class SongStream {
           }
         });
       } catch (e) {
-        console.log(`[${"Ping".padStart(15)}] Host ${hosting.host} failed: ${e}`);
+        console.log(`[${"Ping".padStart(15)}] Host ${hosting.name} failed: ${e}`);
       }
     });
 
@@ -140,15 +143,15 @@ export class SongStream {
   async stream(info: StreamInfo): Promise<{ stream: MultiStream; metadata: Record<string, any> }> {
     let multiStream: MultiStream | null = null;
 
-
-    // Pre-ping and validate all parts
     let partToAvailableHosts: Map<string, IHosting[]> = new Map();
 
     try {
       partToAvailableHosts = await this.pingAndValidateParts(info);
-      console.log(`[ ${"Stream".padStart(15)} ] All parts validated. Available hosts per part: ${
-        JSON.stringify([...partToAvailableHosts].map(([f, h]) => [f, h.map(x => x.host)]))
-      }`);
+      console.log(
+        `[ ${"Stream".padStart(15)} ] All parts validated. Available hosts per part: ${JSON.stringify(
+          [...partToAvailableHosts].map(([f, h]) => [f, h.map((x) => x.name)])
+        )}`
+      );
     } catch (e: any) {
       console.error(`[ ${"Stream".padStart(15)} ] Validation failed: ${e.message}`);
       const error = new Error(e.message);
@@ -156,7 +159,10 @@ export class SongStream {
       throw error;
     }
 
-    const partSize = Math.min(PARTSIZE, info.hostingList[0].ftpLimit); // temp fix
+    const partSize = Math.min(
+      PARTSIZE,
+      info.hostingList.length > 0 ? getPartSize(info.hostingList[0]) : PARTSIZE
+    );
     const range = parseRange(this.reqHeaders["range"], info.size);
 
     const fileList = [...Array(info.fileCount)].map(
@@ -189,14 +195,16 @@ export class SongStream {
           const newCacheStream = cache.set(partFileName);
           try {
             stream = await this.streamPart(info, currentPart, selectedHost);
-            console.log(`[ ${"MultiStream".padStart(15)} ] ${partFileName}: Ready from ${selectedHost.host}`);
+            console.log(
+              `[ ${"MultiStream".padStart(15)} ] ${partFileName}: Ready from ${selectedHost.name}`
+            );
             stream.pipe(newCacheStream);
             cb(null, removeStreamPadding(cache.get(partFileName)!, currentPart));
           } catch (e) {
             console.log(
               `[ ${"Stream part".padStart(15)} ] ${
                 info.id
-              }: Part ${partIdx} failed from ${selectedHost.host}: ${e}`
+              }: Part ${partIdx} failed from ${selectedHost.name}: ${e}`
             );
             newCacheStream.destroy(e as Error);
             cb(e as Error, null);
@@ -211,13 +219,6 @@ export class SongStream {
       }
     };
 
-    // for (let partIdx = 0; partIdx < parts.length; partIdx++) {
-    //   const hosting = song.hostingList[partIdx % song.hostingList.length];
-    //   const stream = await this.streamPart(song, parts[partIdx], hosting);
-    //   streams[partIdx] = stream;
-    // }
-
-    // make sure every parts is available before sending headers.
     const _contentType = contentType.getContentType(info.fileExtension ?? info.format);
 
     multiStream = new MultiStream(streamFactory)
@@ -248,10 +249,5 @@ export class SongStream {
       }
     };
     return { stream: multiStream!, metadata };
-  }
-
-  stopStream() {
-    // this.multiStream?.emit("error", Error("stopStream()"));
-    // this.outputSteam.end();
   }
 }

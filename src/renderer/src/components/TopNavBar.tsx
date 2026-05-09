@@ -33,7 +33,8 @@ const BootstrapInput = styled(InputBase)({
     fontSize: "14px",
     width: "auto",
     padding: "10px 12px 10px 38px",
-    transition: "border-color 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, background-color 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
+    transition:
+      "border-color 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, background-color 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
     "&:focus": {
       boxShadow: "rgba(25, 118, 210, 0.25) 0 0 0 0.2rem",
       borderColor: "#1976d2",
@@ -110,10 +111,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             />
           </Grid>
           <Grid xs="auto" sx={{ marginLeft: 2, display: { xs: "none", sm: "unset" } }}>
-            <IconButton
-              onClick={onMenuOpen}
-              size="small"
-            >
+            <IconButton onClick={onMenuOpen} size="small">
               <Avatar sx={{ width: 32, height: 32, bgcolor: "primary.main", fontSize: "14px" }}>
                 U
               </Avatar>
@@ -121,11 +119,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           </Grid>
         </Grid>
       </Box>
-      <Menu
-        anchorEl={anchorEl}
-        open={isMenuOpen}
-        onClose={onMenuClose}
-      >
+      <Menu anchorEl={anchorEl} open={isMenuOpen} onClose={onMenuClose}>
         <MenuItem
           onClick={() => {
             onMenuClose();

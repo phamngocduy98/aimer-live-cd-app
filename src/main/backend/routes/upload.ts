@@ -1,7 +1,7 @@
 import axios from "axios";
 import { PARTSIZE } from "../config/const.js";
 import { Album } from "../models/Album.js";
-import { IHosting } from "../models/Hosting.js";
+import { IHosting, IHttpStreamConfig, StreamStrategy, UploadStrategy } from "../models/Hosting.js";
 import { dbClient } from "../db/Mongo.js";
 import { ISong, Song } from "../models/Song.js";
 import { IVideo, Video } from "../models/Video.js";
@@ -9,7 +9,6 @@ import { uploadSongAPI } from "../services/mediaUpload/index.js";
 import { getPartProvider } from "../services/stream/part_provider/index.js";
 import { fail, ok } from "../utils/reqUtils.js";
 import { DbDocument, WithDocument } from "../types/type.js";
-import { Readable } from "node:stream";
 
 // POST /api/videos/youtube/:albumId?
 export async function handleYoutubeVideoUpload(req, res) {
@@ -174,21 +173,34 @@ export async function handleGetPart(req, res) {
   for (let hosting of song.hostingList) {
     try {
       console.log(
-        `[ ${"Raw Part".padStart(15)} ] Get part ${req.params.fileName} from ${hosting.host}`
+        `[ ${"Raw Part".padStart(15)} ] Get part ${req.params.fileName} from ${hosting.name}`
       );
       const provider = getPartProvider(hosting, {});
-      const stream = await provider.get(req.params.fileName, {});
-      res?.writeHead(206, "Partial Content", stream.headers as any);
+      const part = await provider.fetchRawPart(req.params.fileName);
+      const headers: Record<string, string> = {};
+      if (part.contentType) headers["Content-Type"] = part.contentType;
+      if (part.contentLength != null) headers["Content-Length"] = String(part.contentLength);
+      res?.writeHead(206, "Partial Content", headers);
       console.log(`[ ${"Raw Part".padStart(15)} ] Part ok, streaming`);
-      (stream.data as Readable).pipe(res);
+      part.data.pipe(res);
       return;
     } catch (e: any) {
       console.error(
-        `[ ${"Raw Part".padStart(15)} ] Fail to load from hosting ${hosting.host}: ${e}`
+        `[ ${"Raw Part".padStart(15)} ] Fail to load from hosting ${hosting.name}: ${e}`
       );
     }
   }
   fail(res, "No part available");
+}
+
+function getPartSizeForHosting(hosting: IHosting): number {
+  if (hosting.stream.type === StreamStrategy.HTTP) {
+    return (hosting.stream as IHttpStreamConfig).partSize;
+  }
+  if (hosting.upload.type === UploadStrategy.FTP) {
+    return hosting.upload.ftpLimit;
+  }
+  return PARTSIZE;
 }
 
 // POST /api/album/:id/backup/:hostid
@@ -218,23 +230,19 @@ export async function handleAlbumBackup(req, res) {
     const targetHosting = await dbClient.findHosting(req.params.hostid);
     if (targetHosting == null) throw Error("hosting not found");
 
-    // TODO: videoList support
     for (let song of album.trackList as WithDocument<ISong>[]) {
-      // find a working hosting to fetch part
       for (let hosting of song.hostingList) {
         const stream = getPartProvider(hosting, req.headers);
-        const partSize = Math.min(PARTSIZE, song.size, hosting.ftpLimit);
+        const partSize = getPartSizeForHosting(hosting);
 
         const notHosted =
           (song.hostingList as WithDocument<IHosting>[]).findIndex((h) =>
             h._id.equals(targetHosting._id)
           ) === -1;
-        if (notHosted && partSize <= targetHosting.ftpLimit) {
+        const targetPartSize = getPartSizeForHosting(targetHosting);
+        if (notHosted && partSize <= targetPartSize) {
           try {
-            await stream.backup(
-              song as WithDocument<ISong>,
-              targetHosting as WithDocument<IHosting>
-            );
+            await stream.backup(song as WithDocument<ISong>, targetHosting);
             song.hostingList.push(targetHosting);
             await song.save();
             break;
@@ -289,9 +297,14 @@ export async function handleAlbumBackup2(req, res) {
       ...(album.videoList as DbDocument<IVideo>[])
     ];
     for (let song of songs) {
-      const stream = getPartProvider(targetHosting, req.headers);
+      const provider = getPartProvider(targetHosting, req.headers);
 
-      const availableParts = new Set((await stream.get("status.php")).data.split(","));
+      const statusRes = await provider.fetchRawPart("status.php");
+      const buffers: Buffer[] = [];
+      for await (const chunk of statusRes.data) {
+        buffers.push(chunk);
+      }
+      const availableParts = new Set(Buffer.concat(buffers).toString("utf-8").split(","));
 
       try {
         for (let i = skipPart; i < skipPart + limitPart && i < song.fileCount; i++) {
@@ -306,8 +319,12 @@ export async function handleAlbumBackup2(req, res) {
           }
 
           console.log(`[ ${`Backup ${i}/${song.fileCount}`.padStart(15)} ] ${fileName}`);
-          const res = await stream.get(`sync.php?id=${song.id}&file=${fileName}`, undefined);
-          const resp = res.data;
+          const resPayload = await provider.fetchRawPart(`sync.php?id=${song.id}&file=${fileName}`);
+          const respBuffers: Buffer[] = [];
+          for await (const chunk of resPayload.data) {
+            respBuffers.push(chunk);
+          }
+          const resp = Buffer.concat(respBuffers).toString("utf-8");
           if (resp !== "ok") throw Error(resp);
         }
 

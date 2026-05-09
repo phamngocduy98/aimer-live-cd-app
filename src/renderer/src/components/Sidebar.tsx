@@ -28,7 +28,7 @@ const MyListItem = styled(ListItem)({
 
 const MyListItemButton = styled(ListItemButton)({
   "&:hover": {
-    borderRadius: "8px",
+    borderRadius: "8px"
   }
 });
 
@@ -64,9 +64,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerWidth }) => {
         anchor="left"
       >
         <div style={{ padding: "16px 24px" }}>
-          <div style={{ fontSize: "20px", fontWeight: 700 }}>
-            Aimer live music
-          </div>
+          <div style={{ fontSize: "20px", fontWeight: 700 }}>Aimer live music</div>
         </div>
         <List subheader={<MyListSubheader>MY COLLECTION</MyListSubheader>}>
           <MyListItem key={"Playlist"}>
