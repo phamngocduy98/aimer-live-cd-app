@@ -1,6 +1,6 @@
 import http from "http";
 
-import { HostingProvider, IHosting } from "../../db/Hosting.js";
+import { HostingProvider, IHosting } from "../../../models/Hosting.js";
 import { AwardspaceHosting } from "./AwardspaceHosting.js";
 import { StreamProvider } from "./StreamProvider.js";
 import { InfinitiveFreeHosting } from "./InfFreeHosting.js";

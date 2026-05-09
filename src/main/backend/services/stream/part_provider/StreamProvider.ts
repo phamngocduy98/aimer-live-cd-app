@@ -1,16 +1,16 @@
 import http from "node:http";
 import axios, { AxiosResponse } from "axios";
 import { Readable, Transform, Writable } from "node:stream";
-import { getAesStream, PARTSIZE } from "../../const.js";
-import { IHosting } from "../../db/Hosting.js";
-import { Song } from "../../db/Song.js";
-import { Video } from "../../db/Video.js";
-import { resp2string, waitStreamClose } from "../../lib/stream/stream2buffer.js";
-import { WithDocument } from "../../utils/type.js";
+import { getAesStream, PARTSIZE } from "../../../config/const.js";
+import { IHosting } from "../../../models/Hosting.js";
+import { Song } from "../../../models/Song.js";
+import { Video } from "../../../models/Video.js";
+import { resp2string, waitStreamClose } from "../../../utils/stream/stream2buffer.js";
+import { WithDocument } from "../../../types/type.js";
 import { StreamFilePart } from "../dto/StreamFilePart.js";
 import { StreamInfo } from "../dto/StreamInfo.js";
 import fs from "fs";
-import { FtpMediaUploader } from "../../media_upload/FtpMediaUploader.js";
+import { FtpMediaUploader } from "../../mediaUpload/FtpMediaUploader.js";
 export class StreamProvider {
   constructor(
     protected hosting: IHosting,

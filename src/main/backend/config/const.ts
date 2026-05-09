@@ -1,7 +1,7 @@
 import * as dotenv from "dotenv";
 dotenv.config();
 
-import { AesStream } from "./lib/crypto/aes_stream.js";
+import { AesStream } from "../utils/crypto/aes_stream.js";
 
 function parseEnvInt(env: string | undefined, def: number) {
   return env ? parseInt(env) : def;

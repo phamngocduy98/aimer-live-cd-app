@@ -1,14 +1,14 @@
 import axios from "axios";
-import { PARTSIZE } from "../const.js";
-import { Album } from "../db/Album.js";
-import { IHosting } from "../db/Hosting.js";
+import { PARTSIZE } from "../config/const.js";
+import { Album } from "../models/Album.js";
+import { IHosting } from "../models/Hosting.js";
 import { dbClient } from "../db/Mongo.js";
-import { ISong, Song } from "../db/Song.js";
-import { IVideo, Video } from "../db/Video.js";
-import { uploadSongAPI } from "../media_upload/index.js";
-import { getPartProvider } from "../stream/part_provider/index.js";
+import { ISong, Song } from "../models/Song.js";
+import { IVideo, Video } from "../models/Video.js";
+import { uploadSongAPI } from "../services/mediaUpload/index.js";
+import { getPartProvider } from "../services/stream/part_provider/index.js";
 import { fail, ok } from "../utils/reqUtils.js";
-import { DbDocument, WithDocument } from "../utils/type.js";
+import { DbDocument, WithDocument } from "../types/type.js";
 import { Readable } from "node:stream";
 
 // POST /api/videos/youtube/:albumId?

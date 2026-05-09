@@ -1,17 +1,17 @@
 import path from "node:path";
 import { Readable } from "node:stream";
 import { readFile } from "node:fs/promises";
-import { PARTSIZE } from "../const.js";
-import { Aes } from "../lib/crypto/aes.js";
-import { Album } from "../db/Album.js";
-import { Hosting, IHosting } from "../db/Hosting.js";
+import { PARTSIZE } from "../config/const.js";
+import { Aes } from "../utils/crypto/aes.js";
+import { Album } from "../models/Album.js";
+import { Hosting, IHosting } from "../models/Hosting.js";
 import { dbClient } from "../db/Mongo.js";
-import { Song } from "../db/Song.js";
-import { Video } from "../db/Video.js";
-import { FtpMediaUploader } from "../media_upload/FtpMediaUploader.js";
-import { getPartProvider } from "../stream/part_provider/index.js";
+import { Song } from "../models/Song.js";
+import { Video } from "../models/Video.js";
+import { FtpMediaUploader } from "../services/mediaUpload/FtpMediaUploader.js";
+import { getPartProvider } from "../services/stream/part_provider/index.js";
 import { fail, ok } from "../utils/reqUtils.js";
-import { WithDocument } from "../utils/type.js";
+import { WithDocument } from "../types/type.js";
 
 const __dirname = path.resolve();
 

@@ -1,10 +1,10 @@
 import MultiStream from "multistream";
 import http from "node:http";
 import { Readable } from "node:stream";
-import { PARTSIZE } from "../const.js";
-import { IHosting } from "../db/Hosting.js";
-import { parseRange } from "../utils/http.js";
-import { removeStreamPadding } from "../lib/stream/removeStreamPadding.js";
+import { PARTSIZE } from "../../config/const.js";
+import { IHosting } from "../../models/Hosting.js";
+import { parseRange } from "../../utils/http.js";
+import { removeStreamPadding } from "../../utils/stream/removeStreamPadding.js";
 import { contentType } from "./dto/contentType.js";
 import { cache } from "./MyStreamCache.js";
 import { getPartProvider } from "./part_provider/index.js";

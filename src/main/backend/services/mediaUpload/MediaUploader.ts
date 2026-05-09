@@ -1,7 +1,7 @@
 import { Readable } from "stream";
 
-import { getAesStream, PARTSIZE } from "../const.js";
-import { IFtpCredential } from "../db/Hosting.js";
+import { getAesStream, PARTSIZE } from "../../config/const.js";
+import { IFtpCredential } from "../../models/Hosting.js";
 
 const extList: string[] = [".audio", ".unknown", ".jpg", ".png"];
 

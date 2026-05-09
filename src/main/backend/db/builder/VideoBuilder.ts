@@ -1,11 +1,11 @@
 import { Types } from "mongoose";
 import { IAudioMetadata, IFormat } from "music-metadata";
-import { DbDocument } from "../../utils/type.js";
-import { IHosting } from "../Hosting.js";
-import { ISong, Song } from "../Song.js";
+import { DbDocument } from "../../types/type.js";
+import { IHosting } from "../../models/Hosting.js";
+import { ISong, Song } from "../../models/Song.js";
 import { ContentBuilder } from "./ContentBuilder.js";
 import { AlbumBuilder } from "./AlbumBuilder.js";
-import { IVideo, Video } from "../Video.js";
+import { IVideo, Video } from "../../models/Video.js";
 
 const VIDEO_CODEC = ["<avc1>", "MPEGH/ISO/HEVC", "mp42", "VP9", "MPEG4/ISO/AVC"];
 

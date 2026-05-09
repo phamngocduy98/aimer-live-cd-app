@@ -1,6 +1,6 @@
 import { MediaUploader } from "./MediaUploader.js";
 
-import { IFtpCredential } from "../db/Hosting.js";
+import { IFtpCredential } from "../../models/Hosting.js";
 import { MyFtp } from "./MyFtp.js";
 
 export class FtpMediaUploader extends MediaUploader {

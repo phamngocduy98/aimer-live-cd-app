@@ -1,4 +1,4 @@
-import { Format } from "../../db/Song.js";
+import { Format } from "../../../models/Song.js";
 
 type Format2ContentType = {
   [key: string]: string;

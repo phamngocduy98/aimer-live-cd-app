@@ -1,7 +1,7 @@
 import mongoose, { connect } from "mongoose";
-import { Aes } from "../lib/crypto/aes.js";
-import { DbDocument } from "../utils/type.js";
-import { Hosting, IHosting } from "./Hosting.js";
+import { Aes } from "../utils/crypto/aes.js";
+import { DbDocument } from "../types/type.js";
+import { Hosting, IHosting } from "../models/Hosting.js";
 
 /**
  * Singleton DbClient class

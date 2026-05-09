@@ -1,5 +1,5 @@
 import { Readable, Transform } from "stream";
-import { StreamFilePart } from "../../stream/dto/StreamFilePart.js";
+import { StreamFilePart } from "../../services/stream/dto/StreamFilePart.js";
 
 export function removeStreamPadding(input: Readable, part: StreamFilePart) {
   if (part.partByteStart === 0 && part.partByteEnd == part.partSize - 1) return input;

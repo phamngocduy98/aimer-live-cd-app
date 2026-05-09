@@ -1,6 +1,6 @@
 import { IAudioMetadata } from "music-metadata";
-import { DbDocument } from "../../utils/type.js";
-import { IHosting } from "../Hosting.js";
+import { DbDocument } from "../../types/type.js";
+import { IHosting } from "../../models/Hosting.js";
 import { AlbumBuilder } from "./AlbumBuilder.js";
 import { Builder } from "./index.js";
 import crypto from "crypto";

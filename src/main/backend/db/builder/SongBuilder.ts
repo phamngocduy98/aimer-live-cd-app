@@ -1,8 +1,8 @@
 import { Types } from "mongoose";
 import { IAudioMetadata } from "music-metadata";
-import { DbDocument } from "../../utils/type.js";
-import { IHosting } from "../Hosting.js";
-import { ISong, Song } from "../Song.js";
+import { DbDocument } from "../../types/type.js";
+import { IHosting } from "../../models/Hosting.js";
+import { ISong, Song } from "../../models/Song.js";
 import { ContentBuilder } from "./ContentBuilder.js";
 import { AlbumBuilder } from "./AlbumBuilder.js";
 

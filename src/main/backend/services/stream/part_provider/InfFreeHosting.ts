@@ -1,7 +1,7 @@
 import http from "node:http";
 import { StreamProvider } from "./StreamProvider.js";
-import { resp2string } from "../../lib/stream/stream2buffer.js";
-import { byPassHosting } from "./inffree/bypass.js";
+import { resp2string } from "../../../utils/stream/stream2buffer.js";
+import { byPassHosting } from "../providers/inffree/bypass.js";
 import { AxiosResponse } from "axios";
 
 export class InfinitiveFreeHosting extends StreamProvider {

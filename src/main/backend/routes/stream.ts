@@ -1,6 +1,6 @@
-import { Song } from "../db/Song.js";
-import { Video } from "../db/Video.js";
-import { SongStream } from "../stream/SongStream.js";
+import { Song } from "../models/Song.js";
+import { Video } from "../models/Video.js";
+import { SongStream } from "../services/stream/SongStream.js";
 import { fail } from "../utils/reqUtils.js";
 
 // GET /api/stream/:id

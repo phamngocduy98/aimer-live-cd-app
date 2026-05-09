@@ -1,9 +1,9 @@
 import { Types } from "mongoose";
 import { IAudioMetadata } from "music-metadata";
-import { DbDocument } from "../../utils/type.js";
-import { IAlbum, metadataToAlbum, Album } from "../Album.js";
-import { ISong } from "../Song.js";
-import { IVideo } from "../Video.js";
+import { DbDocument } from "../../types/type.js";
+import { IAlbum, metadataToAlbum, Album } from "../../models/Album.js";
+import { ISong } from "../../models/Song.js";
+import { IVideo } from "../../models/Video.js";
 import { Builder } from "./index.js";
 
 export class AlbumBuilder extends Builder<IAlbum> {

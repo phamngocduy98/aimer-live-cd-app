@@ -1,7 +1,7 @@
 import { IAudioMetadata, parseBuffer } from "music-metadata";
-import { dbClient } from "../db/Mongo.js";
+import { dbClient } from "../../db/Mongo.js";
 
-import { AlbumBuilder, SongBuilder, VideoBuilder } from "../db/builder/index.js";
+import { AlbumBuilder, SongBuilder, VideoBuilder } from "../../db/builder/index.js";
 import { FtpMediaUploader } from "./FtpMediaUploader.js";
 
 function isVideo(meta: IAudioMetadata) {

@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
-import { DbDocument } from "../../utils/type.js";
-import { IHosting } from "../../db/Hosting.js";
+import { DbDocument } from "../../../types/type.js";
+import { IHosting } from "../../../models/Hosting.js";
 
 export interface StreamInfo {
   id?: Types.ObjectId;

@@ -25,10 +25,10 @@ import {
 } from "webdav-server/lib/index.v2.js";
 
 import { PassThrough, Readable, Writable } from "stream";
-import { Album } from "../db/Album.js";
-import { Format, ISong, Song } from "../db/Song.js";
+import { Album } from "../models/Album.js";
+import { Format, ISong, Song } from "../models/Song.js";
 import { WithId } from "mongodb";
-import { SongStream } from "../stream/SongStream.js";
+import { SongStream } from "../services/stream/SongStream.js";
 
 export class StreamFileSystemResource {
   props: LocalPropertyManager;

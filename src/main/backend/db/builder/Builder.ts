@@ -1,7 +1,7 @@
 import { IAudioMetadata } from "music-metadata";
 
 import { Types } from "mongoose";
-import { DbDocument } from "../../utils/type.js";
+import { DbDocument } from "../../types/type.js";
 
 export class Builder<T> {
   _id = new Types.ObjectId();
