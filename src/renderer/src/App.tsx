@@ -13,7 +13,7 @@ import { Sidebar } from "./components/Sidebar";
 import { TopNavBar } from "./components/TopNavBar";
 import { ManageHostsDialog } from "./components/dialogs/ManageHostsDialog";
 import { AddHostDialog } from "./components/dialogs/AddHostDialog";
-import { PingResult, NewHostState } from "./components/types";
+import { ListFilesResult, NewHostState } from "./components/types";
 
 const drawerWidth = 240;
 
@@ -33,7 +33,7 @@ function App() {
   const [isHostDialogOpen, setIsHostDialogOpen] = useState(false);
   const [hosts, setHosts] = useState<Host[]>([]);
   const [isLoadingHosts, setIsLoadingHosts] = useState(false);
-  const [pingResults, setPingResults] = useState<Record<string, PingResult>>({});
+  const [fileListResults, setFileListResults] = useState<Record<string, ListFilesResult>>({});
   const [isAddHostDialogOpen, setIsAddHostDialogOpen] = useState(false);
   const [newHost, setNewHost] = useState<NewHostState>({
     host: "",
@@ -71,15 +71,15 @@ function App() {
     }
   };
 
-  const triggerPing = async (hostId: string) => {
-    setPingResults((prev) => ({
+  const triggerListFiles = async (hostId: string) => {
+    setFileListResults((prev) => ({
       ...prev,
       [hostId]: { loading: true, available: null, files: [] }
     }));
 
     try {
-      const result = await appAPI.pingHost(hostId);
-      setPingResults((prev) => ({
+      const result = await appAPI.listHostFiles(hostId);
+      setFileListResults((prev) => ({
         ...prev,
         [hostId]: {
           loading: false,
@@ -88,9 +88,9 @@ function App() {
         }
       }));
     } catch (err) {
-      setPingResults((prev) => ({
+      setFileListResults((prev) => ({
         ...prev,
-        [hostId]: { loading: false, available: false, files: [], error: "Ping failed" }
+        [hostId]: { loading: false, available: false, files: [], error: "List files failed" }
       }));
     }
   };
@@ -218,9 +218,9 @@ function App() {
         onClose={() => setIsHostDialogOpen(false)}
         hosts={hosts}
         isLoadingHosts={isLoadingHosts}
-        pingResults={pingResults}
+        fileListResults={fileListResults}
         onDeleteHost={handleDeleteHost}
-        onPingHost={triggerPing}
+        onListHostFiles={triggerListFiles}
         onAddHostClick={() => setIsAddHostDialogOpen(true)}
       />
 

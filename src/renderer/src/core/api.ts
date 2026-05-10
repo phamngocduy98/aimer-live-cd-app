@@ -62,7 +62,7 @@ export class AppAPI {
     await axios.delete(`/hosts/${id}`);
   }
 
-  async pingHost(hostId: string): Promise<{
+  async listHostFiles(hostId: string): Promise<{
     available: boolean;
     files: { fileName: string; parts: string; title: string; fileCount: number }[];
     status?: number;
@@ -71,7 +71,7 @@ export class AppAPI {
       available: boolean;
       files: { fileName: string; parts: string; title: string; fileCount: number }[];
       status?: number;
-    }>(`/hosts/${hostId}/ping`);
+    }>(`/hosts/${hostId}/files`);
     return resp.data;
   }
 

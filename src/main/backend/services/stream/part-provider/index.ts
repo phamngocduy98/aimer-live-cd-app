@@ -6,10 +6,10 @@ import {
   IHttpStreamConfig,
   StreamStrategy
 } from "../../../models/Hosting.js";
-import { AwardspaceHosting } from "./AwardspaceHosting.js";
+import { AwardspaceHosting } from "./http-stream/AwardspaceHosting.js";
 import { HttpStreamProvider } from "./HttpStreamProvider.js";
 import { StreamProvider } from "./StreamProvider.js";
-import { InfinitiveFreeHosting } from "./InfFreeHosting.js";
+import { InfinitiveFreeHosting } from "./http-stream/InfiniteFreeHosting.js";
 
 const cached: Record<string, StreamProvider> = {};
 

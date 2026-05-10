@@ -1,12 +1,12 @@
 import { Readable } from "node:stream";
 import { CacheValue, StreamingCache } from "../../utils/stream-cache";
 
-class MyStreamCache {
-  private _promiseCachedMap: Record<string, number> = {}; // [key]: isPromised
+class StreamCache {
+  private _promiseCachedMap: Record<string, number> = {};
 
   private _cache = new StreamingCache({
-    maxSize: 1024 * 1024 * 400, // 400MB
-    maxEntrySize: 1024 * 1024 * 50, // 50MB
+    maxSize: 1024 * 1024 * 400,
+    maxEntrySize: 1024 * 1024 * 50,
     noDisposeOnSet: true,
     dispose: (value: CacheValue, key: string): void => {
       console.log(`[ ${"Cache".padStart(15)} ] ${key}: REMOVE Cache`);
@@ -40,7 +40,7 @@ class MyStreamCache {
       console.log(`[ ${"Cache".padStart(15)} ] ${key}: SET Cache (Closed)`);
     });
 
-    this._promiseCachedMap[key] = 0; // add to cache
+    this._promiseCachedMap[key] = 0;
 
     return stream;
   }
@@ -62,8 +62,8 @@ class MyStreamCache {
 
   deleteStream(key: string) {
     console.log(`[ ${"Cache".padStart(15)} ] ${key}: DEL`);
-    this._cache.set(key); // clear old stream.
-    delete this._promiseCachedMap[key]; // remove from cache
+    this._cache.set(key);
+    delete this._promiseCachedMap[key];
   }
 }
-export const cache = new MyStreamCache();
+export const cache = new StreamCache();

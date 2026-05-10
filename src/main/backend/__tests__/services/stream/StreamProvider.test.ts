@@ -1,17 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Readable } from "node:stream";
-import { StreamProvider } from "../../../services/stream/part_provider/StreamProvider.js";
+import { StreamProvider } from "../../../services/stream/part-provider/StreamProvider.js";
 import { StreamInfo } from "../../../services/stream/dto/StreamInfo.js";
 import { StreamFilePart } from "../../../services/stream/dto/StreamFilePart.js";
-import { createTestHosting, TEST_UUID } from "../../testHelpers.js";
-
-vi.mock("../../../services/mediaUpload/index.js", () => ({
-  getMediaUploader: vi.fn().mockReturnValue({
-    init: vi.fn().mockResolvedValue(undefined),
-    upload: vi.fn().mockResolvedValue(undefined),
-    end: vi.fn().mockResolvedValue(undefined)
-  })
-}));
+import { TEST_UUID } from "../../testHelpers.js";
 
 class ConcreteProvider extends StreamProvider {
   constructor() {
@@ -26,7 +18,7 @@ class ConcreteProvider extends StreamProvider {
     return { data: Readable.from("raw-encrypted-data") };
   }
 
-  async ping(): Promise<any> {
+  async listFiles(): Promise<any> {
     return { available: true, files: [] };
   }
 }
@@ -59,15 +51,4 @@ describe("StreamProvider (abstract base)", () => {
     });
   });
 
-  describe("backup", () => {
-    it("copies all parts to target hosting", async () => {
-      const targetHosting = createTestHosting({ name: "target-host" });
-      const fetchSpy = vi.spyOn(provider, "fetchRawPart");
-
-      await provider.backup(song, targetHosting);
-
-      expect(fetchSpy).toHaveBeenCalledTimes(1);
-      expect(fetchSpy).toHaveBeenCalledWith(expect.stringContaining(TEST_UUID));
-    });
-  });
 });

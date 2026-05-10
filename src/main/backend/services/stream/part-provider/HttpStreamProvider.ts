@@ -2,8 +2,6 @@ import http from "node:http";
 import axios, { AxiosResponse } from "axios";
 import { Readable } from "node:stream";
 import { IHttpStreamConfig } from "../../../models/Hosting.js";
-import { Song } from "../../../models/Song.js";
-import { Video } from "../../../models/Video.js";
 import { resp2string } from "../../../utils/stream/stream2buffer.js";
 import { StreamProvider } from "./StreamProvider.js";
 
@@ -130,9 +128,9 @@ export class HttpStreamProvider extends StreamProvider {
     };
   }
 
-  async ping(): Promise<{
+  async listFiles(): Promise<{
     available: boolean;
-    files: { fileName: string; parts: string; title: string; fileCount: number }[];
+    files: { fileName: string; partNumbers: number[] }[];
   }> {
     try {
       const res = await this.get("status.php", {}, 0, "text", this.host);
@@ -161,52 +159,15 @@ export class HttpStreamProvider extends StreamProvider {
         groupMap.get(baseUuid)!.push(partNumber);
       }
 
-      const groupedFiles = Array.from(groupMap.entries()).map(([baseUuid, partNumbers]) => {
+      const files = Array.from(groupMap.entries()).map(([baseUuid, partNumbers]) => {
         partNumbers.sort((a, b) => a - b);
-        const ranges: string[] = [];
-        let start = partNumbers[0];
-        let end = partNumbers[0];
-        for (let i = 1; i < partNumbers.length; i++) {
-          const current = partNumbers[i];
-          if (current === end + 1) {
-            end = current;
-          } else {
-            ranges.push(start === end ? `${start}` : `${start}-${end}`);
-            start = current;
-            end = current;
-          }
-        }
-        ranges.push(start === end ? `${start}` : `${start}-${end}`);
         return {
           fileName: baseUuid,
-          parts: ranges.join(",")
+          partNumbers
         };
       });
 
-      const fileNames = groupedFiles.map((f) => f.fileName);
-      const [songs, videos] = await Promise.all([
-        Song.find({ _id: { $in: fileNames } }, { title: 1, fileCount: 1, _id: 1 }).lean(),
-        Video.find({ _id: { $in: fileNames } }, { title: 1, fileCount: 1, _id: 1 }).lean()
-      ]);
-
-      const metaMap = new Map<string, { title: string; fileCount: number }>();
-      songs.forEach((s) =>
-        metaMap.set(s._id.toString(), { title: s.title, fileCount: s.fileCount })
-      );
-      videos.forEach((v) =>
-        metaMap.set(v._id.toString(), { title: v.title, fileCount: v.fileCount })
-      );
-
-      const filesWithTitle = groupedFiles.map((f) => {
-        const meta = metaMap.get(f.fileName) || { title: "Unknown", fileCount: 0 };
-        return {
-          ...f,
-          title: meta.title,
-          fileCount: meta.fileCount
-        };
-      });
-
-      return { available: true, files: filesWithTitle };
+      return { available: true, files };
     } catch (e) {
       if (`${e}`.includes("404") || `${e}`.includes("Audio not found")) {
         return { available: false, files: [] };

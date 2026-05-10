@@ -1,5 +1,5 @@
 import http from "node:http";
-import { HttpStreamProvider } from "./HttpStreamProvider.js";
+import { HttpStreamProvider } from "../HttpStreamProvider.js";
 import { AxiosResponse } from "axios";
 
 export class AwardspaceHosting extends HttpStreamProvider {

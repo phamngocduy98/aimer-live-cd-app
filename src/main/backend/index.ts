@@ -13,7 +13,7 @@ import {
   handleGetHosts,
   handleCreateHost,
   handleDeleteHost,
-  handlePingHost,
+  handleListHostFiles,
   handleGetAlbums,
   handleGetAlbum,
   handleGetAlbumBackup,
@@ -61,7 +61,7 @@ app.post("/api/hosts", handleCreateHost);
 
 app.delete("/api/hosts/:id", handleDeleteHost);
 
-app.get("/api/hosts/:id/ping", handlePingHost);
+app.get("/api/hosts/:id/files", handleListHostFiles);
 
 app.get("/api/albums", handleGetAlbums);
 

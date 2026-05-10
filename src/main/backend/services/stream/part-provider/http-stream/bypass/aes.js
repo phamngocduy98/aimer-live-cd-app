@@ -217,52 +217,33 @@ export const slowAES = {
 
     // Key Schedule Core
     core: function (word, iteration) {
-      /* rotate the 32-bit word 8 bits to the left */
       word = this.rotate(word);
-      /* apply S-Box substitution on all 4 parts of the 32-bit word */
       for (var i = 0; i < 4; ++i) word[i] = this.sbox[word[i]];
-      /* XOR the output of the rcon operation with i to the first part (leftmost) only */
       word[0] = word[0] ^ this.Rcon[iteration];
       return word;
     },
 
-    /* Rijndael's key expansion
-     * expands an 128,192,256 key into an 176,208,240 bytes key
-     *
-     * expandedKey is a pointer to an char array of large enough size
-     * key is a pointer to a non-expanded key
-     */
     expandKey: function (key, size) {
       var expandedKeySize = 16 * (this.numberOfRounds(size) + 1);
 
-      /* current expanded keySize, in bytes */
       var currentSize = 0;
       var rconIteration = 1;
-      var t = []; // temporary 4-byte variable
+      var t = [];
 
       var expandedKey = [];
       for (var i = 0; i < expandedKeySize; i++) expandedKey[i] = 0;
 
-      /* set the 16,24,32 bytes of the expanded key to the input key */
       for (var j = 0; j < size; j++) expandedKey[j] = key[j];
       currentSize += size;
 
       while (currentSize < expandedKeySize) {
-        /* assign the previous 4 bytes to the temporary value t */
         for (var k = 0; k < 4; k++) t[k] = expandedKey[currentSize - 4 + k];
 
-        /* every 16,24,32 bytes we apply the core schedule to t
-         * and increment rconIteration afterwards
-         */
         if (currentSize % size == 0) t = this.core(t, rconIteration++);
 
-        /* For 256-bit keys, we add an extra sbox to the calculation */
         if (size == this.keySize.SIZE_256 && currentSize % size == 16)
           for (var l = 0; l < 4; l++) t[l] = this.sbox[t[l]];
 
-        /* We XOR t with the four-byte block 16,24,32 bytes before the new expanded key.
-         * This becomes the next four bytes in the expanded key.
-         */
         for (var m = 0; m < 4; m++) {
           expandedKey[currentSize] = expandedKey[currentSize - size] ^ t[m];
           currentSize++;
@@ -271,14 +252,11 @@ export const slowAES = {
       return expandedKey;
     },
 
-    // Adds (XORs) the round key to the state
     addRoundKey: function (state, roundKey) {
       for (var i = 0; i < 16; i++) state[i] ^= roundKey[i];
       return state;
     },
 
-    // Creates a round key from the given expanded key and the
-    // position within the expanded key.
     createRoundKey: function (expandedKey, roundKeyPointer) {
       var roundKey = [];
       for (var i = 0; i < 4; i++)
@@ -286,21 +264,16 @@ export const slowAES = {
       return roundKey;
     },
 
-    /* substitute all the values from the state with the value in the SBox
-     * using the state value as index for the SBox
-     */
     subBytes: function (state, isInv) {
       for (var i = 0; i < 16; i++) state[i] = isInv ? this.rsbox[state[i]] : this.sbox[state[i]];
       return state;
     },
 
-    /* iterate over the 4 rows and call shiftRow() with that row */
     shiftRows: function (state, isInv) {
       for (var i = 0; i < 4; i++) state = this.shiftRow(state, i * 4, i, isInv);
       return state;
     },
 
-    /* each iteration shifts the row to the left by 1 */
     shiftRow: function (state, statePointer, nbr, isInv) {
       for (var i = 0; i < nbr; i++) {
         if (isInv) {
@@ -316,39 +289,32 @@ export const slowAES = {
       return state;
     },
 
-    // galois multiplication of 8 bit characters a and b
     galois_multiplication: function (a, b) {
       var p = 0;
       for (var counter = 0; counter < 8; counter++) {
         if ((b & 1) == 1) p ^= a;
         if (p > 0x100) p ^= 0x100;
-        var hi_bit_set = a & 0x80; //keep p 8 bit
+        var hi_bit_set = a & 0x80;
         a <<= 1;
-        if (a > 0x100) a ^= 0x100; //keep a 8 bit
+        if (a > 0x100) a ^= 0x100;
         if (hi_bit_set == 0x80) a ^= 0x1b;
-        if (a > 0x100) a ^= 0x100; //keep a 8 bit
+        if (a > 0x100) a ^= 0x100;
         b >>= 1;
-        if (b > 0x100) b ^= 0x100; //keep b 8 bit
+        if (b > 0x100) b ^= 0x100;
       }
       return p;
     },
 
-    // galois multipication of the 4x4 matrix
     mixColumns: function (state, isInv) {
       var column = [];
-      /* iterate over the 4 columns */
       for (var i = 0; i < 4; i++) {
-        /* construct one column by iterating over the 4 rows */
         for (var j = 0; j < 4; j++) column[j] = state[j * 4 + i];
-        /* apply the mixColumn on one column */
         column = this.mixColumn(column, isInv);
-        /* put the values back into the state */
         for (var k = 0; k < 4; k++) state[k * 4 + i] = column[k];
       }
       return state;
     },
 
-    // galois multipication of 1 column of the 4x4 matrix
     mixColumn: function (column, isInv) {
       var mult = [];
       if (isInv) mult = [14, 9, 13, 11];
@@ -379,7 +345,6 @@ export const slowAES = {
       return column;
     },
 
-    // applies the 4 operations of the forward round in sequence
     round: function (state, roundKey) {
       state = this.subBytes(state, false);
       state = this.shiftRows(state, false);
@@ -388,7 +353,6 @@ export const slowAES = {
       return state;
     },
 
-    // applies the 4 operations of the inverse round in sequence
     invRound: function (state, roundKey) {
       state = this.shiftRows(state, true);
       state = this.subBytes(state, true);
@@ -397,10 +361,6 @@ export const slowAES = {
       return state;
     },
 
-    /*
-     * Perform the initial operations, the standard round, and the final operations
-     * of the forward aes, creating a round key for each round
-     */
     main: function (state, expandedKey, nbrRounds) {
       state = this.addRoundKey(state, this.createRoundKey(expandedKey, 0));
       for (var i = 1; i < nbrRounds; i++)
@@ -411,10 +371,6 @@ export const slowAES = {
       return state;
     },
 
-    /*
-     * Perform the initial operations, the standard round, and the final operations
-     * of the inverse aes, creating a round key for each round
-     */
     invMain: function (state, expandedKey, nbrRounds) {
       state = this.addRoundKey(state, this.createRoundKey(expandedKey, 16 * nbrRounds));
       for (var i = nbrRounds - 1; i > 0; i--)
@@ -427,7 +383,7 @@ export const slowAES = {
 
     numberOfRounds: function (size) {
       var nbrRounds;
-      switch (size /* set the number of rounds */) {
+      switch (size) {
         case this.keySize.SIZE_128:
           nbrRounds = 10;
           break;
@@ -444,96 +400,59 @@ export const slowAES = {
       return nbrRounds;
     },
 
-    // encrypts a 128 bit input block against the given key of size specified
     encrypt: function (input, key, size) {
       var output = [];
-      var block = []; /* the 128 bit block to encode */
+      var block = [];
       var nbrRounds = this.numberOfRounds(size);
-      /* Set the block values, for the block:
-       * a0,0 a0,1 a0,2 a0,3
-       * a1,0 a1,1 a1,2 a1,3
-       * a2,0 a2,1 a2,2 a2,3
-       * a3,0 a3,1 a3,2 a3,3
-       * the mapping order is a0,0 a1,0 a2,0 a3,0 a0,1 a1,1 ... a2,3 a3,3
-       */
-      for (var i = 0; i < 4; i++ /* iterate over the columns */)
-        for (var j = 0; j < 4; j++ /* iterate over the rows */) block[i + j * 4] = input[i * 4 + j];
+      for (var i = 0; i < 4; i++)
+        for (var j = 0; j < 4; j++) block[i + j * 4] = input[i * 4 + j];
 
-      /* expand the key into an 176, 208, 240 bytes key */
-      var expandedKey = this.expandKey(key, size); /* the expanded key */
-      /* encrypt the block using the expandedKey */
+      var expandedKey = this.expandKey(key, size);
       block = this.main(block, expandedKey, nbrRounds);
-      for (var k = 0; k < 4; k++ /* unmap the block again into the output */)
-        for (var l = 0; l < 4; l++ /* iterate over the rows */)
+      for (var k = 0; k < 4; k++)
+        for (var l = 0; l < 4; l++)
           output[k * 4 + l] = block[k + l * 4];
       return output;
     },
 
-    // decrypts a 128 bit input block against the given key of size specified
     decrypt: function (input, key, size) {
       var output = [];
-      var block = []; /* the 128 bit block to decode */
+      var block = [];
       var nbrRounds = this.numberOfRounds(size);
-      /* Set the block values, for the block:
-       * a0,0 a0,1 a0,2 a0,3
-       * a1,0 a1,1 a1,2 a1,3
-       * a2,0 a2,1 a2,2 a2,3
-       * a3,0 a3,1 a3,2 a3,3
-       * the mapping order is a0,0 a1,0 a2,0 a3,0 a0,1 a1,1 ... a2,3 a3,3
-       */
-      for (var i = 0; i < 4; i++ /* iterate over the columns */)
-        for (var j = 0; j < 4; j++ /* iterate over the rows */) block[i + j * 4] = input[i * 4 + j];
-      /* expand the key into an 176, 208, 240 bytes key */
+      for (var i = 0; i < 4; i++)
+        for (var j = 0; j < 4; j++) block[i + j * 4] = input[i * 4 + j];
+
       var expandedKey = this.expandKey(key, size);
-      /* decrypt the block using the expandedKey */
       block = this.invMain(block, expandedKey, nbrRounds);
-      for (var k = 0; k < 4; k++ /* unmap the block again into the output */)
-        for (var l = 0; l < 4; l++ /* iterate over the rows */)
+      for (var k = 0; k < 4; k++)
+        for (var l = 0; l < 4; l++)
           output[k * 4 + l] = block[k + l * 4];
       return output;
     }
   },
-  /*
-   * END AES SECTION
-   */
 
-  /*
-   * START MODE OF OPERATION SECTION
-   */
-  //structure of supported modes of operation
   modeOfOperation: {
     OFB: 0,
     CFB: 1,
     CBC: 2
   },
 
-  // get a 16 byte block (aes operates on 128bits)
   getBlock: function (bytesIn, start, end, mode) {
     if (end - start > 16) end = start + 16;
 
     return bytesIn.slice(start, end);
   },
 
-  /*
-   * Mode of Operation Encryption
-   * bytesIn - Input String as array of bytes
-   * mode - mode of type modeOfOperation
-   * key - a number array of length 'size'
-   * size - the bit length of the key
-   * iv - the 128 bit number array Initialization Vector
-   */
   encrypt: function (bytesIn, mode, key, iv) {
     var size = key.length;
     if (iv.length % 16) {
       throw "iv length must be 128 bits.";
     }
-    // the AES input/output
     var byteArray = [];
     var input = [];
     var output = [];
     var ciphertext = [];
     var cipherOut = [];
-    // char firstRound
     var firstRound = true;
     if (mode == this.modeOfOperation.CBC) this.padBytesIn(bytesIn);
     if (bytesIn !== null) {
@@ -563,7 +482,6 @@ export const slowAES = {
             input[i] = byteArray[i] ^ (firstRound ? iv[i] : ciphertext[i]);
           firstRound = false;
           ciphertext = this.aes.encrypt(input, key, size);
-          // always 16 bytes because of the padding for CBC
           for (var k = 0; k < 16; k++) cipherOut.push(ciphertext[k]);
         }
       }
@@ -571,27 +489,16 @@ export const slowAES = {
     return cipherOut;
   },
 
-  /*
-   * Mode of Operation Decryption
-   * cipherIn - Encrypted String as array of bytes
-   * originalsize - The unencrypted string length - required for CBC
-   * mode - mode of type modeOfOperation
-   * key - a number array of length 'size'
-   * size - the bit length of the key
-   * iv - the 128 bit number array Initialization Vector
-   */
   decrypt: function (cipherIn, mode, key, iv) {
     var size = key.length;
     if (iv.length % 16) {
       throw "iv length must be 128 bits.";
     }
-    // the AES input/output
     var ciphertext = [];
     var input = [];
     var output = [];
     var byteArray = [];
     var bytesOut = [];
-    // char firstRound
     var firstRound = true;
     if (cipherIn !== null) {
       for (var j = 0; j < Math.ceil(cipherIn.length / 16); j++) {
@@ -653,9 +560,6 @@ export const slowAES = {
       if (padCount > 0) data.splice(data.length - padCount, padCount);
     }
   }
-  /*
-   * END MODE OF OPERATION SECTION
-   */
 };
 
 export function toNumbers(d) {

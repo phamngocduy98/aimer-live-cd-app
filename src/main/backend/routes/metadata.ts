@@ -9,7 +9,8 @@ import { dbClient } from "../db/Mongo.js";
 import { Song } from "../models/Song.js";
 import { Video } from "../models/Video.js";
 import { FtpMediaUploader } from "../services/mediaUpload/FtpMediaUploader.js";
-import { getPartProvider } from "../services/stream/part_provider/index.js";
+import { getPartProvider } from "../services/stream/part-provider/index.js";
+import { formatPartRanges } from "../utils/stream/partRanges.js";
 import { fail, ok } from "../utils/reqUtils.js";
 import { WithDocument } from "../types/type.js";
 
@@ -171,8 +172,37 @@ export async function handleDeleteHost(req, res) {
   ok(res);
 }
 
-// GET /api/hosts/:id/ping
-export async function handlePingHost(req, res) {
+export async function enrichFileList(
+  files: { fileName: string; partNumbers: number[] }[]
+): Promise<{ fileName: string; parts: string; partNumbers: number[]; title: string; fileCount: number }[]> {
+  const fileNames = files.map((f) => f.fileName);
+  const [songs, videos] = await Promise.all([
+    Song.find({ _id: { $in: fileNames } }, { title: 1, fileCount: 1, _id: 1 }).lean(),
+    Video.find({ _id: { $in: fileNames } }, { title: 1, fileCount: 1, _id: 1 }).lean()
+  ]);
+
+  const metaMap = new Map<string, { title: string; fileCount: number }>();
+  songs.forEach((s) =>
+    metaMap.set(s._id.toString(), { title: s.title, fileCount: s.fileCount })
+  );
+  videos.forEach((v) =>
+    metaMap.set(v._id.toString(), { title: v.title, fileCount: v.fileCount })
+  );
+
+  return files.map((f) => {
+    const meta = metaMap.get(f.fileName) || { title: "Unknown", fileCount: 0 };
+    return {
+      fileName: f.fileName,
+      parts: formatPartRanges(f.partNumbers),
+      partNumbers: f.partNumbers,
+      title: meta.title,
+      fileCount: meta.fileCount
+    };
+  });
+}
+
+// GET /api/hosts/:id/files
+export async function handleListHostFiles(req, res) {
   if (req.params.id.length !== 12 && req.params.id.length !== 24)
     return fail(res, "Invalid request");
 
@@ -181,12 +211,13 @@ export async function handlePingHost(req, res) {
     if (!host) return fail(res, "Host not found");
 
     const provider = getPartProvider(host, {});
-    const result = await provider.ping();
+    const result = await provider.listFiles();
+    const enriched = await enrichFileList(result.files);
 
-    return res.json(result);
+    return res.json({ available: result.available, files: enriched });
   } catch (error) {
-    console.error("Ping host error:", error);
-    return fail(res, `Failed to ping host: ${error}`);
+    console.error("List host files error:", error);
+    return fail(res, `Failed to list host files: ${error}`);
   }
 }
 

@@ -1,5 +1,3 @@
-import { Format } from "../../../models/Song.js";
-
 type Format2ContentType = {
   [key: string]: string;
 };
@@ -7,7 +5,6 @@ type Format2ContentType = {
 class ContentType {
   formatContentType: Format2ContentType;
   constructor() {
-    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
     this.formatContentType = {
       MPEG: "audio/mpeg",
       FLAC: "application/x-flac",

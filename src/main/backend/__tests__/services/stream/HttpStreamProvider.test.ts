@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Readable } from "node:stream";
-import { HttpStreamProvider } from "../../../services/stream/part_provider/HttpStreamProvider.js";
+import { HttpStreamProvider } from "../../../services/stream/part-provider/HttpStreamProvider.js";
 import { StreamInfo } from "../../../services/stream/dto/StreamInfo.js";
 import { StreamFilePart } from "../../../services/stream/dto/StreamFilePart.js";
 import { createHttpStreamConfig, TEST_UUID } from "../../testHelpers.js";
@@ -168,17 +168,22 @@ describe("HttpStreamProvider", () => {
     });
   });
 
-  describe("ping", () => {
+  describe("listFiles", () => {
     it("parses status.php file list and groups by UUID", async () => {
       const fileList = "uuid1.mp3,uuid1_1.mp3,uuid2.mp3,uuid2_1.mp3,uuid2_2.mp3";
       mockGet.mockResolvedValueOnce(createMockStreamResponse(fileList, { status: 200 }));
-      const result = await provider.ping();
+      const result = await provider.listFiles();
       expect(result.available).toBe(true);
+      expect(result.files).toHaveLength(2);
+      expect(result.files[0].fileName).toBe("uuid1");
+      expect(result.files[0].partNumbers).toEqual([1, 2]);
+      expect(result.files[1].fileName).toBe("uuid2");
+      expect(result.files[1].partNumbers).toEqual([1, 2, 3]);
     });
 
     it("returns unavailable on 404", async () => {
       mockGet.mockRejectedValueOnce(new Error("404"));
-      const result = await provider.ping();
+      const result = await provider.listFiles();
       expect(result.available).toBe(false);
       expect(result.files).toEqual([]);
     });

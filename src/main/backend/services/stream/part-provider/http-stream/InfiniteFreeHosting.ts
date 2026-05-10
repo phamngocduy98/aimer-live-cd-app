@@ -1,6 +1,6 @@
 import http from "node:http";
-import { HttpStreamProvider } from "./HttpStreamProvider.js";
-import { byPassHosting } from "../providers/inffree/bypass.js";
+import { HttpStreamProvider } from "../HttpStreamProvider.js";
+import { byPassHosting } from "./bypass/bypass.js";
 import { AxiosResponse } from "axios";
 
 export class InfinitiveFreeHosting extends HttpStreamProvider {

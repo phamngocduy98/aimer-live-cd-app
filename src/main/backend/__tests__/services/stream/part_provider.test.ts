@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { getPartProvider } from "../../../services/stream/part_provider/index.js";
-import { HttpStreamProvider } from "../../../services/stream/part_provider/HttpStreamProvider.js";
-import { InfinitiveFreeHosting } from "../../../services/stream/part_provider/InfFreeHosting.js";
-import { AwardspaceHosting } from "../../../services/stream/part_provider/AwardspaceHosting.js";
+import { getPartProvider } from "../../../services/stream/part-provider/index.js";
+import { HttpStreamProvider } from "../../../services/stream/part-provider/HttpStreamProvider.js";
+import { InfinitiveFreeHosting } from "../../../services/stream/part-provider/http-stream/InfiniteFreeHosting.js";
+import { AwardspaceHosting } from "../../../services/stream/part-provider/http-stream/AwardspaceHosting.js";
 import { HostingProvider } from "../../../models/Hosting.js";
 import { createTestHosting, createHttpStreamConfig } from "../../testHelpers.js";
 

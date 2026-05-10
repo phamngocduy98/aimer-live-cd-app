@@ -33,11 +33,10 @@ class ByPassHosting {
       },
       maxRedirects: 0,
       validateStatus: function (status) {
-        return status < 500; // Resolve only if the status code is less than 500
+        return status < 500;
       }
     });
     if (typeof mres.data != "string" || !mres.data.includes("aes.js")) {
-      // contains this: <script type="text/javascript" src="/aes.js"></script>
       console.log(`[ ${`Refresh token`.padStart(15)} ] ${host}: valid ${token}`);
       this.tokens[host] = {
         value: token

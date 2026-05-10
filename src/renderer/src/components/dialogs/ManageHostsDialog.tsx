@@ -20,9 +20,9 @@ export const ManageHostsDialog: React.FC<ManageHostsDialogProps> = ({
   onClose,
   hosts,
   isLoadingHosts,
-  pingResults,
+  fileListResults,
   onDeleteHost,
-  onPingHost,
+  onListHostFiles,
   onAddHostClick
 }) => {
   return (
@@ -51,10 +51,10 @@ export const ManageHostsDialog: React.FC<ManageHostsDialogProps> = ({
                       <Button
                         size="small"
                         variant="outlined"
-                        onClick={() => onPingHost(host._id)}
-                        disabled={pingResults[host._id]?.loading}
+                        onClick={() => onListHostFiles(host._id)}
+                        disabled={fileListResults[host._id]?.loading}
                       >
-                        {pingResults[host._id]?.loading ? "Pinging..." : "Ping"}
+                        {fileListResults[host._id]?.loading ? "Loading..." : "List Files"}
                       </Button>
                       <IconButton edge="end" onClick={() => onDeleteHost(host._id)} size="small">
                         <DeleteIcon fontSize="small" />
@@ -62,18 +62,18 @@ export const ManageHostsDialog: React.FC<ManageHostsDialogProps> = ({
                     </Box>
                   </Box>
 
-                  {pingResults[host._id] && (
+                  {fileListResults[host._id] && (
                     <Box sx={{ mt: 1, pl: 2, width: "100%" }}>
-                      {pingResults[host._id].loading ? (
+                      {fileListResults[host._id].loading ? (
                         <CircularProgress size={16} />
-                      ) : pingResults[host._id].available ? (
+                      ) : fileListResults[host._id].available ? (
                         <Box>
                           <Typography variant="caption" color="success.main">
-                            ✅ Available • {pingResults[host._id].files.length} titles found
+                            ✅ Available • {fileListResults[host._id].files.length} titles found
                           </Typography>
-                          {pingResults[host._id].files.length > 0 && (
+                          {fileListResults[host._id].files.length > 0 && (
                             <List dense sx={{ maxHeight: 120, overflow: "auto", py: 0, mt: 0.5 }}>
-                              {pingResults[host._id].files.map((file, idx) => (
+                              {fileListResults[host._id].files.map((file, idx) => (
                                 <ListItem key={idx} sx={{ py: 0, pl: 1 }}>
                                   <ListItemText
                                     primary={`${file.title} (${file.fileName}): ${file.parts} • ${file.fileCount} files`}
@@ -87,7 +87,7 @@ export const ManageHostsDialog: React.FC<ManageHostsDialogProps> = ({
                       ) : (
                         <Typography variant="caption" color="error.main">
                           ❌ Unavailable
-                          {pingResults[host._id].error && ` • ${pingResults[host._id].error}`}
+                          {fileListResults[host._id].error && ` • ${fileListResults[host._id].error}`}
                         </Typography>
                       )}
                     </Box>

@@ -1,3 +1,4 @@
+import { Writable } from "node:stream";
 import axios from "axios";
 import { PARTSIZE } from "../config/const.js";
 import { Album } from "../models/Album.js";
@@ -5,8 +6,11 @@ import { IHosting, IHttpStreamConfig, StreamStrategy, UploadStrategy } from "../
 import { dbClient } from "../db/Mongo.js";
 import { ISong, Song } from "../models/Song.js";
 import { IVideo, Video } from "../models/Video.js";
-import { uploadSongAPI } from "../services/mediaUpload/index.js";
-import { getPartProvider } from "../services/stream/part_provider/index.js";
+import { uploadSongAPI, getMediaUploader } from "../services/mediaUpload/index.js";
+import { getPartProvider } from "../services/stream/part-provider/index.js";
+import { StreamProvider } from "../services/stream/part-provider/StreamProvider.js";
+import { StreamInfo } from "../services/stream/dto/StreamInfo.js";
+import { waitStreamClose } from "../utils/stream/stream2buffer.js";
 import { fail, ok } from "../utils/reqUtils.js";
 import { DbDocument, WithDocument } from "../types/type.js";
 
@@ -203,6 +207,37 @@ function getPartSizeForHosting(hosting: IHosting): number {
   return PARTSIZE;
 }
 
+async function backupSong(
+  provider: StreamProvider,
+  song: StreamInfo,
+  targetHosting: IHosting
+): Promise<void> {
+  console.log(`[ ${"Backup+".padStart(15)} ] Song ${song.id} into hosting ${targetHosting.name}`);
+  for (let i = 0; i < song.fileCount; i++) {
+    const fileName = `${song.id}${i > 0 ? `_${i}` : ""}.${song.fileExtension}`;
+    const buffers: Buffer[] = [];
+    const outputStream = new Writable({
+      write(chunk, _encoding, callback) {
+        buffers.push(chunk);
+        callback();
+      }
+    });
+    const part = await provider.fetchRawPart(fileName);
+    part.data.pipe(outputStream);
+    await waitStreamClose(outputStream);
+
+    console.log(`[ ${"Backup".padStart(15)} ] Start uploading`);
+
+    const [fname, fext] = fileName.split(".");
+    const uploader = getMediaUploader(targetHosting.upload);
+    await uploader.init(targetHosting.upload);
+    await uploader.upload(Buffer.concat(buffers), fname, fext);
+    await uploader.end();
+  }
+
+  console.log(`[ ${"Backup-".padStart(15)} ] Song ${song.id} completed`);
+}
+
 // POST /api/album/:id/backup/:hostid
 export async function handleAlbumBackup(req, res) {
   if (req.params.id.length !== 12 && req.params.id.length !== 24)
@@ -242,7 +277,7 @@ export async function handleAlbumBackup(req, res) {
         const targetPartSize = getPartSizeForHosting(targetHosting);
         if (notHosted && partSize <= targetPartSize) {
           try {
-            await stream.backup(song as WithDocument<ISong>, targetHosting);
+            await backupSong(stream, song as WithDocument<ISong>, targetHosting);
             song.hostingList.push(targetHosting);
             await song.save();
             break;

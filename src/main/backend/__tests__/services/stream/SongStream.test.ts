@@ -3,13 +3,13 @@ import { Readable, Writable } from "node:stream";
 import { SongStream } from "../../../services/stream/SongStream.js";
 import { StreamInfo } from "../../../services/stream/dto/StreamInfo.js";
 import { createTestHosting, TEST_UUID } from "../../testHelpers.js";
-import { getPartProvider } from "../../../services/stream/part_provider/index.js";
+import { getPartProvider } from "../../../services/stream/part-provider/index.js";
 
-vi.mock("../../../services/stream/part_provider/index.js", () => ({
+vi.mock("../../../services/stream/part-provider/index.js", () => ({
   getPartProvider: vi.fn()
 }));
 
-vi.mock("../../../services/stream/MyStreamCache.js", () => ({
+vi.mock("../../../services/stream/StreamCache.js", () => ({
   cache: {
     get: vi.fn().mockReturnValue(null),
     set: vi.fn().mockReturnValue(new Writable({
@@ -109,20 +109,18 @@ describe("SongStream", () => {
 
   describe("stream", () => {
     it("returns 206 metadata with Content-Range", async () => {
-      const mockPingResult = {
+      const mockListResult = {
         available: true,
         files: [
           {
             fileName: TEST_UUID,
-            parts: "1-3",
-            title: "Test Song",
-            fileCount: 3
+            partNumbers: [1, 2, 3]
           }
         ]
       };
 
       const mockProvider = {
-        ping: vi.fn().mockResolvedValue(mockPingResult),
+        listFiles: vi.fn().mockResolvedValue(mockListResult),
         streamPart: vi.fn().mockResolvedValue(Readable.from("data"))
       };
       (getPartProvider as any).mockReturnValue(mockProvider);
@@ -136,7 +134,7 @@ describe("SongStream", () => {
 
     it("throws 500 when parts fail validation", async () => {
       const mockProvider = {
-        ping: vi.fn().mockResolvedValue({ available: false, files: [] })
+        listFiles: vi.fn().mockResolvedValue({ available: false, files: [] })
       };
       (getPartProvider as any).mockReturnValue(mockProvider);
 

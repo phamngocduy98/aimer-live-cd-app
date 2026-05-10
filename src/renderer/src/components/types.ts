@@ -1,7 +1,7 @@
 import { Host } from "../core/api";
 import { SelectChangeEvent } from "@mui/material/Select";
 
-export interface PingResult {
+export interface ListFilesResult {
   loading: boolean;
   available: boolean | null;
   files: { fileName: string; parts: string; title: string; fileCount: number }[];
@@ -24,9 +24,9 @@ export interface ManageHostsDialogProps {
   onClose: () => void;
   hosts: Host[];
   isLoadingHosts: boolean;
-  pingResults: Record<string, PingResult>;
+  fileListResults: Record<string, ListFilesResult>;
   onDeleteHost: (hostId: string) => void;
-  onPingHost: (hostId: string) => void;
+  onListHostFiles: (hostId: string) => void;
   onAddHostClick: () => void;
 }
 
