@@ -3,6 +3,9 @@ dotenv.config({ path: ".env" });
 
 import mongoose, { connect } from "mongoose";
 import { Hosting } from "../models/Hosting.js";
+import { createLogger } from "../utils/log.js";
+
+const log = createLogger("Migration");
 
 async function migrateHostingModel() {
   const dbhost = process.env.MONGO_DB_HOST;
@@ -10,7 +13,7 @@ async function migrateHostingModel() {
   const dbpassword = process.env.MONGO_DB_PW;
 
   if (!dbhost || !dbusername || !dbpassword) {
-    console.error("Missing MongoDB environment variables");
+    log.error("Missing MongoDB environment variables");
     process.exit(1);
   }
 
@@ -71,14 +74,14 @@ async function migrateHostingModel() {
     });
 
     migrated++;
-    console.log(`Migrated: ${name}`);
+    log.info(`Migrated: ${name}`);
   }
 
-  console.log(`\nDone. ${migrated} migrated, ${alreadyMigrated} already in new format.`);
+  log.info(`\nDone. ${migrated} migrated, ${alreadyMigrated} already in new format.`);
   process.exit(0);
 }
 
 migrateHostingModel().catch((err) => {
-  console.error("Migration failed:", err);
+  log.error({ err }, "Migration failed");
   process.exit(1);
 });

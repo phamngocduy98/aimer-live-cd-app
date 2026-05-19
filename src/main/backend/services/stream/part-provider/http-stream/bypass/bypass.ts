@@ -1,5 +1,8 @@
 import axios from "axios";
 import { slowAES, toHex, toNumbers } from "./aes.js";
+import { createLogger } from "../../../../../utils/log.js";
+
+const log = createLogger("Refresh token");
 
 const regex = /a=toNumbers\("(\w+)"\),b=toNumbers\("(\w+)"\),c=toNumbers\("(\w+)"\)/m;
 
@@ -37,7 +40,7 @@ class ByPassHosting {
       }
     });
     if (typeof mres.data != "string" || !mres.data.includes("aes.js")) {
-      console.log(`[ ${`Refresh token`.padStart(15)} ] ${host}: valid ${token}`);
+      log.debug(`${host}: valid ${token}`);
       this.tokens[host] = {
         value: token
       };
@@ -47,7 +50,7 @@ class ByPassHosting {
     this.tokens[host] = {
       value: token
     };
-    console.log(`[ ${`Refresh token`.padStart(15)} ] ${host} token=${token}`);
+    log.info(`${host} token=${token}`);
     return token;
   }
 }

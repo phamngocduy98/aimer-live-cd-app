@@ -13,8 +13,11 @@ import { getPartProvider } from "../services/stream/part-provider/index.js";
 import { formatPartRanges } from "../utils/stream/partRanges.js";
 import { fail, ok } from "../utils/reqUtils.js";
 import { WithDocument } from "../types/type.js";
+import { createLogger } from "../utils/log.js";
 
-const __dirname = path.resolve();
+const log = createLogger("Metadata");
+
+const rootDir = path.resolve();
 
 // GET /api/hosts
 export async function handleGetHosts(req, res) {
@@ -105,19 +108,19 @@ export async function handleCreateHost(req, res) {
     await up.ftpClient?.mkdir(`${ftpRoot}${ftpPath}`);
 
     await up.uploadFile(
-      await readFile(path.join(__dirname, "src", "php", "sync.php")),
+      await readFile(path.join(rootDir, "src", "php", "sync.php")),
       () => "sync.php",
       ""
     );
     await up.uploadFile(
-      await readFile(path.join(__dirname, "src", "php", "status.php")),
+      await readFile(path.join(rootDir, "src", "php", "status.php")),
       () => "status.php",
       ""
     );
     await up.end();
     ok(res, `${host.id}`);
   } catch (e) {
-    console.error(e);
+    log.error({ err: e }, "Failed to create host");
     fail(res, `${e}`);
   }
 }
@@ -137,7 +140,7 @@ export async function handleDeleteHost(req, res) {
       }
     }
   );
-  console.log(`Updated ${upResult.modifiedCount} songs!`);
+  log.info(`Updated ${upResult.modifiedCount} songs!`);
 
   const upVResult = await Video.updateMany(
     {
@@ -149,24 +152,24 @@ export async function handleDeleteHost(req, res) {
       }
     }
   );
-  console.log(`Updated ${upVResult.modifiedCount} videos!`);
+  log.info(`Updated ${upVResult.modifiedCount} videos!`);
 
   const delResult = await Song.deleteMany({
     hostingList: []
   });
-  console.log(`Deleted ${delResult.deletedCount} songs!`);
+  log.info(`Deleted ${delResult.deletedCount} songs!`);
 
   const delVResult = await Video.deleteMany({
     hostingList: [],
     youtubeUrl: null
   });
-  console.log(`Deleted ${delVResult.deletedCount} videos!`);
+  log.info(`Deleted ${delVResult.deletedCount} videos!`);
 
   const delHostResult = await Hosting.findByIdAndDelete(req.params.id);
   if (delHostResult) {
-    console.log(`Deleted host: ${delHostResult.name}`);
+    log.info(`Deleted host: ${delHostResult.name}`);
   } else {
-    console.log(`Host not found: ${req.params.id}`);
+    log.warn(`Host not found: ${req.params.id}`);
   }
 
   ok(res);
@@ -216,7 +219,7 @@ export async function handleListHostFiles(req, res) {
 
     return res.json({ available: result.available, files: enriched });
   } catch (error) {
-    console.error("List host files error:", error);
+    log.error({ err: error }, "List host files error");
     return fail(res, `Failed to list host files: ${error}`);
   }
 }
@@ -359,7 +362,7 @@ export async function handleGetAlbumBackup(req, res) {
     });
     res.end();
   } catch (e) {
-    console.log(e);
+    log.error({ err: e }, "Album backup info error");
     fail(res, "Error");
   }
 }

@@ -1,13 +1,12 @@
 import { Readable, Transform } from "stream";
 import { StreamFilePart } from "../../services/stream/dto/StreamFilePart.js";
+import { createLogger } from "../log.js";
+
+const log = createLogger("Remove Padding");
 
 export function removeStreamPadding(input: Readable, part: StreamFilePart) {
   if (part.partByteStart === 0 && part.partByteEnd == part.partSize - 1) return input;
-  console.log(
-    `[ ${"Remove Padding".padStart(15)} ] ${part.fileName}: ${
-      part.partByteStart
-    }-${part.partByteEnd}/${part.partSize}`
-  );
+  log.debug(`${part.fileName}: ${part.partByteStart}-${part.partByteEnd}/${part.partSize}`);
 
   let removedPos = 0;
   let prePos = 0; // position of first byte of chunk

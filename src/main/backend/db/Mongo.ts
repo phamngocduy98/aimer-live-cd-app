@@ -2,6 +2,9 @@ import mongoose, { connect } from "mongoose";
 import { Aes } from "../utils/crypto/aes.js";
 import { DbDocument } from "../types/type.js";
 import { Hosting, IHosting } from "../models/Hosting.js";
+import { createLogger } from "../utils/log.js";
+
+const log = createLogger("MongoDB");
 
 /**
  * Singleton DbClient class
@@ -23,7 +26,7 @@ class DbClient {
    */
   async connect(): Promise<void> {
     if (this._isConnected) {
-      console.log("Already connected to MongoDB");
+      log.debug("Already connected to MongoDB");
       return;
     }
 
@@ -48,9 +51,9 @@ class DbClient {
         dbName: "musicbtxa"
       });
       this._isConnected = true;
-      console.log("Connected to MongoDB");
+      log.info("Connected to MongoDB");
     } catch (error) {
-      console.error("Failed to connect to MongoDB:", error);
+      log.error({ err: error }, "Failed to connect to MongoDB");
       throw error;
     }
   }

@@ -1,13 +1,14 @@
 import bodyParser from "body-parser";
 import cors from "cors";
 import express from "express";
-import morgan from "morgan";
 import multer from "multer";
 import path from "node:path";
 import { v2 as webdav } from "webdav-server";
+import pinoHttp from "pino-http";
 
 import { dbClient } from "./db/Mongo.js";
 import { WebdavServer } from "./webdav/webdav.js";
+import { createLogger, getRootLogger, requestContext, randomReqId } from "./utils/log.js";
 
 import {
   handleGetHosts,
@@ -33,15 +34,26 @@ import {
   handleAlbumBackup2
 } from "./routes/upload.js";
 
-const __dirname = path.resolve();
+const rootDir = path.resolve();
 const webdavServer = new WebdavServer();
 
 const app = express();
 app.use(bodyParser.json());
-app.use(morgan("tiny"));
+app.use(
+  pinoHttp({
+    logger: getRootLogger(),
+    genReqId: () => randomReqId(),
+    customSuccessMessage: (req, res) => `${req.method} ${req.url} ${res.statusCode}`,
+    customReceivedMessage: (req) => `${req.method} ${req.url}`,
+    customLogLevel: (_req, res) => (res.statusCode >= 400 ? "warn" : "info")
+  })
+);
+app.use((req, _res, next) => {
+  requestContext.run({ requestId: String(req.id) }, () => next());
+});
 app.use(cors());
-const staticPath = path.join(__dirname, "src", "client");
-console.log(`[ ${"Serve static".padStart(15)} ] ${staticPath}`);
+const staticPath = path.join(rootDir, "src", "client");
+createLogger("Status").info(`Serve static at ${staticPath}`);
 app.use("/", express.static(staticPath));
 app.use(webdav.extensions.express("/webdav", webdavServer.server));
 
@@ -96,12 +108,11 @@ function handleCatchAll(_req, res) {
 app.get("/*", handleCatchAll);
 
 export async function startServer(port: number): Promise<void> {
+  const log = createLogger("Status");
   await dbClient.connect();
-  console.log(`[ ${"Status".padStart(15)} ] DB connected`);
+  log.info("DB connected");
   await webdavServer.init();
-  console.log(`[ ${"Status".padStart(15)} ] Webdav served at /webdav`);
+  log.info("Webdav served at /webdav");
 
-  app.listen(port, () =>
-    console.log(`[ ${"Status".padStart(15)} ] Stream server listening on port ${port}!`)
-  );
+  app.listen(port, () => log.info(`Stream server listening on port ${port}!`));
 }

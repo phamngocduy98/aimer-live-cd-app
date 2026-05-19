@@ -3,8 +3,10 @@ import { join } from "path";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import icon from "../../resources/icon.png?asset";
 import getPort from "get-port";
-import { startServer } from "./backend/index.js";
 import Store from "electron-store";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let log: any = { info: () => {}, error: () => {} };
 
 // Định nghĩa interface cho cấu hình
 interface AppConfig {
@@ -70,11 +72,11 @@ function createPasswordWindow(): Promise<AppConfig | null> {
     ipcMain.once("submit-password", (_, configData: string) => {
       try {
         const config = JSON.parse(configData);
-        console.log("Received configuration:", config);
+        log.info("Received configuration");
         resolve(config);
         passwordWindow.close();
       } catch (error) {
-        console.error("Error parsing configuration:", error);
+        log.error({ err: error }, "Error parsing configuration");
         resolve(null);
         passwordWindow.close();
       }
@@ -89,6 +91,11 @@ function createPasswordWindow(): Promise<AppConfig | null> {
 
 async function initializeApp(): Promise<void> {
   const port = await getPort({ port: 3000 });
+
+  // Init logger before any backend modules load
+  const { initLogger, createLogger } = await import("./backend/utils/log.js");
+  initLogger({ logDir: join(app.getPath("userData"), "logs") });
+  log = createLogger("Main");
 
   // Check if configuration exists
   const hasConfig = store.get("config") !== undefined;
@@ -113,7 +120,7 @@ async function initializeApp(): Promise<void> {
         // Save configuration
         store.set("config", encryptedData);
       } catch (error) {
-        console.error("Error processing configuration:", error);
+        log.error({ err: error }, "Error processing configuration");
         await dialog.showErrorBox("Error", "Unable to save configuration. Please try again.");
         app.quit();
         return;
@@ -124,7 +131,7 @@ async function initializeApp(): Promise<void> {
       return;
     }
   } else {
-    console.log("Configuration exists, loading from store");
+    log.info("Configuration exists, loading from store");
     // Load existing configuration from store
     const config = (store.get("config") as Record<string, string>) || {};
 
@@ -135,15 +142,16 @@ async function initializeApp(): Promise<void> {
         decryptedConfig[key] = decryptValue(value);
       }
     }
-    console.log("Configuration decrypted successfully");
+    log.info("Configuration decrypted successfully");
     Object.assign(process.env, decryptedConfig);
-    console.log("Configuration assigned to process.env");
+    log.info("Configuration assigned to process.env");
   }
 
   try {
+    const { startServer } = await import("./backend/index.js");
     await startServer(port);
   } catch (error: unknown) {
-    console.error("Failed to start server", error);
+    log.error({ err: error }, "Failed to start server");
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     dialog.showErrorBox("Error", `Failed to start server: ${errorMessage}`);
     app.quit();

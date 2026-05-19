@@ -4,6 +4,9 @@ import { Readable } from "node:stream";
 import { IHttpStreamConfig } from "../../../models/Hosting.js";
 import { resp2string } from "../../../utils/stream/stream2buffer.js";
 import { StreamProvider } from "./StreamProvider.js";
+import { createLogger } from "../../../utils/log.js";
+
+const log = createLogger("HTTP");
 
 export class HttpStreamProvider extends StreamProvider {
   constructor(
@@ -58,14 +61,8 @@ export class HttpStreamProvider extends StreamProvider {
       const mres = await this.httpGet(fileName, reqHeaders, responseType, hp);
       const statusCode = mres.status;
 
-      console.log(
-        `[ ${`HTTP ${retryCount}`.padStart(
-          15
-        )} ] [ ${this.host.padStart(25)} ] [ ${fileName.padStart(
-          32
-        )} ] [ ${reqHeaders["Range"]?.slice(6)?.padStart(17)} ] ${statusCode} ${
-          mres.headers["content-type"]
-        } ${mres.headers["content-range"]?.slice(6)}`
+      log.debug(
+        `HTTP ${retryCount} [${this.host}] [${fileName}] [${reqHeaders["Range"]?.slice(6)}] ${statusCode} ${mres.headers["content-type"]} ${mres.headers["content-range"]?.slice(6)}`
       );
 
       const res = await this.handleResponse(statusCode, mres, responseType);
@@ -77,7 +74,7 @@ export class HttpStreamProvider extends StreamProvider {
       if (`${e}`.includes("Token refreshed")) {
         return this.get(fileName, reqHeaders, retryCount + 1, responseType, hp);
       }
-      console.log(`[ ${"Retry required".padStart(15)} ] ${e}`);
+      log.warn({ err: e }, `Retry required`);
       return this.get(fileName, reqHeaders, retryCount + 1, responseType, hp);
     }
   }
@@ -93,14 +90,10 @@ export class HttpStreamProvider extends StreamProvider {
     if (statusCode != null && statusCode >= 200 && statusCode < 300) {
       if (res.headers["content-type"]?.includes("text/html")) {
         if (responseType === "text") {
-          console.log(`[ ${`HTTP Resp`.padStart(15)} ] HTML response: ${res.data.slice(0, 150)}`);
+          log.warn(`HTML response: ${res.data.slice(0, 150)}`);
         } else {
           res.data = await resp2string(res);
-          console.log(
-            `[ ${`HTTP Resp`.padStart(15)} ] ${res.data.slice(0, 150)} ${
-              res.data.length > 150 ? "..." : ""
-            }`
-          );
+          log.warn(`${res.data.slice(0, 150)} ${res.data.length > 150 ? "..." : ""}`);
         }
       }
       return res;

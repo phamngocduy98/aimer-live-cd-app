@@ -10,6 +10,9 @@ import { cache } from "./StreamCache.js";
 import { getPartProvider } from "./part-provider/index.js";
 import { StreamFilePart } from "./dto/StreamFilePart.js";
 import { StreamInfo } from "./dto/StreamInfo.js";
+import { createLogger } from "../../utils/log.js";
+
+const log = createLogger("Stream");
 
 function getPartSize(hosting: IHosting): number {
   if (hosting.stream.type === StreamStrategy.HTTP) {
@@ -53,9 +56,7 @@ export class SongStream {
       const stream = await partProvider.streamPart(info, part);
       return stream;
     } catch (e: any) {
-      console.log(
-        `[ ${"Stream part".padStart(15)} ] ${info.id}: Hosting ${hosting.name} Failed: ${e}`
-      );
+      log.warn({ err: e }, `Stream part ${info.id}: Hosting ${hosting.name} Failed`);
       for (let host of info.hostingList) {
         if (!triedHosting.has(host)) {
           triedHosting.set(host, true);
@@ -111,7 +112,7 @@ export class SongStream {
           }
         });
       } catch (e) {
-        console.log(`[${"ListFiles".padStart(15)}] Host ${hosting.name} failed: ${e}`);
+        log.warn({ err: e }, `ListFiles Host ${hosting.name} failed`);
       }
     });
 
@@ -135,13 +136,13 @@ export class SongStream {
 
     try {
       partToAvailableHosts = await this.listAndValidateParts(info);
-      console.log(
-        `[ ${"Stream".padStart(15)} ] All parts validated. Available hosts per part: ${JSON.stringify(
+      log.debug(
+        `All parts validated. Available hosts per part: ${JSON.stringify(
           [...partToAvailableHosts].map(([f, h]) => [f, h.map((x) => x.name)])
         )}`
       );
     } catch (e: any) {
-      console.error(`[ ${"Stream".padStart(15)} ] Validation failed: ${e.message}`);
+      log.error({ err: e }, `Validation failed: ${e.message}`);
       const error = new Error(e.message);
       (error as any).status = 500;
       throw error;
@@ -159,14 +160,12 @@ export class SongStream {
 
     const parts = this.getParts(fileList, partSize, info.size, range.start, range.end);
 
-    console.log(
-      `[ ${"Stream".padStart(15)} ] ${info.id} ${range.start}-${range.end} (${parts.length} parts)`
-    );
+    log.debug(`${info.id} ${range.start}-${range.end} (${parts.length} parts)`);
 
     let partIdx = 0;
     const streamFactory: MultiStream.FactoryStream = async (cb) => {
       if (partIdx >= parts.length) {
-        console.log(`[ ${"MultiStream".padStart(15)} ] Completed`);
+        log.info("MultiStream Completed");
         return cb(null, null);
       }
 
@@ -183,26 +182,18 @@ export class SongStream {
           const newCacheStream = cache.set(partFileName);
           try {
             stream = await this.streamPart(info, currentPart, selectedHost);
-            console.log(
-              `[ ${"MultiStream".padStart(15)} ] ${partFileName}: Ready from ${selectedHost.name}`
-            );
+            log.info(`${partFileName}: Ready from ${selectedHost.name}`);
             stream.pipe(newCacheStream);
             cb(null, removeStreamPadding(cache.get(partFileName)!, currentPart));
           } catch (e) {
-            console.log(
-              `[ ${"Stream part".padStart(15)} ] ${
-                info.id
-              }: Part ${partIdx} failed from ${selectedHost.name}: ${e}`
-            );
+            log.warn({ err: e }, `${info.id}: Part ${partIdx} failed from ${selectedHost.name}`);
             newCacheStream.destroy(e as Error);
             cb(e as Error, null);
           }
         }
         partIdx++;
       } catch (e) {
-        console.log(
-          `[ ${"Stream part".padStart(15)} ] ${info.id}: Part ${partIdx} stream factory ${e}`
-        );
+        log.warn({ err: e }, `${info.id}: Part ${partIdx} stream factory error`);
         cb(e as Error, null);
       }
     };
@@ -211,19 +202,17 @@ export class SongStream {
 
     multiStream = new MultiStream(streamFactory)
       .on("error", (e) => {
-        console.error("[Error] MultiStream " + e);
+        log.error({ err: e }, "MultiStream error");
       })
       .on("end", () => {
-        console.log(`[ ${"MultiStream".padStart(15)} ] Ended`);
+        log.info("MultiStream Ended");
       })
       .on("close", () => {
-        console.log(`[ ${"MultiStream".padStart(15)} ] Closed`);
+        log.info("MultiStream Closed");
       });
 
-    console.log(
-      `[ ${"MultiStream".padStart(15)} ] Write header: ${_contentType} ${
-        range.start
-      }-${range.end}/${info.size} (len=${range.end - range.start + 1})`
+    log.debug(
+      `Write header: ${_contentType} ${range.start}-${range.end}/${info.size} (len=${range.end - range.start + 1})`
     );
     const metadata = {
       status: 206,

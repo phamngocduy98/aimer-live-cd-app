@@ -2,7 +2,10 @@ import { IAudioMetadata, parseBuffer } from "music-metadata";
 import { dbClient } from "../../db/Mongo.js";
 
 import { AlbumBuilder, SongBuilder, VideoBuilder } from "../../db/builder/index.js";
+import { createLogger } from "../../utils/log.js";
 import { UploadConfig, UploadStrategy } from "../../models/Hosting.js";
+
+const log = createLogger("Upload");
 import { FtpMediaUploader } from "./FtpMediaUploader.js";
 import { MediaUploader } from "./MediaUploader.js";
 
@@ -44,10 +47,8 @@ export async function uploadSongAPI(
   await songBuilder.save();
 
   const startTimestamp = Date.now();
-  console.log(
-    `[ ${"Upload+".padStart(
-      15
-    )} ] Uploading ${songBuilder._id.toString()} (${songBuilder.title()}) to ${
+  log.info(
+    `Upload+ ${songBuilder._id.toString()} (${songBuilder.title()}) to ${
       hosting.name
     } (Skip ${skipPart} parts, Limit ${limitPart} parts)...`
   );
@@ -66,11 +67,7 @@ export async function uploadSongAPI(
 
   const uploadDuration = (Date.now() - startTimestamp) / 1000;
   const speed = Math.floor(buffer.length / 1000 / uploadDuration);
-  console.log(
-    `[ ${"Upload-".padStart(15)} ] Uploaded ${
-      buffer.length
-    } bytes in ${uploadDuration} seconds (${speed} kB/s)`
-  );
+  log.info(`Upload- Uploaded ${buffer.length} bytes in ${uploadDuration} seconds (${speed} kB/s)`);
   songBuilder.fileCount(fileCount);
   await songBuilder.save();
 }

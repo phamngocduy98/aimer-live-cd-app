@@ -1,17 +1,68 @@
-export class Logging {
-  constructor(private label: string) {}
-  log(msg: string) {
-    console.log(`[    ${this.label.padStart(15)} ] ${msg}`);
+import { AsyncLocalStorage } from "node:async_hooks";
+import crypto from "node:crypto";
+import path from "node:path";
+import pino from "pino";
+
+export const requestContext = new AsyncLocalStorage<{ requestId: string }>();
+
+let _rootLogger: pino.Logger | null = null;
+
+export function initLogger(options?: { logDir?: string }): void {
+  const level = process.env.LOG_LEVEL || "info";
+
+  const targets: pino.TransportTargetOptions[] = [
+    {
+      target: "pino-pretty",
+      level: "info",
+      options: {
+        colorize: true,
+        singleLine: true,
+        translateTime: false,
+        ignore: "pid,hostname,time,req,res,reqId,responseTime,module",
+        messageFormat: "[{module}] [{reqId}] {msg}"
+      }
+    }
+  ];
+
+  if (options?.logDir) {
+    targets.push({
+      target: "pino-roll",
+      level: "debug",
+      options: {
+        file: path.join(options.logDir, "app.log"),
+        frequency: "daily",
+        dateFormat: "yyyy-MM-dd",
+        mkdir: true
+      }
+    });
   }
-  eventStart(msg: string) {
-    console.log(`[ >  ${this.label.padStart(15)} ] ${msg}`);
-  }
-  eventEnd(msg: string) {
-    console.log(`[ #  ${this.label.padStart(15)} ] ${msg}`);
-  }
-  eventError(msg: string) {
-    console.log(`[ !  ${`${this.label}`.padStart(15)} ] ${msg}`);
-  }
+
+  _rootLogger = pino(
+    {
+      level,
+      mixin() {
+        const store = requestContext.getStore();
+        return store ? { reqId: store.requestId } : { reqId: "-" };
+      }
+    },
+    pino.transport({ targets })
+  );
 }
 
-export const log = new Logging("Status");
+export function createLogger(module: string): pino.Logger {
+  if (!_rootLogger) {
+    initLogger();
+  }
+  return _rootLogger!.child({ module });
+}
+
+export function getRootLogger(): pino.Logger {
+  if (!_rootLogger) {
+    initLogger();
+  }
+  return _rootLogger!;
+}
+
+export function randomReqId(): string {
+  return crypto.randomUUID().slice(0, 8);
+}

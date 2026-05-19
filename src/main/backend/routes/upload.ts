@@ -13,6 +13,9 @@ import { StreamInfo } from "../services/stream/dto/StreamInfo.js";
 import { waitStreamClose } from "../utils/stream/stream2buffer.js";
 import { fail, ok } from "../utils/reqUtils.js";
 import { DbDocument, WithDocument } from "../types/type.js";
+import { createLogger } from "../utils/log.js";
+
+const log = createLogger("Upload");
 
 // POST /api/videos/youtube/:albumId?
 export async function handleYoutubeVideoUpload(req, res) {
@@ -75,7 +78,7 @@ export async function handleYoutubeVideoUpload(req, res) {
     await album.save();
     ok(res, vid.id);
   } catch (e) {
-    console.error(e);
+    log.error({ err: e }, "YouTube video upload failed");
     fail(res, `${e}`);
   }
 }
@@ -99,7 +102,7 @@ export async function handleFileUpload(req, res) {
     );
     ok(res);
   } catch (e) {
-    console.error(e);
+    log.error({ err: e }, "File upload failed");
     fail(res, `${e}`);
   }
 }
@@ -126,7 +129,7 @@ export async function handleAlbumUpload(req, res) {
     }
     ok(res);
   } catch (e) {
-    console.error(e);
+    log.error({ err: e }, "Album upload failed");
     fail(res, `${e}`);
   }
 }
@@ -154,7 +157,7 @@ export async function handleVideoChapters(req, res) {
     await video.save();
     ok(res);
   } catch (e) {
-    console.error(e);
+    log.error({ err: e }, "Video chapters failed");
     fail(res, `${e}`);
   }
 }
@@ -176,22 +179,18 @@ export async function handleGetPart(req, res) {
 
   for (let hosting of song.hostingList) {
     try {
-      console.log(
-        `[ ${"Raw Part".padStart(15)} ] Get part ${req.params.fileName} from ${hosting.name}`
-      );
+      log.info(`Get part ${req.params.fileName} from ${hosting.name}`);
       const provider = getPartProvider(hosting, {});
       const part = await provider.fetchRawPart(req.params.fileName);
       const headers: Record<string, string> = {};
       if (part.contentType) headers["Content-Type"] = part.contentType;
       if (part.contentLength != null) headers["Content-Length"] = String(part.contentLength);
       res?.writeHead(206, "Partial Content", headers);
-      console.log(`[ ${"Raw Part".padStart(15)} ] Part ok, streaming`);
+      log.info("Part ok, streaming");
       part.data.pipe(res);
       return;
     } catch (e: any) {
-      console.error(
-        `[ ${"Raw Part".padStart(15)} ] Fail to load from hosting ${hosting.name}: ${e}`
-      );
+      log.warn({ err: e }, `Fail to load from hosting ${hosting.name}`);
     }
   }
   fail(res, "No part available");
@@ -212,7 +211,7 @@ async function backupSong(
   song: StreamInfo,
   targetHosting: IHosting
 ): Promise<void> {
-  console.log(`[ ${"Backup+".padStart(15)} ] Song ${song.id} into hosting ${targetHosting.name}`);
+  log.info(`Backup+ Song ${song.id} into hosting ${targetHosting.name}`);
   for (let i = 0; i < song.fileCount; i++) {
     const fileName = `${song.id}${i > 0 ? `_${i}` : ""}.${song.fileExtension}`;
     const buffers: Buffer[] = [];
@@ -226,7 +225,7 @@ async function backupSong(
     part.data.pipe(outputStream);
     await waitStreamClose(outputStream);
 
-    console.log(`[ ${"Backup".padStart(15)} ] Start uploading`);
+    log.info("Start uploading");
 
     const [fname, fext] = fileName.split(".");
     const uploader = getMediaUploader(targetHosting.upload);
@@ -235,7 +234,7 @@ async function backupSong(
     await uploader.end();
   }
 
-  console.log(`[ ${"Backup-".padStart(15)} ] Song ${song.id} completed`);
+  log.info(`Backup- Song ${song.id} completed`);
 }
 
 // POST /api/album/:id/backup/:hostid
@@ -282,14 +281,14 @@ export async function handleAlbumBackup(req, res) {
             await song.save();
             break;
           } catch (e: any) {
-            console.log(`[ ${"Backup!".padStart(15)} ] ERR: hosting ${e?.message}`);
+            log.warn({ err: e }, `Backup! ERR: hosting ${e?.message}`);
             continue;
           }
         }
       }
     }
   } catch (e) {
-    console.log(e);
+    log.error({ err: e }, "Album backup error");
     fail(res, "done");
   }
 
@@ -349,11 +348,11 @@ export async function handleAlbumBackup2(req, res) {
           const fileName = `${`${song.id}${i == 0 ? "" : `_${i}`}`}.${song.fileExtension}`;
 
           if (availableParts.has(fileName) && skipExist) {
-            console.log(`[ ${`Backup ${i}/${song.fileCount}`.padStart(15)} ] ${fileName} SKIP`);
+            log.info(`Backup ${i}/${song.fileCount} ${fileName} SKIP`);
             continue;
           }
 
-          console.log(`[ ${`Backup ${i}/${song.fileCount}`.padStart(15)} ] ${fileName}`);
+          log.info(`Backup ${i}/${song.fileCount} ${fileName}`);
           const resPayload = await provider.fetchRawPart(`sync.php?id=${song.id}&file=${fileName}`);
           const respBuffers: Buffer[] = [];
           for await (const chunk of resPayload.data) {
@@ -374,13 +373,13 @@ export async function handleAlbumBackup2(req, res) {
         await song.save();
         break;
       } catch (e: any) {
-        console.log(`[ ${"Backup (sync)".padStart(15)} ] ERR: hosting ${e?.message}`);
+        log.warn({ err: e }, `Backup (sync) ERR: hosting ${e?.message}`);
         continue;
       }
     }
     ok(res);
   } catch (e) {
-    console.log(e);
+    log.error({ err: e }, "Backup2 error");
     fail(res, "done");
   }
 }

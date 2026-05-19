@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/DuyPC/.local/**)",
+      "Read(//c/Users/DuyPC/.local//**)",
+      "Bash(npx tsc *)",
+      "Bash(node *)"
+    ]
+  }
+}

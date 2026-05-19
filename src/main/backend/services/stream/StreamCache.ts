@@ -1,5 +1,8 @@
 import { Readable } from "node:stream";
 import { CacheValue, StreamingCache } from "../../utils/stream-cache";
+import { createLogger } from "../../utils/log.js";
+
+const log = createLogger("Cache");
 
 class StreamCache {
   private _promiseCachedMap: Record<string, number> = {};
@@ -9,17 +12,17 @@ class StreamCache {
     maxEntrySize: 1024 * 1024 * 50,
     noDisposeOnSet: true,
     dispose: (value: CacheValue, key: string): void => {
-      console.log(`[ ${"Cache".padStart(15)} ] ${key}: REMOVE Cache`);
+      log.debug(`${key}: REMOVE Cache`);
       delete this._promiseCachedMap[key];
     }
   });
 
   set(key: string) {
-    console.log(`[ ${"Cache".padStart(15)} ] ${key}: SET Cache`);
+    log.debug(`${key}: SET Cache`);
     const stream = this._cache.set(key);
 
     stream.on("error", (err) => {
-      console.error(`[Error] CACHE ${key} ` + err);
+      log.error({ err }, `CACHE ${key} error`);
       this.deleteStream(key);
     });
 
@@ -32,12 +35,10 @@ class StreamCache {
     });
     stream.on("end", () => {
       clearTimeout(timeout);
-      console.log(
-        `[ ${"Cache".padStart(15)} ] ${key}: SET Cache (size = ${this._promiseCachedMap[key]})`
-      );
+      log.debug(`${key}: SET Cache (size = ${this._promiseCachedMap[key]})`);
     });
     stream.on("close", () => {
-      console.log(`[ ${"Cache".padStart(15)} ] ${key}: SET Cache (Closed)`);
+      log.debug(`${key}: SET Cache (Closed)`);
     });
 
     this._promiseCachedMap[key] = 0;
@@ -48,20 +49,18 @@ class StreamCache {
     if (this._promiseCachedMap[key] != null) {
       const cached = this._cache.get(key);
       if (cached != null) {
-        console.log(
-          `[ ${"Cache".padStart(15)} ] ${key}: GET Cache (${this._promiseCachedMap[key]})`
-        );
+        log.debug(`${key}: GET Cache (${this._promiseCachedMap[key]})`);
         return cached;
       } else {
-        console.error(`[ ${"Cache".padStart(15)} ] ${key}: Invalid cache state. NOT FOUND`);
+        log.warn(`${key}: Invalid cache state. NOT FOUND`);
       }
     }
-    console.log(`[ ${"Cache".padStart(15)} ] ${key}: GET No cache`);
+    log.debug(`${key}: GET No cache`);
     return null;
   }
 
   deleteStream(key: string) {
-    console.log(`[ ${"Cache".padStart(15)} ] ${key}: DEL`);
+    log.debug(`${key}: DEL`);
     this._cache.set(key);
     delete this._promiseCachedMap[key];
   }

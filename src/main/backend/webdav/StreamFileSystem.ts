@@ -29,6 +29,9 @@ import { Album } from "../models/Album.js";
 import { Format, ISong, Song } from "../models/Song.js";
 import { WithId } from "mongodb";
 import { SongStream } from "../services/stream/SongStream.js";
+import { createLogger } from "../utils/log.js";
+
+const log = createLogger("WebDAV");
 
 export class StreamFileSystemResource {
   props: LocalPropertyManager;
@@ -105,7 +108,7 @@ export class StreamFileSystem extends FileSystem {
   }
 
   protected _create(path: Path, ctx: CreateInfo, _callback: SimpleCallback): void {
-    console.log("[CREATE]");
+    log.debug("CREATE");
     // const { realPath } = this.getRealPath(path);
 
     // const callback = (e: any) => {
@@ -131,7 +134,7 @@ export class StreamFileSystem extends FileSystem {
   }
 
   protected _delete(path: Path, ctx: DeleteInfo, _callback: SimpleCallback): void {
-    console.log("[DELETE]");
+    log.debug("DELETE");
     // const { realPath } = this.getRealPath(path);
 
     // const callback = (e: any) => {
@@ -177,7 +180,7 @@ export class StreamFileSystem extends FileSystem {
     ctx: OpenWriteStreamInfo,
     callback: ReturnCallback<Writable>
   ): void {
-    console.log("[WRITE]");
+    log.debug("WRITE");
     // const { realPath, resource } = this.getRealPath(path);
 
     // fs.open(realPath, "w+", (e, fd) => {
@@ -196,7 +199,7 @@ export class StreamFileSystem extends FileSystem {
     callback: ReturnCallback<Readable>
   ): void {
     const { songId } = this.getRealPath(path);
-    console.log("[READ]", songId, this.isValidId(songId));
+    log.debug(`READ ${songId} valid=${this.isValidId(songId)}`);
     if (!this.isValidId(songId)) {
       return callback(Errors.ResourceNotFound);
     }
@@ -206,7 +209,7 @@ export class StreamFileSystem extends FileSystem {
         const song = await Song.findById(songId).populate("hostingList").exec();
 
         if (song == null) {
-          console.log("[READ] Not found");
+          log.warn("READ Not found");
           return callback(Errors.ResourceNotFound);
         }
         const outStream = new PassThrough();
@@ -215,13 +218,13 @@ export class StreamFileSystem extends FileSystem {
         const { stream: fileStream } = await stream.stream(song);
         fileStream.pipe(outStream);
         fileStream.on("error", (e) => {
-          console.log("[READ] Stream error", e);
+          log.warn({ err: e }, "READ Stream error");
           outStream.destroy(e);
         });
 
         return callback(undefined, outStream);
       } catch (e) {
-        console.log("[READ] Stream die", e);
+        log.warn({ err: e }, "READ Stream die");
         return callback(Errors.Forbidden);
       }
     })();
@@ -233,7 +236,7 @@ export class StreamFileSystem extends FileSystem {
     ctx: MoveInfo,
     callback: ReturnCallback<boolean>
   ): void {
-    console.log("[MOVE]");
+    log.debug("MOVE");
     // const { realPath: realPathFrom } = this.getRealPath(pathFrom);
     // const { realPath: realPathTo } = this.getRealPath(pathTo);
     // const rename = (overwritten: boolean) => {

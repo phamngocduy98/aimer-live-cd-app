@@ -2,6 +2,9 @@ import { Song } from "../models/Song.js";
 import { Video } from "../models/Video.js";
 import { SongStream } from "../services/stream/SongStream.js";
 import { fail } from "../utils/reqUtils.js";
+import { createLogger } from "../utils/log.js";
+
+const log = createLogger("Stream");
 
 // GET /api/stream/:id
 export function handleDeprecatedStream(req, res) {
@@ -25,7 +28,7 @@ export async function handleStreamAudio(req, res) {
     res.writeHead(metadata.status, metadata.statusMessage, metadata.headers);
     audioStream.pipe(res);
     audioStream.on("error", (e) => {
-      console.error("[Stream Error]", e);
+      log.error({ err: e }, "Stream error");
       res.destroy(e);
     });
     return;
@@ -53,7 +56,7 @@ export async function handleStreamVideo(req, res) {
     const stream = new SongStream(req.headers);
 
     req.on("error", (e) => {
-      console.error("[Error] Client request " + e);
+      log.error({ err: e }, "Client request error");
       res.end();
     });
 
@@ -61,7 +64,7 @@ export async function handleStreamVideo(req, res) {
     res.writeHead(metadata.status, metadata.statusMessage, metadata.headers);
     videoStream.pipe(res);
     videoStream.on("error", (e) => {
-      console.error("[Stream Error]", e);
+      log.error({ err: e }, "Stream error");
       res.destroy(e);
     });
     return;

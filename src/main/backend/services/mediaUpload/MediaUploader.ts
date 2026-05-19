@@ -2,6 +2,9 @@ import { Readable } from "stream";
 
 import { getAesStream, PARTSIZE } from "../../config/const.js";
 import { UploadConfig } from "../../models/Hosting.js";
+import { createLogger } from "../../utils/log.js";
+
+const log = createLogger("Part");
 
 const extList: string[] = [".audio", ".unknown", ".jpg", ".png"];
 
@@ -77,16 +80,16 @@ export abstract class MediaUploader {
               () => `${partName}.${this.getUploadExt(`.${ext}`)()}`
             );
 
-            console.log(`[ ${`Part ${partNo}/${maxFileCount}`.padStart(15)} ] ${fileName}`);
+            log.info(`Part ${partNo}/${maxFileCount} ${fileName}`);
             break;
           } catch (e) {
             if (++retry > 3) throw Error("Max try exceeded");
             await new Promise((rs) => setTimeout(rs, 1000 + Math.floor(Math.random() * 30000)));
-            console.log(`[ ${`Part ${partNo}/${maxFileCount}`.padStart(15)} ] Retry ${retry}/3`);
+            log.warn(`Part ${partNo}/${maxFileCount} Retry ${retry}/3`);
           }
         }
       } else {
-        console.log(`[ ${`Part ${partNo}/${maxFileCount}`.padStart(15)} ] SKIP`);
+        log.info(`Part ${partNo}/${maxFileCount} SKIP`);
       }
       partNo++;
     }

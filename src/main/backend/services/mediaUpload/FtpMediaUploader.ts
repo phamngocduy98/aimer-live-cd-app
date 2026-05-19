@@ -2,6 +2,9 @@ import { MediaUploader } from "./MediaUploader.js";
 
 import { UploadConfig, UploadStrategy } from "../../models/Hosting.js";
 import { MyFtp } from "./MyFtp.js";
+import { createLogger } from "../../utils/log.js";
+
+const log = createLogger("FTP Upload");
 
 export class FtpMediaUploader extends MediaUploader {
   ftpClient: MyFtp | null = null;
@@ -39,7 +42,7 @@ export class FtpMediaUploader extends MediaUploader {
       if (e instanceof Error && e.message.includes("Forbidden filename")) {
         return this.uploadFile(upBuff, getFileName, uploadPath);
       }
-      console.error(e);
+      log.error({ err: e }, "FTP upload failed");
       throw e;
     }
   }
