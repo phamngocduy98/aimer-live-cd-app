@@ -154,11 +154,26 @@ export async function handleDeleteHost(req, res) {
   );
   log.info(`Updated ${upVResult.modifiedCount} videos!`);
 
+  const songsToDel = await Song.find({ hostingList: [] }, { _id: 1 }).lean();
+  const songIds = songsToDel.map((s) => s._id);
+  if (songIds.length > 0) {
+    await Album.updateMany({}, { $pull: { trackList: { $in: songIds } } });
+    log.info(`Cleaned ${songIds.length} song refs from albums`);
+  }
   const delResult = await Song.deleteMany({
     hostingList: []
   });
   log.info(`Deleted ${delResult.deletedCount} songs!`);
 
+  const videosToDel = await Video.find(
+    { hostingList: [], youtubeUrl: null },
+    { _id: 1 }
+  ).lean();
+  const videoIds = videosToDel.map((v) => v._id);
+  if (videoIds.length > 0) {
+    await Album.updateMany({}, { $pull: { videoList: { $in: videoIds } } });
+    log.info(`Cleaned ${videoIds.length} video refs from albums`);
+  }
   const delVResult = await Video.deleteMany({
     hostingList: [],
     youtubeUrl: null
@@ -229,7 +244,12 @@ export async function handleGetAlbums(req, res) {
   const page = parseInt((req.query.page as string) ?? "0");
   const pageSize = parseInt((req.query.pageSize as string) ?? "30");
   const albums = await Album.find(
-    {},
+    {
+      $or: [
+        { "trackList.0": { $exists: true } },
+        { "videoList.0": { $exists: true } }
+      ]
+    },
     {
       title: 1,
       artist: 1,
