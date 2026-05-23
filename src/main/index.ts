@@ -4,6 +4,10 @@ import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import icon from "../../resources/icon.png?asset";
 import getPort from "get-port";
 import Store from "electron-store";
+import type { Server } from "node:http";
+
+let httpServer: Server | null = null;
+let isShuttingDown = false;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let log: any = { info: () => {}, error: () => {} };
@@ -57,15 +61,17 @@ function createPasswordWindow(): Promise<AppConfig | null> {
       useContentSize: true
     });
 
-    if (is.dev) {
-      passwordWindow.webContents.openDevTools();
-    }
-
     // Load password input HTML
     if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
       passwordWindow.loadURL(`${process.env["ELECTRON_RENDERER_URL"]}/password.html`);
     } else {
       passwordWindow.loadFile(join(__dirname, "../renderer/password.html"));
+    }
+
+    if (is.dev && !process.env.DISABLE_DEVTOOLS) {
+      passwordWindow.webContents.on("did-finish-load", () => {
+        passwordWindow.webContents.openDevTools();
+      });
     }
 
     // Handle password submission
@@ -149,7 +155,7 @@ async function initializeApp(): Promise<void> {
 
   try {
     const { startServer } = await import("./backend/index.js");
-    await startServer(port);
+    httpServer = await startServer(port);
   } catch (error: unknown) {
     log.error({ err: error }, "Failed to start server");
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -186,6 +192,7 @@ function createWindow(): void {
     height: 670,
     show: false,
     autoHideMenuBar: true,
+    useContentSize: true,
     ...(process.platform === "linux" ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, "../preload/index.cjs"),
@@ -195,12 +202,11 @@ function createWindow(): void {
     }
   });
 
-  if (is.dev) {
-    mainWindow.webContents.openDevTools();
-  }
-
   mainWindow.on("ready-to-show", () => {
     mainWindow.show();
+    if (is.dev && !process.env.DISABLE_DEVTOOLS) {
+      mainWindow.webContents.openDevTools();
+    }
   });
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -216,6 +222,41 @@ function createWindow(): void {
     mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
   }
 }
+
+async function gracefulShutdown(): Promise<void> {
+  if (httpServer) {
+    log.info("Closing HTTP server...");
+    await new Promise<void>((resolve) => {
+      const timeout = setTimeout(() => {
+        log.warn("HTTP server close timed out, forcing shutdown");
+        resolve();
+      }, 10000);
+      httpServer!.close(() => {
+        clearTimeout(timeout);
+        log.info("HTTP server closed");
+        resolve();
+      });
+    });
+  }
+
+  try {
+    const { getRootLogger } = await import("./backend/utils/log.js");
+    getRootLogger().flush();
+    log.info("Logger flushed");
+  } catch (err) {
+    console.error("Failed to flush logger:", err);
+  }
+}
+
+app.on("before-quit", (event) => {
+  if (!isShuttingDown) {
+    event.preventDefault();
+    isShuttingDown = true;
+    gracefulShutdown().finally(() => {
+      app.quit();
+    });
+  }
+});
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

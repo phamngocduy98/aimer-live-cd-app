@@ -37,6 +37,10 @@ export function initLogger(options?: { logDir?: string }): void {
     });
   }
 
+  const transport = pino.transport({ targets });
+  transport.on("error", (err: Error) => {
+    console.error("Logger transport error:", err.message);
+  });
   _rootLogger = pino(
     {
       level,
@@ -45,7 +49,7 @@ export function initLogger(options?: { logDir?: string }): void {
         return store ? { reqId: store.requestId } : { reqId: "-" };
       }
     },
-    pino.transport({ targets })
+    transport
   );
 }
 

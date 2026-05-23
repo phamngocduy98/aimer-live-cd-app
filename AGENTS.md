@@ -12,6 +12,8 @@
 - Test: `pnpm test` (vitest run)
 - Test watch: `pnpm test:watch` (vitest watch mode)
 - Test coverage: `pnpm test:coverage` (vitest with V8 coverage)
+- E2E Test: `pnpm test:e2e` (playwright test)
+- E2E Test (headed): `pnpm test:e2e:headed` (playwright test --headed)
 
 ## Build Commands
 
@@ -61,6 +63,16 @@
 - Password generation script: `pnpm passgen` (src/main/backend/scripts/passgen.ts)
 - Implement client API call in `src\renderer\src\core\api.ts`
 
+## E2E Testing (Playwright)
+
+- Test files: `e2e/` directory
+  - `app.spec.ts` - Tests for password.html config dialog (first-run flow)
+  - `main-app.spec.ts` - Tests for index.html main app (loads `.env`, skips config dialog)
+- Configuration: `playwright.config.ts` (workers: 1, sequential execution)
+- Each test suite uses isolated temp directories to avoid state leakage
+- `main-app.spec.ts` loads `.env` via `dotenv.config()` and auto-fills config dialog
+- Run specific test file: `pnpm test:e2e -- e2e/main-app.spec.ts`
+
 ## Environment Variables
 
 - Env vars are loaded via encrypted `electron-store` config (no `.env` file needed)
@@ -70,3 +82,7 @@
   - `AES_PW`: 64-char hex string (32 bytes) for AES-256-CTR stream encryption
   - `MONGO_DB_HOST/USER/PW`: MongoDB connection details
 - Password generation script `pnpm passgen` can generate a valid `AES_PW`
+
+## Documentation
+
+- Feature list and user-facing capabilities: `docs/features.md`

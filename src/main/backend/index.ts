@@ -1,6 +1,7 @@
 import bodyParser from "body-parser";
 import cors from "cors";
 import express from "express";
+import http from "node:http";
 import multer from "multer";
 import path from "node:path";
 import { v2 as webdav } from "webdav-server";
@@ -107,12 +108,12 @@ function handleCatchAll(_req, res) {
 
 app.get("/*", handleCatchAll);
 
-export async function startServer(port: number): Promise<void> {
+export async function startServer(port: number): Promise<http.Server> {
   const log = createLogger("Status");
   await dbClient.connect();
   log.info("DB connected");
   await webdavServer.init();
   log.info("Webdav served at /webdav");
 
-  app.listen(port, () => log.info(`Stream server listening on port ${port}!`));
+  return app.listen(port, () => log.info(`Stream server listening on port ${port}!`));
 }
