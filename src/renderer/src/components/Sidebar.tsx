@@ -84,7 +84,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerWidth }) => {
             </MyListItemButton>
           </MyListItem>
           <MyListItem key={"Songs"}>
-            <MyListItemButton onClick={() => router.navigate("/")}>
+            <MyListItemButton onClick={() => router.navigate("/songs")}>
               <ListItemIcon>
                 <MusicNoteIcon />
               </ListItemIcon>

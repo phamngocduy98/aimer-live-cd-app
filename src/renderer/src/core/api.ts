@@ -40,6 +40,16 @@ export class AppAPI {
     return resp.data;
   }
 
+  async listSongs(page: number = 0, pageSize: number = 50): Promise<Song[]> {
+    const resp = await axios.get<Song[]>("/songs", {
+      params: {
+        page,
+        pageSize
+      }
+    });
+    return resp.data;
+  }
+
   async album(id: string): Promise<AlbumDetail> {
     const resp = await axios.get<AlbumDetail>("/album/" + id);
     return resp.data;

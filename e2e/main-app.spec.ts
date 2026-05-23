@@ -246,7 +246,11 @@ test.describe("Aimer Live CD Music Player - Main App E2E", () => {
     const songsLink = sidebar.getByText("Songs", { exact: true });
     await expect(songsLink).toBeVisible();
     await songsLink.click();
-    await mainWindow.waitForTimeout(500);
+    await mainWindow.waitForTimeout(1000);
+
+    // Should navigate to songs page (ALBUM column header is unique to songs table)
+    const songsPageHeader = mainWindow.locator("th").filter({ hasText: "ALBUM" }).first();
+    await expect(songsPageHeader).toBeVisible();
 
     // Playlists link
     const playlistsLink = sidebar.getByText("Playlists", { exact: true });
@@ -607,5 +611,50 @@ test.describe("Aimer Live CD Music Player - Main App E2E", () => {
 
     const hasErrorDialog = await mainWindow.getByText("Error").isVisible({ timeout: 60000 }).catch(() => false);
     expect(hasErrorDialog).toBe(false);
+  });
+
+  // ============================================================
+  // 19. Songs Tab
+  // ============================================================
+
+  test("songs page displays Songs title and track count", async () => {
+    // Navigate to songs page via sidebar
+    const sidebar = mainWindow.locator("nav.MuiDrawer-paper, div.MuiDrawer-paper");
+    await sidebar.getByText("Songs", { exact: true }).click();
+    await mainWindow.waitForTimeout(2000);
+
+    // Songs title should be visible in main content
+    await expect(mainWindow.getByText("Songs").first()).toBeVisible();
+
+    // Track count text (e.g., "0 tracks" or "12 tracks")
+    await expect(mainWindow.getByText(/tracks/).first()).toBeVisible();
+
+    await mainWindow.screenshot({ path: "e2e/screens/songs-page.png" });
+  });
+
+  test("songs page shows Play All and Shuffle buttons", async () => {
+    const sidebar = mainWindow.locator("nav.MuiDrawer-paper, div.MuiDrawer-paper");
+    await sidebar.getByText("Songs", { exact: true }).click();
+    await mainWindow.waitForTimeout(1000);
+
+    await expect(mainWindow.locator("button").filter({ hasText: "Play" }).first()).toBeVisible();
+    await expect(mainWindow.locator("button").filter({ hasText: "Shuffle" }).first()).toBeVisible();
+
+    await mainWindow.screenshot({ path: "e2e/screens/songs-buttons.png" });
+  });
+
+  test("songs page table shows expected column headers", async () => {
+    const sidebar = mainWindow.locator("nav.MuiDrawer-paper, div.MuiDrawer-paper");
+    await sidebar.getByText("Songs", { exact: true }).click();
+    await mainWindow.waitForTimeout(1000);
+
+    // Column headers unique to songs page
+    await expect(mainWindow.locator("th").filter({ hasText: "TITLE" }).first()).toBeVisible();
+    await expect(mainWindow.locator("th").filter({ hasText: "ARTIST" }).first()).toBeVisible();
+    await expect(mainWindow.locator("th").filter({ hasText: "ALBUM" }).first()).toBeVisible();
+    await expect(mainWindow.locator("th").filter({ hasText: "QUALITY" }).first()).toBeVisible();
+    await expect(mainWindow.locator("th").filter({ hasText: "TIME" }).first()).toBeVisible();
+
+    await mainWindow.screenshot({ path: "e2e/screens/songs-table-columns.png" });
   });
 });

@@ -83,6 +83,13 @@
   - `MONGO_DB_HOST/USER/PW`: MongoDB connection details
 - Password generation script `pnpm passgen` can generate a valid `AES_PW`
 
+## Testing Policy
+
+- Always write tests after implementing a new feature
+- Unit tests: `src/` (co-located with source files as `*.test.ts`)
+- E2E tests: `e2e/` directory (Playwright)
+- Run `pnpm test` and `pnpm test:e2e` to verify before marking a feature complete
+
 ## Documentation
 
 - Feature list and user-facing capabilities: `docs/features.md`

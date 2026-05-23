@@ -379,6 +379,33 @@ export async function handleGetAlbumCover(req, res) {
   }
 }
 
+// GET /api/songs
+export async function handleGetSongs(req, res) {
+  const page = parseInt((req.query.page as string) ?? "0");
+  const pageSize = parseInt((req.query.pageSize as string) ?? "50");
+  const songs = await Song.find(
+    {},
+    {
+      iv: 0,
+      hostingList: 0
+    }
+  )
+    .populate("album", {
+      title: 1,
+      artist: 1
+    })
+    .skip(page * pageSize)
+    .limit(pageSize)
+    .sort({
+      album: 1,
+      trackNo: 1
+    })
+    .lean()
+    .exec();
+  res.send(songs);
+  res.end();
+}
+
 // GET /api/song/:id
 export async function handleGetSong(req, res) {
   const song = await Song.findById(req.params.id, {

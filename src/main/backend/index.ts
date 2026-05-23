@@ -20,6 +20,7 @@ import {
   handleGetAlbum,
   handleGetAlbumBackup,
   handleGetAlbumCover,
+  handleGetSongs,
   handleGetSong,
   handleGetSongCover,
   handleGetArtistTopTracks
@@ -87,6 +88,8 @@ app.post("/api/album/:id/backup/:hostid", handleAlbumBackup);
 app.post("/api/album/:id/backup2/:hostid", handleAlbumBackup2);
 
 app.get("/api/album/:id/cover", handleGetAlbumCover);
+
+app.get("/api/songs", handleGetSongs);
 
 app.get("/api/song/:id", handleGetSong);
 
