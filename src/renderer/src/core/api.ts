@@ -4,7 +4,7 @@ import { Song } from "./Song";
 
 export interface Host {
   _id: string;
-  host: string;
+  name: string;
   provider: string;
   path?: string;
 }

@@ -43,7 +43,7 @@ export const ManageHostsDialog: React.FC<ManageHostsDialogProps> = ({
                 >
                   <Box sx={{ display: "flex", alignItems: "center", width: "100%" }}>
                     <ListItemText
-                      primary={host.host}
+                      primary={host.name}
                       secondary={`${host.provider}${host.path ? ` • ${host.path}` : ""}`}
                       sx={{ flex: 1 }}
                     />
