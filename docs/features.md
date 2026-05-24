@@ -73,13 +73,13 @@ Aimer Live CD is a desktop music streaming application that lets you build, mana
 
 ## Architecture Highlights
 
-| Layer | Technology |
-|-------|------------|
-| Desktop shell | Electron + Vite |
-| Frontend | React + Material-UI (dark theme) + React Router |
-| State management | Redux Toolkit |
-| Backend | Express.js |
-| Database | MongoDB (Mongoose) |
-| File storage | FTP-based, split into encrypted parts |
-| Encryption | AES-256-CTR (per-file IV) |
-| Target hosts | Free hosting providers (e.g., infinityfree.net) |
+| Layer            | Technology                                      |
+| ---------------- | ----------------------------------------------- |
+| Desktop shell    | Electron + Vite                                 |
+| Frontend         | React + Material-UI (dark theme) + React Router |
+| State management | Redux Toolkit                                   |
+| Backend          | Express.js                                      |
+| Database         | MongoDB (Mongoose)                              |
+| File storage     | FTP-based, split into encrypted parts           |
+| Encryption       | AES-256-CTR (per-file IV)                       |
+| Target hosts     | Free hosting providers (e.g., infinityfree.net) |

@@ -2,16 +2,16 @@
 
 ## Commands
 
-| Category | Command | Notes |
-|----------|---------|-------|
-| Install | `pnpm install` | |
-| Dev | `pnpm dev` | Electron-Vite dev server |
-| Lint | `pnpm lint` | ESLint w/ cache |
-| Typecheck | `pnpm typecheck` | node + web; separate: `typecheck:node`/`:web` |
-| Format | `pnpm format` | Prettier |
-| Test unit | `pnpm test` | vitest run; coverage `pnpm test:coverage` |
-| Test E2E | `pnpm test:e2e` | playwright; headed: `:headed` |
-| Build | `pnpm build` | electron-vite build; `build:win`/`:mac`/`:linux`/`:unpack` |
+| Category  | Command          | Notes                                                      |
+| --------- | ---------------- | ---------------------------------------------------------- |
+| Install   | `pnpm install`   |                                                            |
+| Dev       | `pnpm dev`       | Electron-Vite dev server                                   |
+| Lint      | `pnpm lint`      | ESLint w/ cache                                            |
+| Typecheck | `pnpm typecheck` | node + web; separate: `typecheck:node`/`:web`              |
+| Format    | `pnpm format`    | Prettier                                                   |
+| Test unit | `pnpm test`      | vitest run; coverage `pnpm test:coverage`                  |
+| Test E2E  | `pnpm test:e2e`  | playwright; headed: `:headed`                              |
+| Build     | `pnpm build`     | electron-vite build; `build:win`/`:mac`/`:linux`/`:unpack` |
 
 ## Project Structure
 
