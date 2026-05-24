@@ -181,6 +181,13 @@ function App() {
         }}
         onManageHostsClick={() => setIsHostDialogOpen(true)}
         onBackClick={() => router.navigate("/")}
+        onSearch={(q) => {
+          if (q) {
+            router.navigate(`/search?q=${encodeURIComponent(q)}`);
+          } else {
+            router.navigate("/");
+          }
+        }}
       />
 
       <Box

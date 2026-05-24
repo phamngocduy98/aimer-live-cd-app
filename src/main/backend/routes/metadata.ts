@@ -165,10 +165,7 @@ export async function handleDeleteHost(req, res) {
   });
   log.info(`Deleted ${delResult.deletedCount} songs!`);
 
-  const videosToDel = await Video.find(
-    { hostingList: [], youtubeUrl: null },
-    { _id: 1 }
-  ).lean();
+  const videosToDel = await Video.find({ hostingList: [], youtubeUrl: null }, { _id: 1 }).lean();
   const videoIds = videosToDel.map((v) => v._id);
   if (videoIds.length > 0) {
     await Album.updateMany({}, { $pull: { videoList: { $in: videoIds } } });
@@ -192,7 +189,9 @@ export async function handleDeleteHost(req, res) {
 
 export async function enrichFileList(
   files: { fileName: string; partNumbers: number[] }[]
-): Promise<{ fileName: string; parts: string; partNumbers: number[]; title: string; fileCount: number }[]> {
+): Promise<
+  { fileName: string; parts: string; partNumbers: number[]; title: string; fileCount: number }[]
+> {
   const fileNames = files.map((f) => f.fileName);
   const [songs, videos] = await Promise.all([
     Song.find({ _id: { $in: fileNames } }, { title: 1, fileCount: 1, _id: 1 }).lean(),
@@ -200,12 +199,8 @@ export async function enrichFileList(
   ]);
 
   const metaMap = new Map<string, { title: string; fileCount: number }>();
-  songs.forEach((s) =>
-    metaMap.set(s._id.toString(), { title: s.title, fileCount: s.fileCount })
-  );
-  videos.forEach((v) =>
-    metaMap.set(v._id.toString(), { title: v.title, fileCount: v.fileCount })
-  );
+  songs.forEach((s) => metaMap.set(s._id.toString(), { title: s.title, fileCount: s.fileCount }));
+  videos.forEach((v) => metaMap.set(v._id.toString(), { title: v.title, fileCount: v.fileCount }));
 
   return files.map((f) => {
     const meta = metaMap.get(f.fileName) || { title: "Unknown", fileCount: 0 };
@@ -245,10 +240,7 @@ export async function handleGetAlbums(req, res) {
   const pageSize = parseInt((req.query.pageSize as string) ?? "30");
   const albums = await Album.find(
     {
-      $or: [
-        { "trackList.0": { $exists: true } },
-        { "videoList.0": { $exists: true } }
-      ]
+      $or: [{ "trackList.0": { $exists: true } }, { "videoList.0": { $exists: true } }]
     },
     {
       title: 1,
@@ -490,5 +482,53 @@ export async function handleGetArtistTopTracks(req, res) {
     .populate("album", { title: 1, artist: 1 })
     .exec();
   res.send(songs);
+  res.end();
+}
+
+// GET /api/search?q=...
+export async function handleSearch(req, res) {
+  const q = (req.query.q as string)?.trim();
+  if (!q) {
+    return res.json({ songs: [], albums: [], videos: [] });
+  }
+
+  const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp(escaped, "i");
+
+  const [albums, songs, videos] = await Promise.all([
+    Album.find(
+      {
+        $and: [
+          { $or: [{ title: regex }, { artist: regex }] },
+          { $or: [{ "trackList.0": { $exists: true } }, { "videoList.0": { $exists: true } }] }
+        ]
+      },
+      { title: 1, artist: 1, year: 1 }
+    )
+      .limit(20)
+      .lean()
+      .exec(),
+    Song.find({ $or: [{ title: regex }, { artist: regex }] }, { iv: 0, hostingList: 0 })
+      .populate("album", { title: 1, artist: 1 })
+      .limit(20)
+      .lean()
+      .exec(),
+    Video.aggregate([
+      { $match: { $or: [{ title: regex }, { artist: regex }] } },
+      { $project: { iv: 0, hostingList: 0 } },
+      {
+        $lookup: {
+          from: "albums",
+          localField: "album",
+          foreignField: "_id",
+          as: "album"
+        }
+      },
+      { $unwind: { path: "$album", preserveNullAndEmptyArrays: true } },
+      { $limit: 20 }
+    ])
+  ]);
+
+  res.json({ songs, albums, videos });
   res.end();
 }

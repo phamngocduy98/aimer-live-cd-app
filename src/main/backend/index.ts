@@ -24,7 +24,8 @@ import {
   handleGetVideos,
   handleGetSong,
   handleGetSongCover,
-  handleGetArtistTopTracks
+  handleGetArtistTopTracks,
+  handleSearch
 } from "./routes/metadata.js";
 import { handleDeprecatedStream, handleStreamAudio, handleStreamVideo } from "./routes/stream.js";
 import {
@@ -107,6 +108,8 @@ app.get("/api/stream/video/:id", handleStreamVideo);
 app.get("/api/song/:id/cover", handleGetSongCover);
 
 app.get("/api/artist/:name/top-tracks", handleGetArtistTopTracks);
+
+app.get("/api/search", handleSearch);
 
 function handleCatchAll(_req, res) {
   res.sendFile(path.join(staticPath, "index.html"));

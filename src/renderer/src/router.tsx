@@ -3,6 +3,7 @@ import { AlbumView } from "./views/album/AlbumView";
 import { Albums } from "./views/albums/AlbumList";
 import { Songs } from "./views/songs/SongList";
 import { Videos } from "./views/videos/VideoList";
+import { SearchResults } from "./views/search/SearchResults";
 
 export const router = createHashRouter([
   {
@@ -20,5 +21,9 @@ export const router = createHashRouter([
   {
     path: "/album/:id",
     element: <AlbumView />
+  },
+  {
+    path: "/search",
+    element: <SearchResults />
   }
 ]);

@@ -74,6 +74,13 @@ export class AppAPI {
     return resp.data;
   }
 
+  async search(q: string): Promise<SearchResult> {
+    const resp = await axios.get<SearchResult>("/search", {
+      params: { q }
+    });
+    return resp.data;
+  }
+
   async getHosts(): Promise<Host[]> {
     const resp = await axios.get<Host[]>("/hosts");
     return resp.data;
@@ -112,6 +119,12 @@ export class AppAPI {
     const resp = await axios.post<string>("/hosts", data);
     return resp.data;
   }
+}
+
+export interface SearchResult {
+  songs: Song[];
+  albums: Album[];
+  videos: Video[];
 }
 
 export const appAPI = new AppAPI();

@@ -1,3 +1,5 @@
+import { useState, useRef } from "react";
+import { Debouncer } from "@tanstack/pacer";
 import { Box, Grid, IconButton, Menu, MenuItem, Avatar } from "@mui/material";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import SearchIcon from "@mui/icons-material/Search";
@@ -54,6 +56,7 @@ interface TopNavBarProps {
   onMenuClose: () => void;
   onManageHostsClick: () => void;
   onBackClick: () => void;
+  onSearch: (query: string) => void;
 }
 
 export const TopNavBar: React.FC<TopNavBarProps> = ({
@@ -63,8 +66,24 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
   onMenuOpen,
   onMenuClose,
   onManageHostsClick,
-  onBackClick
+  onBackClick,
+  onSearch
 }) => {
+  const [searchInput, setSearchInput] = useState("");
+
+  const onSearchRef = useRef(onSearch);
+  onSearchRef.current = onSearch;
+
+  const debouncedSearchRef = useRef<Debouncer<(query: string) => void>>(
+    null as unknown as Debouncer<(query: string) => void>
+  );
+
+  if (!debouncedSearchRef.current) {
+    debouncedSearchRef.current = new Debouncer((query: string) => onSearchRef.current(query), {
+      wait: 300
+    });
+  }
+
   return (
     <ThemeProvider theme={darkTheme}>
       <Box
@@ -103,6 +122,12 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             <BootstrapInput
               size="small"
               placeholder="Search"
+              value={searchInput}
+              onChange={(e) => {
+                const value = e.target.value;
+                setSearchInput(value);
+                debouncedSearchRef.current.maybeExecute(value);
+              }}
               startAdornment={
                 <InputAdornment position="start" sx={{ fontSize: "16px" }}>
                   <SearchIcon fontSize="inherit" />

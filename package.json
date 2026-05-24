@@ -36,6 +36,7 @@
     "@mui/icons-material": "^5.11.0",
     "@mui/material": "^5.16.7",
     "@reduxjs/toolkit": "^2.2.7",
+    "@tanstack/react-pacer": "^0.22.1",
     "@types/lodash.assign": "^4.2.9",
     "aes-encrypt-stream": "^0.2.0",
     "axios": "^1.2.2",
