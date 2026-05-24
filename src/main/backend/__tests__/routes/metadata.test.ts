@@ -8,15 +8,20 @@ const mockMocks = vi.hoisted(() => {
   const mockSkip = vi.fn(() => ({ limit: mockLimit }));
   const mockPopulate = vi.fn(() => ({ skip: mockSkip }));
   const mockFind = vi.fn(() => ({ populate: mockPopulate }));
+  const mockAggregate = vi.fn();
 
-  return { mockExec, mockLean, mockSort, mockLimit, mockSkip, mockPopulate, mockFind };
+  return { mockExec, mockLean, mockSort, mockLimit, mockSkip, mockPopulate, mockFind, mockAggregate };
 });
 
 vi.mock("../../models/Song.js", () => ({
   Song: { find: mockMocks.mockFind }
 }));
 
-import { handleGetSongs } from "../../routes/metadata.js";
+vi.mock("../../models/Video.js", () => ({
+  Video: { aggregate: mockMocks.mockAggregate }
+}));
+
+import { handleGetSongs, handleGetVideos } from "../../routes/metadata.js";
 
 function createReqRes() {
   const req: any = { query: {} };
@@ -134,5 +139,110 @@ describe("handleGetSongs", () => {
       { iv: 0, hostingList: 0 }
     );
     expect(res.send).toHaveBeenCalled();
+  });
+});
+
+const mockVideos = [
+  {
+    _id: "vid1",
+    title: "Video One",
+    artist: ["Artist A"],
+    duration: 300,
+    format: "MPEG",
+    videoWidth: 1920,
+    videoHeight: 1080,
+    bitrate: 5000000,
+    fileExtension: "mp4",
+    album: { _id: "album1", title: "Album One", artist: "Artist A", year: 2024 }
+  },
+  {
+    _id: "vid2",
+    title: "Video Two",
+    artist: ["Artist A"],
+    duration: 250,
+    format: "MPEG",
+    videoWidth: 1280,
+    videoHeight: 720,
+    bitrate: 3000000,
+    fileExtension: "mkv",
+    album: null
+  }
+];
+
+describe("handleGetVideos", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("uses default pagination and returns videos via aggregation", async () => {
+    mockMocks.mockAggregate.mockResolvedValue(mockVideos);
+    const { req, res } = createReqRes();
+
+    await handleGetVideos(req, res);
+
+    expect(mockMocks.mockAggregate).toHaveBeenCalledOnce();
+    const pipeline = mockMocks.mockAggregate.mock.calls[0][0];
+    expect(pipeline).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ $project: { iv: 0, hostingList: 0 } }),
+        expect.objectContaining({ $sort: { "album.year": -1, title: 1 } }),
+        expect.objectContaining({ $skip: 0 }),
+        expect.objectContaining({ $limit: 50 })
+      ])
+    );
+    expect(res.send).toHaveBeenCalledWith(mockVideos);
+    expect(res.end).toHaveBeenCalled();
+  });
+
+  it("uses custom page and pageSize", async () => {
+    mockMocks.mockAggregate.mockResolvedValue([mockVideos[0]]);
+    const { req, res } = createReqRes();
+    req.query = { page: "2", pageSize: "10" };
+
+    await handleGetVideos(req, res);
+
+    const pipeline = mockMocks.mockAggregate.mock.calls[0][0];
+    const skipStage = pipeline.find((s: any) => s.$skip !== undefined);
+    const limitStage = pipeline.find((s: any) => s.$limit !== undefined);
+    expect(skipStage.$skip).toBe(20);
+    expect(limitStage.$limit).toBe(10);
+    expect(res.send).toHaveBeenCalledWith([mockVideos[0]]);
+  });
+
+  it("returns empty array when no videos exist", async () => {
+    mockMocks.mockAggregate.mockResolvedValue([]);
+    const { req, res } = createReqRes();
+
+    await handleGetVideos(req, res);
+
+    expect(res.send).toHaveBeenCalledWith([]);
+    expect(res.end).toHaveBeenCalled();
+  });
+
+  it("returns videos with populated album data", async () => {
+    mockMocks.mockAggregate.mockResolvedValue(mockVideos);
+    const { req, res } = createReqRes();
+
+    await handleGetVideos(req, res);
+
+    const sentVideos = res.send.mock.calls[0][0];
+    expect(sentVideos).toHaveLength(2);
+    expect(sentVideos[0]).toHaveProperty("album");
+    expect(sentVideos[0].album).toHaveProperty("title", "Album One");
+    expect(sentVideos[0].album).toHaveProperty("year", 2024);
+    expect(sentVideos[0].iv).toBeUndefined();
+    expect(sentVideos[0].hostingList).toBeUndefined();
+    expect(sentVideos[1].album).toBeNull();
+  });
+
+  it("excludes iv and hostingList from result", async () => {
+    mockMocks.mockAggregate.mockResolvedValue([mockVideos[0]]);
+    const { req, res } = createReqRes();
+
+    await handleGetVideos(req, res);
+
+    const pipeline = mockMocks.mockAggregate.mock.calls[0][0];
+    const projectStage = pipeline.find((s: any) => s.$project !== undefined);
+    expect(projectStage.$project).toEqual({ iv: 0, hostingList: 0 });
   });
 });

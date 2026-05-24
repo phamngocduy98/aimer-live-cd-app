@@ -5,16 +5,16 @@ import express from "express";
 import dotenv from "dotenv";
 dotenv.config();
 
-import { handleGetSongs } from "../../routes/metadata.js";
+import { handleGetVideos } from "../../routes/metadata.js";
 import { Album } from "../../models/Album.js";
-import { Song } from "../../models/Song.js";
+import { Video } from "../../models/Video.js";
 
-const TEST_DB_NAME = "musicbtxa_test_songs";
+const TEST_DB_NAME = "musicbtxa_test_videos";
 
 const app = express();
-app.get("/api/songs", handleGetSongs);
+app.get("/api/videos", handleGetVideos);
 
-describe("GET /api/songs with real MongoDB - projection reproduction", () => {
+describe("GET /api/videos with real MongoDB", () => {
   beforeAll(async () => {
     const uri = `mongodb+srv://${process.env.MONGO_DB_USER}:${process.env.MONGO_DB_PW}@${process.env.MONGO_DB_HOST}/?retryWrites=true&w=majority`;
     await mongoose.connect(uri, { dbName: TEST_DB_NAME });
@@ -28,47 +28,59 @@ describe("GET /api/songs with real MongoDB - projection reproduction", () => {
       videoList: []
     });
 
-    await Song.create([
+    await Video.create([
       {
-        trackNo: 1,
-        title: "Test Song 1",
+        title: "Test Video 1",
         artist: ["Test Artist"],
-        size: 1000,
-        duration: 200,
-        format: "FLAC",
-        lossless: true,
-        bitrate: 1411000,
-        fileExtension: "flac",
+        size: 50000000,
+        duration: 300,
+        videoWidth: 1920,
+        videoHeight: 1080,
+        videoCodecRaw: "h264",
+        audioLossless: false,
+        audioSampleRate: 48000,
+        audioBitsPerSample: 16,
+        audioCodecRaw: "aac",
+        fileExtension: "mp4",
+        format: "MPEG",
+        bitrate: 6000000,
         fileCount: 1,
+        chapters: [],
         album: album._id,
-        iv: "test-iv-1234567890abcdef"
+        iv: "test-iv-video-123456"
       },
       {
-        trackNo: 2,
-        title: "Test Song 2",
+        title: "Test Video 2",
         artist: ["Test Artist"],
-        size: 2000,
-        duration: 250,
+        size: 30000000,
+        duration: 200,
+        videoWidth: 1280,
+        videoHeight: 720,
+        videoCodecRaw: "h264",
+        audioLossless: false,
+        audioSampleRate: 48000,
+        audioBitsPerSample: 16,
+        audioCodecRaw: "aac",
+        fileExtension: "mkv",
         format: "MPEG",
-        lossless: false,
-        bitrate: 320000,
-        fileExtension: "mp3",
+        bitrate: 4000000,
         fileCount: 1,
+        chapters: [],
         album: album._id,
-        iv: "test-iv-1234567890abcdef"
+        iv: "test-iv-video-123456"
       }
     ]);
   }, 30000);
 
   afterAll(async () => {
     if (mongoose.connection.readyState !== 0) {
-      await mongoose.connection.dropCollection("songs");
+      await mongoose.connection.dropCollection("videos");
       await mongoose.connection.dropCollection("albums");
       await mongoose.disconnect();
     }
   }, 30000);
 
-  it("returns songs with populated album data (no mixed projection error)", async () => {
+  it("returns videos with populated album data and no sensitive fields", async () => {
     const req = { query: { page: "0", pageSize: "50" } } as any;
     const sentData: any[] = [];
     const res = {
@@ -76,15 +88,15 @@ describe("GET /api/songs with real MongoDB - projection reproduction", () => {
       end: () => {}
     } as any;
 
-    await handleGetSongs(req, res);
+    await handleGetVideos(req, res);
 
     expect(sentData).toHaveLength(2);
-    expect(sentData[0]).toHaveProperty("title", "Test Song 1");
+    expect(sentData[0]).toHaveProperty("title", "Test Video 1");
     expect(sentData[0]).toHaveProperty("artist", ["Test Artist"]);
     expect(sentData[0].album).toBeDefined();
     expect(sentData[0].album).toHaveProperty("title", "Test Album");
     expect(sentData[0].album).toHaveProperty("artist", "Test Artist");
-    // Sensitive fields must be excluded
+    expect(sentData[0].album).toHaveProperty("year", 2024);
     expect(sentData[0].iv).toBeUndefined();
     expect(sentData[0].hostingList).toBeUndefined();
   });

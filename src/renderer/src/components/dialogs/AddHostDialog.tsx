@@ -88,7 +88,7 @@ export const AddHostDialog: React.FC<AddHostDialogProps> = ({
             onChange={onNewHostChange("ftpRoot")}
             fullWidth
             required
-            helperText="FTP server directory (e.g., /htdocs/audio)"
+            helperText="FTP server directory (e.g., /htdocs)"
           />
         </Box>
       </DialogContent>

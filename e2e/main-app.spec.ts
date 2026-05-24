@@ -657,4 +657,33 @@ test.describe("Aimer Live CD Music Player - Main App E2E", () => {
 
     await mainWindow.screenshot({ path: "e2e/screens/songs-table-columns.png" });
   });
+
+  // ============================================================
+  // 20. Videos Tab
+  // ============================================================
+
+  test("videos page displays Videos title and track count", async () => {
+    const sidebar = mainWindow.locator("nav.MuiDrawer-paper, div.MuiDrawer-paper");
+    await sidebar.getByText("Videos", { exact: true }).click();
+    await mainWindow.waitForTimeout(2000);
+
+    await expect(mainWindow.getByText("Videos").first()).toBeVisible();
+    await expect(mainWindow.getByText(/tracks/).first()).toBeVisible();
+
+    await mainWindow.screenshot({ path: "e2e/screens/videos-page.png" });
+  });
+
+  test("videos page table shows expected column headers", async () => {
+    const sidebar = mainWindow.locator("nav.MuiDrawer-paper, div.MuiDrawer-paper");
+    await sidebar.getByText("Videos", { exact: true }).click();
+    await mainWindow.waitForTimeout(1000);
+
+    await expect(mainWindow.locator("th").filter({ hasText: "TITLE" }).first()).toBeVisible();
+    await expect(mainWindow.locator("th").filter({ hasText: "ARTIST" }).first()).toBeVisible();
+    await expect(mainWindow.locator("th").filter({ hasText: "ALBUM" }).first()).toBeVisible();
+    await expect(mainWindow.locator("th").filter({ hasText: "QUALITY" }).first()).toBeVisible();
+    await expect(mainWindow.locator("th").filter({ hasText: "TIME" }).first()).toBeVisible();
+
+    await mainWindow.screenshot({ path: "e2e/screens/videos-table-columns.png" });
+  });
 });

@@ -426,6 +426,30 @@ export async function handleGetSongs(req, res) {
   res.end();
 }
 
+// GET /api/videos
+export async function handleGetVideos(req, res) {
+  const page = parseInt((req.query.page as string) ?? "0");
+  const pageSize = parseInt((req.query.pageSize as string) ?? "50");
+  const videos = await Video.aggregate([
+    { $match: {} },
+    { $project: { iv: 0, hostingList: 0 } },
+    {
+      $lookup: {
+        from: "albums",
+        localField: "album",
+        foreignField: "_id",
+        as: "album"
+      }
+    },
+    { $unwind: { path: "$album", preserveNullAndEmptyArrays: true } },
+    { $sort: { "album.year": -1, title: 1 } },
+    { $skip: page * pageSize },
+    { $limit: pageSize }
+  ]);
+  res.send(videos);
+  res.end();
+}
+
 // GET /api/song/:id
 export async function handleGetSong(req, res) {
   const song = await Song.findById(req.params.id, {

@@ -1,6 +1,7 @@
 import axios from "axios";
 import { Album, AlbumDetail } from "./Album";
 import { Song } from "./Song";
+import { Video } from "./Video";
 
 export interface Host {
   _id: string;
@@ -42,6 +43,16 @@ export class AppAPI {
 
   async listSongs(page: number = 0, pageSize: number = 50): Promise<Song[]> {
     const resp = await axios.get<Song[]>("/songs", {
+      params: {
+        page,
+        pageSize
+      }
+    });
+    return resp.data;
+  }
+
+  async listVideos(page: number = 0, pageSize: number = 50): Promise<Video[]> {
+    const resp = await axios.get<Video[]>("/videos", {
       params: {
         page,
         pageSize

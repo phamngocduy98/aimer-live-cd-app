@@ -1,6 +1,7 @@
 import AlbumIcon from "@mui/icons-material/Album";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import QueueMusicIcon from "@mui/icons-material/QueueMusic";
+import VideocamIcon from "@mui/icons-material/Videocam";
 import {
   Drawer,
   List,
@@ -89,6 +90,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerWidth }) => {
                 <MusicNoteIcon />
               </ListItemIcon>
               <ListItemText primary={"Songs"} primaryTypographyProps={{ fontSize: "14px" }} />
+            </MyListItemButton>
+          </MyListItem>
+          <MyListItem key={"Videos"}>
+            <MyListItemButton onClick={() => router.navigate("/videos")}>
+              <ListItemIcon>
+                <VideocamIcon />
+              </ListItemIcon>
+              <ListItemText primary={"Videos"} primaryTypographyProps={{ fontSize: "14px" }} />
             </MyListItemButton>
           </MyListItem>
         </List>
