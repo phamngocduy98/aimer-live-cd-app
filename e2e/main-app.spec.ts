@@ -267,6 +267,8 @@ test.describe("Aimer Live CD Music Player - Main App E2E", () => {
     // Back button with ArrowBackIosNewIcon
     const backButton = mainWindow.locator("button.MuiIconButton-root").first();
     await expect(backButton).toBeVisible();
+
+    await mainWindow.screenshot({ path: "e2e/screens/back-button.png" });
   });
 
   test("search input is present in top navigation bar", async () => {
@@ -611,6 +613,8 @@ test.describe("Aimer Live CD Music Player - Main App E2E", () => {
 
     const hasErrorDialog = await mainWindow.getByText("Error").isVisible({ timeout: 60000 }).catch(() => false);
     expect(hasErrorDialog).toBe(false);
+
+    await mainWindow.screenshot({ path: "e2e/screens/app-shell-error.png" });
   });
 
   // ============================================================

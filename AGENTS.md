@@ -35,6 +35,7 @@
 - `e2e/main-app.spec.ts` — main app (loads `.env` via `dotenv.config()`, skips config)
 - `playwright.config.ts` (workers: 1, sequential); isolated temp dirs per suite
 - Run single file: `pnpm test:e2e -- e2e/main-app.spec.ts`
+- Capture screenshots: `await mainWindow.screenshot({ path: "e2e/screens/name.png" })`
 
 ## Testing Policy
 
