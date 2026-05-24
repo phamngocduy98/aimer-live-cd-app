@@ -1,10 +1,12 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Debouncer } from "@tanstack/pacer";
 import { Box, Grid, IconButton, Menu, MenuItem, Avatar } from "@mui/material";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import SearchIcon from "@mui/icons-material/Search";
 import styled from "@emotion/styled";
 import { InputAdornment, InputBase, ThemeProvider, createTheme } from "@mui/material";
+import { SearchDropdown } from "./SearchDropdown";
+import { appAPI, SearchResult } from "../core/api";
 
 const darkTheme = createTheme({
   palette: {
@@ -70,19 +72,67 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
   onSearch
 }) => {
   const [searchInput, setSearchInput] = useState("");
+  const [previewResult, setPreviewResult] = useState<SearchResult | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const onSearchRef = useRef(onSearch);
   onSearchRef.current = onSearch;
 
-  const debouncedSearchRef = useRef<Debouncer<(query: string) => void>>(
+  const debouncedPreviewRef = useRef<Debouncer<(query: string) => void>>(
     null as unknown as Debouncer<(query: string) => void>
   );
 
-  if (!debouncedSearchRef.current) {
-    debouncedSearchRef.current = new Debouncer((query: string) => onSearchRef.current(query), {
-      wait: 300
-    });
+  if (!debouncedPreviewRef.current) {
+    debouncedPreviewRef.current = new Debouncer(
+      (query: string) => {
+        if (!query) {
+          setPreviewResult(null);
+          setIsDropdownOpen(false);
+          return;
+        }
+        setPreviewLoading(true);
+        setIsDropdownOpen(true);
+        appAPI.search(query).then((data) => {
+          setPreviewResult(data);
+          setPreviewLoading(false);
+        });
+      },
+      { wait: 300 }
+    );
   }
+
+  const closeDropdown = () => {
+    setIsDropdownOpen(false);
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent): void => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        closeDropdown();
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      closeDropdown();
+      onSearchRef.current(searchInput);
+    } else if (e.key === "Escape") {
+      closeDropdown();
+    }
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchInput(value);
+    debouncedPreviewRef.current.maybeExecute(value);
+  };
 
   return (
     <ThemeProvider theme={darkTheme}>
@@ -91,6 +141,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           position: "fixed",
           top: 0,
           right: 0,
+          zIndex: 1200,
           width: {
             xs: "100%",
             md: `calc(100% - ${drawerWidth}px)`
@@ -119,21 +170,28 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             </IconButton>
           </Grid>
           <Grid xs="auto" sx={{ display: { xs: "none", sm: "unset" } }}>
-            <BootstrapInput
-              size="small"
-              placeholder="Search"
-              value={searchInput}
-              onChange={(e) => {
-                const value = e.target.value;
-                setSearchInput(value);
-                debouncedSearchRef.current.maybeExecute(value);
-              }}
-              startAdornment={
-                <InputAdornment position="start" sx={{ fontSize: "16px" }}>
-                  <SearchIcon fontSize="inherit" />
-                </InputAdornment>
-              }
-            />
+            <Box ref={containerRef} sx={{ position: "relative" }}>
+              <BootstrapInput
+                size="small"
+                placeholder="Search"
+                value={searchInput}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                onKeyDown={handleKeyDown}
+                startAdornment={
+                  <InputAdornment position="start" sx={{ fontSize: "16px" }}>
+                    <SearchIcon fontSize="inherit" />
+                  </InputAdornment>
+                }
+              />
+              <SearchDropdown
+                query={searchInput}
+                result={previewResult}
+                loading={previewLoading}
+                open={isDropdownOpen}
+                onClose={closeDropdown}
+                onNavigate={(q) => onSearchRef.current(q)}
+              />
+            </Box>
           </Grid>
           <Grid xs="auto" sx={{ marginLeft: 2, display: { xs: "none", sm: "unset" } }}>
             <IconButton onClick={onMenuOpen} size="small">
