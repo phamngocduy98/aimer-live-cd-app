@@ -3,7 +3,7 @@ import { createLogger } from "./log.js";
 const log = createLogger("Response");
 
 export function fail(res: any, message: string, code?: number) {
-  if (!!code) res.statusCode = code;
+  if (code) res.statusCode = code;
   res.send({
     status: "error",
     message: message

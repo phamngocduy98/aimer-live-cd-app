@@ -10,7 +10,16 @@ const mockMocks = vi.hoisted(() => {
   const mockFind = vi.fn(() => ({ populate: mockPopulate }));
   const mockAggregate = vi.fn();
 
-  return { mockExec, mockLean, mockSort, mockLimit, mockSkip, mockPopulate, mockFind, mockAggregate };
+  return {
+    mockExec,
+    mockLean,
+    mockSort,
+    mockLimit,
+    mockSkip,
+    mockPopulate,
+    mockFind,
+    mockAggregate
+  };
 });
 
 vi.mock("../../models/Song.js", () => ({
@@ -134,10 +143,7 @@ describe("handleGetSongs", () => {
 
     await handleGetSongs(req, res);
 
-    expect(mockMocks.mockFind).toHaveBeenCalledWith(
-      {},
-      { iv: 0, hostingList: 0 }
-    );
+    expect(mockMocks.mockFind).toHaveBeenCalledWith({}, { iv: 0, hostingList: 0 });
     expect(res.send).toHaveBeenCalled();
   });
 });

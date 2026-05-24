@@ -404,14 +404,11 @@ export const slowAES = {
       var output = [];
       var block = [];
       var nbrRounds = this.numberOfRounds(size);
-      for (var i = 0; i < 4; i++)
-        for (var j = 0; j < 4; j++) block[i + j * 4] = input[i * 4 + j];
+      for (var i = 0; i < 4; i++) for (var j = 0; j < 4; j++) block[i + j * 4] = input[i * 4 + j];
 
       var expandedKey = this.expandKey(key, size);
       block = this.main(block, expandedKey, nbrRounds);
-      for (var k = 0; k < 4; k++)
-        for (var l = 0; l < 4; l++)
-          output[k * 4 + l] = block[k + l * 4];
+      for (var k = 0; k < 4; k++) for (var l = 0; l < 4; l++) output[k * 4 + l] = block[k + l * 4];
       return output;
     },
 
@@ -419,14 +416,11 @@ export const slowAES = {
       var output = [];
       var block = [];
       var nbrRounds = this.numberOfRounds(size);
-      for (var i = 0; i < 4; i++)
-        for (var j = 0; j < 4; j++) block[i + j * 4] = input[i * 4 + j];
+      for (var i = 0; i < 4; i++) for (var j = 0; j < 4; j++) block[i + j * 4] = input[i * 4 + j];
 
       var expandedKey = this.expandKey(key, size);
       block = this.invMain(block, expandedKey, nbrRounds);
-      for (var k = 0; k < 4; k++)
-        for (var l = 0; l < 4; l++)
-          output[k * 4 + l] = block[k + l * 4];
+      for (var k = 0; k < 4; k++) for (var l = 0; l < 4; l++) output[k * 4 + l] = block[k + l * 4];
       return output;
     }
   },

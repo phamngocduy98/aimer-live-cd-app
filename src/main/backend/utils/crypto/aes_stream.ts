@@ -20,7 +20,7 @@ export class AesStream {
   }
 
   incrementBuffer(buf: Buffer, cnt: number) {
-    var i, len, mod;
+    let i, len, mod;
     len = buf.length;
     i = len - 1;
     while (cnt !== 0) {

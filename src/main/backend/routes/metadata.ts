@@ -322,16 +322,16 @@ export async function handleGetAlbumBackup(req, res) {
       hosted.add(host.id)
     );
 
-    for (let track of album.trackList) {
+    for (const track of album.trackList) {
       const trackHostIds: string[] = (
         (album.trackList?.[0]?.hostingList ?? []) as WithDocument<IHosting>[]
       ).map((h) => h.id);
-      for (let hostId of trackHostIds) {
+      for (const hostId of trackHostIds) {
         if (!hosted.has(hostId)) {
           patialHosted.add(hostId);
         }
       }
-      for (let hostId of hosted) {
+      for (const hostId of hosted) {
         if (!trackHostIds.includes(hostId)) {
           hosted.delete(hostId);
           patialHosted.add(hostId);
@@ -339,16 +339,16 @@ export async function handleGetAlbumBackup(req, res) {
       }
     }
 
-    for (let track of album.videoList) {
+    for (const track of album.videoList) {
       const trackHostIds: string[] = (
         (album.videoList?.[0]?.hostingList ?? []) as WithDocument<IHosting>[]
       ).map((h) => h.id);
-      for (let hostId of trackHostIds) {
+      for (const hostId of trackHostIds) {
         if (!hosted.has(hostId)) {
           patialHosted.add(hostId);
         }
       }
-      for (let hostId of hosted) {
+      for (const hostId of hosted) {
         if (!trackHostIds.includes(hostId)) {
           hosted.delete(hostId);
           patialHosted.add(hostId);

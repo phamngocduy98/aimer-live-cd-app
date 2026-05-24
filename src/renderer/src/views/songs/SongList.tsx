@@ -219,10 +219,16 @@ export const Songs: React.FC = () => {
                     {track.album?.title ?? "Unknown"}
                   </Typography>
                 </NoBorderTableCell>
-                <NoBorderTableCell align="center" sx={{ display: { xs: "none", sm: "table-cell" } }}>
+                <NoBorderTableCell
+                  align="center"
+                  sx={{ display: { xs: "none", sm: "table-cell" } }}
+                >
                   <SongBitDepth song={track} />
                 </NoBorderTableCell>
-                <NoBorderTableCell align="center" sx={{ display: { xs: "none", sm: "table-cell" } }}>
+                <NoBorderTableCell
+                  align="center"
+                  sx={{ display: { xs: "none", sm: "table-cell" } }}
+                >
                   <Typography fontSize="14px" color="#919191">
                     {formatDuration(track.duration)}
                   </Typography>

@@ -12,9 +12,13 @@ vi.mock("../../../services/stream/part-provider/index.js", () => ({
 vi.mock("../../../services/stream/StreamCache.js", () => ({
   cache: {
     get: vi.fn().mockReturnValue(null),
-    set: vi.fn().mockReturnValue(new Writable({
-      write(_chunk: any, _encoding: any, callback: any) { callback(); }
-    }))
+    set: vi.fn().mockReturnValue(
+      new Writable({
+        write(_chunk: any, _encoding: any, callback: any) {
+          callback();
+        }
+      })
+    )
   }
 }));
 

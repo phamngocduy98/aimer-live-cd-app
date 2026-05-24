@@ -31,14 +31,14 @@ test.describe("Aimer Live CD Music Player", () => {
       args: [join(__dirname, "../out/main/index.js"), `--user-data-dir=${testUserDataDir}`],
       env: {
         ...process.env,
-        DISABLE_DEVTOOLS: "true",
+        DISABLE_DEVTOOLS: "true"
       },
-      timeout: 60000,
+      timeout: 60000
     });
 
     mainWindow = await electronApp.waitForEvent("window", {
       predicate: (page: Page) => page.title().then((t) => !t.includes("DevTools")),
-      timeout: 60000,
+      timeout: 60000
     });
 
     await mainWindow.waitForLoadState("domcontentloaded");

@@ -24,10 +24,7 @@ async function cleanupAlbumRefs() {
   await connect(uri, { dbName: "musicbtxa" });
 
   const albums = await Album.find({
-    $or: [
-      { "trackList.0": { $exists: true } },
-      { "videoList.0": { $exists: true } }
-    ]
+    $or: [{ "trackList.0": { $exists: true } }, { "videoList.0": { $exists: true } }]
   }).lean();
 
   let totalCleaned = 0;
@@ -40,17 +37,11 @@ async function cleanupAlbumRefs() {
     let changed = false;
 
     if (trackIds.length > 0) {
-      const existingTracks = await Song.find(
-        { _id: { $in: trackIds } },
-        { _id: 1 }
-      ).lean();
+      const existingTracks = await Song.find({ _id: { $in: trackIds } }, { _id: 1 }).lean();
       const validTrackIds = existingTracks.map((s) => s._id);
       if (validTrackIds.length !== trackIds.length) {
         const removed = trackIds.length - validTrackIds.length;
-        await Album.updateOne(
-          { _id: album._id },
-          { $set: { trackList: validTrackIds } }
-        );
+        await Album.updateOne({ _id: album._id }, { $set: { trackList: validTrackIds } });
         log.info(`Album "${album.title}": removed ${removed} stale song ref(s)`);
         totalRemoved += removed;
         changed = true;
@@ -58,17 +49,11 @@ async function cleanupAlbumRefs() {
     }
 
     if (videoIds.length > 0) {
-      const existingVideos = await Video.find(
-        { _id: { $in: videoIds } },
-        { _id: 1 }
-      ).lean();
+      const existingVideos = await Video.find({ _id: { $in: videoIds } }, { _id: 1 }).lean();
       const validVideoIds = existingVideos.map((v) => v._id);
       if (validVideoIds.length !== videoIds.length) {
         const removed = videoIds.length - validVideoIds.length;
-        await Album.updateOne(
-          { _id: album._id },
-          { $set: { videoList: validVideoIds } }
-        );
+        await Album.updateOne({ _id: album._id }, { $set: { videoList: validVideoIds } });
         log.info(`Album "${album.title}": removed ${removed} stale video ref(s)`);
         totalRemoved += removed;
         changed = true;
@@ -78,9 +63,7 @@ async function cleanupAlbumRefs() {
     if (changed) totalCleaned++;
   }
 
-  log.info(
-    `\nDone. Cleaned ${totalCleaned} albums, removed ${totalRemoved} stale references.`
-  );
+  log.info(`\nDone. Cleaned ${totalCleaned} albums, removed ${totalRemoved} stale references.`);
   process.exit(0);
 }
 

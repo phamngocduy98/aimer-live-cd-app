@@ -84,7 +84,9 @@ describe("GET /api/videos with real MongoDB", () => {
     const req = { query: { page: "0", pageSize: "50" } } as any;
     const sentData: any[] = [];
     const res = {
-      send: (data: any) => { sentData.push(...data); },
+      send: (data: any) => {
+        sentData.push(...data);
+      },
       end: () => {}
     } as any;
 

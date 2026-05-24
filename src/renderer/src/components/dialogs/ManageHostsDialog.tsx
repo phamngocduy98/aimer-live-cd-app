@@ -87,7 +87,8 @@ export const ManageHostsDialog: React.FC<ManageHostsDialogProps> = ({
                       ) : (
                         <Typography variant="caption" color="error.main">
                           ❌ Unavailable
-                          {fileListResults[host._id].error && ` • ${fileListResults[host._id].error}`}
+                          {fileListResults[host._id].error &&
+                            ` • ${fileListResults[host._id].error}`}
                         </Typography>
                       )}
                     </Box>

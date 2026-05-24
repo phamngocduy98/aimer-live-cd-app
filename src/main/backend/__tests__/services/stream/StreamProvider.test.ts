@@ -50,5 +50,4 @@ describe("StreamProvider (abstract base)", () => {
       expect(result).toBeDefined();
     });
   });
-
 });

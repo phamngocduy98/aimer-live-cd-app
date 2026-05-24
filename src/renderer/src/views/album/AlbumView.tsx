@@ -20,7 +20,7 @@ export const AlbumView: React.FC = () => {
   const navigate = useNavigate();
   const { playingTrack } = useAppSelector((state) => state.player);
   const [album, setAlbum] = useState<AlbumDetail | null>(null);
-  let { id } = useParams();
+  const { id } = useParams();
 
   useEffect(() => {
     if (id == null) return;

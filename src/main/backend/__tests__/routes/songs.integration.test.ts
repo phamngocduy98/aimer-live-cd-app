@@ -99,10 +99,7 @@ describe("GET /api/songs", () => {
     const supertest = await import("supertest");
     await supertest.default(app).get("/api/songs");
 
-    expect(mockSongData.mockFind).toHaveBeenCalledWith(
-      {},
-      { iv: 0, hostingList: 0 }
-    );
+    expect(mockSongData.mockFind).toHaveBeenCalledWith({}, { iv: 0, hostingList: 0 });
     // populate should only use inclusion fields, no mixed projections
     const populateArgs = mockSongData.mockFind.mock.results[0].value.populate.mock.calls[0];
     expect(populateArgs[0]).toBe("album");

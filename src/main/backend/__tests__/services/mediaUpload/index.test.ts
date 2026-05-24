@@ -12,7 +12,9 @@ const MockFtpUploader = vi.hoisted(() => {
   };
 });
 
-vi.mock("../../../services/mediaUpload/FtpMediaUploader.js", () => ({ FtpMediaUploader: MockFtpUploader }));
+vi.mock("../../../services/mediaUpload/FtpMediaUploader.js", () => ({
+  FtpMediaUploader: MockFtpUploader
+}));
 
 vi.mock("music-metadata", () => ({
   parseBuffer: vi.fn().mockResolvedValue({

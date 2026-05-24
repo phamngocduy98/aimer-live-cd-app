@@ -35,14 +35,14 @@ test.describe("Aimer Live CD Music Player - Main App E2E", () => {
       env: {
         ...process.env,
         APPDATA: testUserDataDir,
-        DISABLE_DEVTOOLS: "true",
+        DISABLE_DEVTOOLS: "true"
       },
-      timeout: 60000,
+      timeout: 60000
     });
 
     mainWindow = await electronApp.waitForEvent("window", {
       predicate: (page: Page) => page.title().then((t) => !t.includes("DevTools")),
-      timeout: 30000,
+      timeout: 30000
     });
 
     await mainWindow.waitForLoadState("domcontentloaded");
@@ -454,7 +454,9 @@ test.describe("Aimer Live CD Music Player - Main App E2E", () => {
     await mainWindow.locator("button").filter({ hasText: "Play" }).first().click();
     await mainWindow.waitForTimeout(3000);
 
-    const playerGrid = mainWindow.locator("div.MuiGrid2-container:has(button[aria-label='shuffle'])");
+    const playerGrid = mainWindow.locator(
+      "div.MuiGrid2-container:has(button[aria-label='shuffle'])"
+    );
     const rightSection = playerGrid.locator("> div.MuiGrid2-root").nth(2);
     const queueButton = rightSection.locator("button.MuiIconButton-root").nth(1);
     await queueButton.click();
@@ -468,7 +470,9 @@ test.describe("Aimer Live CD Music Player - Main App E2E", () => {
     await mainWindow.locator("button").filter({ hasText: "Play" }).first().click();
     await mainWindow.waitForTimeout(3000);
 
-    const playerGrid = mainWindow.locator("div.MuiGrid2-container:has(button[aria-label='shuffle'])");
+    const playerGrid = mainWindow.locator(
+      "div.MuiGrid2-container:has(button[aria-label='shuffle'])"
+    );
     const rightSection = playerGrid.locator("> div.MuiGrid2-root").nth(2);
     const queueButton = rightSection.locator("button.MuiIconButton-root").nth(1);
     await queueButton.click();
@@ -487,7 +491,9 @@ test.describe("Aimer Live CD Music Player - Main App E2E", () => {
     await mainWindow.locator("button").filter({ hasText: "Play" }).first().click();
     await mainWindow.waitForTimeout(3000);
 
-    const playerGrid = mainWindow.locator("div.MuiGrid2-container:has(button[aria-label='shuffle'])");
+    const playerGrid = mainWindow.locator(
+      "div.MuiGrid2-container:has(button[aria-label='shuffle'])"
+    );
     const rightSection = playerGrid.locator("> div.MuiGrid2-root").nth(2);
     const expandButton = rightSection.locator("button.MuiIconButton-root").last();
     await expandButton.click();
@@ -501,7 +507,9 @@ test.describe("Aimer Live CD Music Player - Main App E2E", () => {
     await mainWindow.locator("button").filter({ hasText: "Play" }).first().click();
     await mainWindow.waitForTimeout(3000);
 
-    const playerGrid = mainWindow.locator("div.MuiGrid2-container:has(button[aria-label='shuffle'])");
+    const playerGrid = mainWindow.locator(
+      "div.MuiGrid2-container:has(button[aria-label='shuffle'])"
+    );
     const rightSection = playerGrid.locator("> div.MuiGrid2-root").nth(2);
     const expandButton = rightSection.locator("button.MuiIconButton-root").last();
     await expandButton.click();
@@ -519,7 +527,9 @@ test.describe("Aimer Live CD Music Player - Main App E2E", () => {
     await mainWindow.locator("button").filter({ hasText: "Play" }).first().click();
     await mainWindow.waitForTimeout(2000);
 
-    const playerGrid = mainWindow.locator("div.MuiGrid2-container:has(button[aria-label='shuffle'])");
+    const playerGrid = mainWindow.locator(
+      "div.MuiGrid2-container:has(button[aria-label='shuffle'])"
+    );
     const chip = playerGrid.locator(".MuiChip-root");
     await expect(chip.first()).toBeVisible({ timeout: 60000 });
     await mainWindow.screenshot({ path: "e2e/screens/bit-depth-chip.png" });
@@ -611,7 +621,10 @@ test.describe("Aimer Live CD Music Player - Main App E2E", () => {
     await expect(mainWindow.getByText("MY COLLECTION")).toBeVisible();
     await expect(mainWindow.getByPlaceholder("Search")).toBeVisible();
 
-    const hasErrorDialog = await mainWindow.getByText("Error").isVisible({ timeout: 60000 }).catch(() => false);
+    const hasErrorDialog = await mainWindow
+      .getByText("Error")
+      .isVisible({ timeout: 60000 })
+      .catch(() => false);
     expect(hasErrorDialog).toBe(false);
 
     await mainWindow.screenshot({ path: "e2e/screens/app-shell-error.png" });

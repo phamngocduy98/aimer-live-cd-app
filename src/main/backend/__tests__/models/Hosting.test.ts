@@ -5,7 +5,11 @@ import {
   HostingProvider,
   type IFtpUploadConfig
 } from "../../models/Hosting.js";
-import { createFtpUploadConfig, createHttpStreamConfig, createTestHosting } from "../testHelpers.js";
+import {
+  createFtpUploadConfig,
+  createHttpStreamConfig,
+  createTestHosting
+} from "../testHelpers.js";
 
 describe("UploadStrategy", () => {
   it("has FTP enum value", () => {

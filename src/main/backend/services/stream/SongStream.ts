@@ -57,7 +57,7 @@ export class SongStream {
       return stream;
     } catch (e: any) {
       log.warn({ err: e }, `Stream part ${info.id}: Hosting ${hosting.name} Failed`);
-      for (let host of info.hostingList) {
+      for (const host of info.hostingList) {
         if (!triedHosting.has(host)) {
           triedHosting.set(host, true);
           return this.streamPart(info, part, host, triedHosting);

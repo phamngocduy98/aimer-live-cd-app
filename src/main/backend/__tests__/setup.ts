@@ -5,7 +5,14 @@ const mockMongoData = vi.hoisted(() => {
   const hosting = {
     name: "test-hosting",
     _id: "507f1f77bcf86cd799439011",
-    upload: { type: "ftp", ftpCredential: { host: "ftp.test.com", user: "testuser", password: "testpass" }, ftpRoot: "/htdocs", path: "/audio", ftpLimit: 3145728, ftpExt: [] },
+    upload: {
+      type: "ftp",
+      ftpCredential: { host: "ftp.test.com", user: "testuser", password: "testpass" },
+      ftpRoot: "/htdocs",
+      path: "/audio",
+      ftpLimit: 3145728,
+      ftpExt: []
+    },
     stream: { type: "http", host: "test.com", path: "/audio", partSize: 3145728 }
   };
   return { hosting };

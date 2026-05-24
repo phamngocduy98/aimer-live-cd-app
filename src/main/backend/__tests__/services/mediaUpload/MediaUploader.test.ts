@@ -78,7 +78,10 @@ describe("MediaUploader", () => {
     it("throws when extList exhausted", async () => {
       await uploader.init(createFtpUploadConfig({ ftpExt: ["-mp3"] }));
       const gen = uploader.getUploadExt(".mp3");
-      gen(); gen(); gen(); gen();
+      gen();
+      gen();
+      gen();
+      gen();
       expect(() => gen()).toThrow("FtpMediaUploader.mExtList");
     });
   });
@@ -112,7 +115,10 @@ describe("MediaUploader", () => {
     });
 
     it("retries on uploadFile failure up to 3 times", async () => {
-      globalThis.setTimeout = ((fn: any) => { fn(); return 0; }) as any;
+      globalThis.setTimeout = ((fn: any) => {
+        fn();
+        return 0;
+      }) as any;
       await uploader.init(createFtpUploadConfig({ ftpLimit: 100 }));
       const buffer = Buffer.alloc(50, 0xbb);
 
@@ -129,11 +135,16 @@ describe("MediaUploader", () => {
     }, 10000);
 
     it("throws after exceeding max retries", async () => {
-      globalThis.setTimeout = ((fn: any) => { fn(); return 0; }) as any;
+      globalThis.setTimeout = ((fn: any) => {
+        fn();
+        return 0;
+      }) as any;
       await uploader.init(createFtpUploadConfig({ ftpLimit: 100 }));
       const buffer = Buffer.alloc(50, 0xbb);
 
-      uploader.uploadFile = async () => { throw new Error("Always fails"); };
+      uploader.uploadFile = async () => {
+        throw new Error("Always fails");
+      };
 
       await expect(uploader.upload(buffer, "song", "mp3")).rejects.toThrow("Max try exceeded");
     }, 10000);

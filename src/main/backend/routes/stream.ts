@@ -20,7 +20,7 @@ export async function handleStreamAudio(req, res) {
   if (song == null) {
     return fail(res, "Song not found", 404);
   }
-  let errorMessages: string[] = [];
+  const errorMessages: string[] = [];
   let status: number = 404;
   try {
     const stream = new SongStream(req.headers);
@@ -50,7 +50,7 @@ export async function handleStreamVideo(req, res) {
     return fail(res, "Video not found", 404);
   }
 
-  let errorMessages: string[] = [];
+  const errorMessages: string[] = [];
   let status: number = 404;
   try {
     const stream = new SongStream(req.headers);

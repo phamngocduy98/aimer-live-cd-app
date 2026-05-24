@@ -31,7 +31,7 @@ export async function uploadSongAPI(
 ) {
   const meta = await parseBuffer(buffer);
 
-  let songBuilder = isVideo(meta) ? new VideoBuilder() : new SongBuilder();
+  const songBuilder = isVideo(meta) ? new VideoBuilder() : new SongBuilder();
   await songBuilder.init(meta, buffer.length, fileExtension);
 
   const hostings = await dbClient.listHosting();

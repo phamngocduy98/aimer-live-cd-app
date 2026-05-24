@@ -116,7 +116,7 @@ export async function handleAlbumUpload(req, res) {
   let skipPart = parseInt((req.query["skipPart"] as string) ?? "0");
   const limitPart = parseInt((req.query["limitPart"] as string) ?? "-1");
   try {
-    for (let file of files) {
+    for (const file of files) {
       const fileExt = file.originalname.split(".").at(-1)!;
       await uploadSongAPI(
         file.buffer,
@@ -177,7 +177,7 @@ export async function handleGetPart(req, res) {
     return fail(res, "Song not found", 404);
   }
 
-  for (let hosting of song.hostingList) {
+  for (const hosting of song.hostingList) {
     try {
       log.info(`Get part ${req.params.fileName} from ${hosting.name}`);
       const provider = getPartProvider(hosting, {});
@@ -264,8 +264,8 @@ export async function handleAlbumBackup(req, res) {
     const targetHosting = await dbClient.findHosting(req.params.hostid);
     if (targetHosting == null) throw Error("hosting not found");
 
-    for (let song of album.trackList as WithDocument<ISong>[]) {
-      for (let hosting of song.hostingList) {
+    for (const song of album.trackList as WithDocument<ISong>[]) {
+      for (const hosting of song.hostingList) {
         const stream = getPartProvider(hosting, req.headers);
         const partSize = getPartSizeForHosting(hosting);
 
@@ -301,7 +301,7 @@ export async function handleAlbumBackup2(req, res) {
     return fail(res, "Invalid request");
 
   const skipExist = req.query["skipExist"] != null;
-  let skipPart = parseInt((req.query["skipPart"] as string) ?? "0");
+  const skipPart = parseInt((req.query["skipPart"] as string) ?? "0");
   const limitPart = parseInt((req.query["limitPart"] as string) ?? "99999999999");
 
   const album = await Album.findById(req.params.id, {
@@ -330,7 +330,7 @@ export async function handleAlbumBackup2(req, res) {
       ...(album.trackList as DbDocument<ISong>[]),
       ...(album.videoList as DbDocument<IVideo>[])
     ];
-    for (let song of songs) {
+    for (const song of songs) {
       const provider = getPartProvider(targetHosting, req.headers);
 
       const statusRes = await provider.fetchRawPart("status.php");

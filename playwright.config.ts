@@ -9,6 +9,6 @@ export default defineConfig({
   reporter: "list",
   use: {
     actionTimeout: 15000,
-    navigationTimeout: 30000,
-  },
+    navigationTimeout: 30000
+  }
 });
