@@ -6,3 +6,5 @@ out
 *.log*
 test-results
 playwright-report
+.env
+.playwright-cli/

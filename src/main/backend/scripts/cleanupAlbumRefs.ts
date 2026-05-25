@@ -21,7 +21,7 @@ async function cleanupAlbumRefs() {
 
   mongoose.set("strictQuery", true);
   const uri = `mongodb+srv://${dbusername}:${dbpassword}@${dbhost}/?retryWrites=true&w=majority`;
-  await connect(uri, { dbName: "musicbtxa" });
+  await connect(uri, { dbName: process.env.MONGO_DB_NAME || "musicbtxa" });
 
   const albums = await Album.find({
     $or: [{ "trackList.0": { $exists: true } }, { "videoList.0": { $exists: true } }]

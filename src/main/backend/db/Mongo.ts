@@ -48,7 +48,7 @@ class DbClient {
       mongoose.set("strictQuery", true);
       const uri = `mongodb+srv://${dbusername}:${dbpassword}@${dbhost}/?retryWrites=true&w=majority`;
       await connect(uri, {
-        dbName: "musicbtxa"
+        dbName: process.env.MONGO_DB_NAME || "musicbtxa"
       });
       this._isConnected = true;
       log.info("Connected to MongoDB");

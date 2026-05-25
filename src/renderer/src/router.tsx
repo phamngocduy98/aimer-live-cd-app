@@ -4,6 +4,8 @@ import { Albums } from "./views/albums/AlbumList";
 import { Songs } from "./views/songs/SongList";
 import { Videos } from "./views/videos/VideoList";
 import { SearchResults } from "./views/search/SearchResults";
+import { Playlists } from "./views/playlists/PlaylistList";
+import { PlaylistView } from "./views/playlist/PlaylistView";
 
 export const router = createHashRouter([
   {
@@ -25,5 +27,13 @@ export const router = createHashRouter([
   {
     path: "/search",
     element: <SearchResults />
+  },
+  {
+    path: "/playlists",
+    element: <Playlists />
+  },
+  {
+    path: "/playlist/:id",
+    element: <PlaylistView />
   }
 ]);

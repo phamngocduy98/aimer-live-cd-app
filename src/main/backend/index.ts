@@ -29,6 +29,15 @@ import {
 } from "./routes/metadata.js";
 import { handleDeprecatedStream, handleStreamAudio, handleStreamVideo } from "./routes/stream.js";
 import {
+  handleListPlaylists,
+  handleCreatePlaylist,
+  handleGetPlaylist,
+  handleUpdatePlaylist,
+  handleDeletePlaylist,
+  handleAddSongsToPlaylist,
+  handleRemoveSongFromPlaylist
+} from "./routes/playlist.js";
+import {
   handleYoutubeVideoUpload,
   handleFileUpload,
   handleAlbumUpload,
@@ -110,6 +119,15 @@ app.get("/api/song/:id/cover", handleGetSongCover);
 app.get("/api/artist/:name/top-tracks", handleGetArtistTopTracks);
 
 app.get("/api/search", handleSearch);
+
+// Playlist routes
+app.get("/api/playlists", handleListPlaylists);
+app.post("/api/playlists", handleCreatePlaylist);
+app.get("/api/playlist/:id", handleGetPlaylist);
+app.put("/api/playlist/:id", handleUpdatePlaylist);
+app.delete("/api/playlist/:id", handleDeletePlaylist);
+app.post("/api/playlist/:id/songs", handleAddSongsToPlaylist);
+app.delete("/api/playlist/:id/songs/:songId", handleRemoveSongFromPlaylist);
 
 function handleCatchAll(_req, res) {
   res.sendFile(path.join(staticPath, "index.html"));

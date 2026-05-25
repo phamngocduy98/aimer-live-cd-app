@@ -2,6 +2,7 @@ import axios from "axios";
 import { Album, AlbumDetail } from "./Album";
 import { Song } from "./Song";
 import { Video } from "./Video";
+import { Playlist, PlaylistDetail } from "./Playlist";
 
 export interface Host {
   _id: string;
@@ -101,6 +102,38 @@ export class AppAPI {
       status?: number;
     }>(`/hosts/${hostId}/files`);
     return resp.data;
+  }
+
+  async listPlaylists(): Promise<Playlist[]> {
+    const resp = await axios.get<Playlist[]>("/playlists");
+    return resp.data;
+  }
+
+  async createPlaylist(data: { name: string; description?: string }): Promise<string> {
+    const resp = await axios.post<string>("/playlists", data);
+    return resp.data;
+  }
+
+  async getPlaylist(id: string): Promise<PlaylistDetail> {
+    const resp = await axios.get<PlaylistDetail>("/playlist/" + id);
+    return resp.data;
+  }
+
+  async updatePlaylist(id: string, data: { name?: string; description?: string }): Promise<void> {
+    await axios.put("/playlist/" + id, data);
+  }
+
+  async deletePlaylist(id: string): Promise<void> {
+    await axios.delete("/playlist/" + id);
+  }
+
+  async addSongsToPlaylist(playlistId: string, songIds: string[]): Promise<string> {
+    const resp = await axios.post<string>("/playlist/" + playlistId + "/songs", { songIds });
+    return resp.data;
+  }
+
+  async removeSongFromPlaylist(playlistId: string, songId: string): Promise<void> {
+    await axios.delete(`/playlist/${playlistId}/songs/${songId}`);
   }
 
   async createHost(data: {
