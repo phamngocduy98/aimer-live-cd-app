@@ -25,11 +25,16 @@ export class AppAPI {
   // public static HOST = process.env.NODE_ENV === "production" ? "/api" : "http://localhost:3000/api";
   public static HOST = "http://localhost:3001/api";
   constructor() {
-    window.electronAPI.getPort().then((port) => {
-      console.log("Port:", port);
-      AppAPI.HOST = `http://localhost:${port}/api`;
-      axios.defaults.baseURL = AppAPI.HOST;
-    });
+    if (window.electronAPI) {
+      window.electronAPI.getPort().then((port) => {
+        console.log("Port:", port);
+        AppAPI.HOST = `http://localhost:${port}/api`;
+        axios.defaults.baseURL = AppAPI.HOST;
+      });
+    } else {
+      AppAPI.HOST = "/api";
+      axios.defaults.baseURL = "/api";
+    }
   }
 
   async listAlbums(page: number = 0, pageSize: number = 30): Promise<Album[]> {
