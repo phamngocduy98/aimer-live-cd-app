@@ -271,6 +271,7 @@ export const PlaylistView: React.FC = () => {
                 <NoBorderTableCell align="center" width={60}>
                   <IconButton
                     size="small"
+                    aria-label="More actions"
                     onClick={(e) => {
                       setAnchorEl(e.currentTarget);
                       setContextSong(track);

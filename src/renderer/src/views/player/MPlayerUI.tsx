@@ -144,7 +144,9 @@ export default function MPlayerUI() {
           padding: {
             xs: "0px 16px 16px 16px",
             sm: "0px 16px 8px 16px"
-          }
+          },
+          mx: 0,
+          width: "100%"
         }}
         spacing={"16px"}
       >

@@ -474,7 +474,10 @@ const PlayingAlbumCover = () => {
           <IconButton>
             <FavoriteBorderIcon />
           </IconButton>
-          <IconButton onClick={() => dispatch(toggleView("playingQueue"))}>
+          <IconButton
+            aria-label="More actions"
+            onClick={() => dispatch(toggleView("playingQueue"))}
+          >
             <MoreHorizIcon />
           </IconButton>
         </Grid>

@@ -26,7 +26,7 @@ export const AlbumControlButton: React.FC<{ album: AlbumDetail }> = ({ album }) 
         <Button
           startIcon={<PlayArrowIcon />}
           variant="contained"
-          aria-label="play"
+          aria-label="Play all"
           onClick={() => {
             if (album.trackList.length > 0) {
               dispatch(reset({ songs: album.trackList, type: "audio" }));
@@ -55,7 +55,7 @@ export const AlbumControlButton: React.FC<{ album: AlbumDetail }> = ({ album }) 
         <Button
           startIcon={<ShuffleIcon />}
           variant="text"
-          aria-label="play"
+          aria-label="Shuffle play"
           onClick={() => {
             if (album.trackList.length > 0) {
               dispatch(reset({ songs: album.trackList, shuffle: true, type: "audio" }));

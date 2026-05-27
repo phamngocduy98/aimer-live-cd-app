@@ -28,6 +28,16 @@ const darkTheme = createTheme({
 function App() {
   const showMobilePlayer = useAppSelector((state) => state.playerGui.mobilePlayer);
   const dispatch = useAppDispatch();
+  const [location, setLocation] = useState(() => router.state.location);
+
+  useEffect(() => {
+    const unsubscribe = router.subscribe((state) => {
+      setLocation(state.location);
+    });
+    return unsubscribe;
+  }, []);
+
+  const isHome = location.pathname === "/" && location.search === "" && location.hash === "";
 
   // Playlist state
   const [isCreatePlaylistOpen, setIsCreatePlaylistOpen] = useState(false);
@@ -185,8 +195,10 @@ function App() {
         </Box>
 
         <TopNavBar
+          key={location.pathname + location.search}
           drawerWidth={drawerWidth}
           isMenuOpen={isMenuOpen}
+          isHome={isHome}
           anchorEl={anchorEl}
           onMenuOpen={(e) => {
             setAnchorEl(e.currentTarget);

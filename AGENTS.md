@@ -2,19 +2,19 @@
 
 ## Commands
 
-| Category  | Command          | Notes                                                      |
-| --------- | ---------------- | ---------------------------------------------------------- |
-| Install   | `pnpm install`   |                                                            |
-| Dev       | `pnpm dev`       | Electron-Vite dev server                                   |
-| Dev:Web   | `pnpm dev:server` | Standalone Express backend on :3001                       |
-|           | `pnpm dev:web`    | Standalone Vite frontend on :5173, /api proxied to :3001  |
-|           | `pnpm dev:both`   | Both together via concurrently                            |
-| Lint      | `pnpm lint`      | ESLint w/ cache                                            |
-| Typecheck | `pnpm typecheck` | node + web; separate: `typecheck:node`/`:web`              |
-| Format    | `pnpm format`    | Prettier                                                   |
-| Test unit | `pnpm test`      | vitest run; coverage `pnpm test:coverage`                  |
-| Test E2E  | `pnpm test:e2e`  | playwright; headed: `:headed`                              |
-| Build     | `pnpm build`     | electron-vite build; `build:win`/`:mac`/`:linux`/`:unpack` |
+| Category  | Command           | Notes                                                      |
+| --------- | ----------------- | ---------------------------------------------------------- |
+| Install   | `pnpm install`    |                                                            |
+| Dev       | `pnpm dev`        | Electron-Vite dev server                                   |
+| Dev:Web   | `pnpm dev:server` | Standalone Express backend on :3001                        |
+|           | `pnpm dev:web`    | Standalone Vite frontend on :5173, /api proxied to :3001   |
+|           | `pnpm dev:both`   | Both together via concurrently                             |
+| Lint      | `pnpm lint`       | ESLint w/ cache                                            |
+| Typecheck | `pnpm typecheck`  | node + web; separate: `typecheck:node`/`:web`              |
+| Format    | `pnpm format`     | Prettier                                                   |
+| Test unit | `pnpm test`       | vitest run; coverage `pnpm test:coverage`                  |
+| Test E2E  | `pnpm test:e2e`   | playwright; headed: `:headed`                              |
+| Build     | `pnpm build`      | electron-vite build; `build:win`/`:mac`/`:linux`/`:unpack` |
 
 ## Project Structure
 
@@ -42,6 +42,7 @@
 - Capture screenshots: `await mainWindow.screenshot({ path: "e2e/screens/name.png" })`
 
 ### Interactive Explore Testing (no Electron)
+
 - Terminal 1: `pnpm dev:server` — Express backend on :3001
 - Terminal 2: `pnpm dev:web` — Vite frontend on :5173
 - Single terminal: `pnpm dev:both` — runs both together via concurrently
@@ -56,3 +57,17 @@
 ## Docs
 
 - Features: `docs/features.md`
+
+## Frontend Design Skill
+
+- Installed at `~/.claude/skills/frontend-design/` — Anthropic's official frontend design skill
+- Produces distinctive, non-generic UI with strong aesthetic direction
+- Auto-discovered by opencode; invoke via `use frontend-design skill` in prompts
+
+## Superpowers
+
+- Installed as plugin in `opencode.jsonc` — https://github.com/obra/superpowers
+- Agentic software development methodology with composable skills
+- Skills include: brainstorming, writing-plans, executing-plans, test-driven-development, systematic-debugging, subagent-driven-development, requesting-code-review, and more
+- To use: skills auto-trigger based on context; also `skill tool load superpowers/<name>`
+- Restart opencode after install for plugin to load

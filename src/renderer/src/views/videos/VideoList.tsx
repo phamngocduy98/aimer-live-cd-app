@@ -54,29 +54,25 @@ export const Videos: React.FC = () => {
             sm: "8px 24px"
           },
           cursor: "default",
-          userSelect: "none"
+          userSelect: "none",
+          overflowX: "auto"
         }}
       >
-        <Table
-          size="small"
-          aria-label="videos table"
-          sx={{
-            tableLayout: {
-              xs: "fixed",
-              sm: "auto"
-            }
-          }}
-        >
+        <Table size="small" aria-label="videos table" sx={{ tableLayout: "fixed" }}>
           <TableHead sx={{ display: { xs: "none", sm: "table-header-group" } }}>
             <TableRow>
               <NoBorderTableCell align="center" width={30}>
                 #
               </NoBorderTableCell>
-              <NoBorderTableCell>TITLE</NoBorderTableCell>
-              <NoBorderTableCell>ARTIST</NoBorderTableCell>
-              <NoBorderTableCell>ALBUM</NoBorderTableCell>
-              <NoBorderTableCell align="center">QUALITY</NoBorderTableCell>
-              <NoBorderTableCell align="center">TIME</NoBorderTableCell>
+              <NoBorderTableCell sx={{ width: "25%" }}>TITLE</NoBorderTableCell>
+              <NoBorderTableCell sx={{ width: "15%" }}>ARTIST</NoBorderTableCell>
+              <NoBorderTableCell sx={{ width: "30%" }}>ALBUM</NoBorderTableCell>
+              <NoBorderTableCell align="center" sx={{ width: "15%" }}>
+                QUALITY
+              </NoBorderTableCell>
+              <NoBorderTableCell align="center" sx={{ width: "15%" }}>
+                TIME
+              </NoBorderTableCell>
             </TableRow>
           </TableHead>
           <TableBody>

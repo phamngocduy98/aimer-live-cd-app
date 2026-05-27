@@ -138,7 +138,7 @@ function ArtistItem() {
         <Button
           startIcon={<PlayArrowIcon />}
           variant="contained"
-          aria-label="play"
+          aria-label="Play all"
           onClick={onPlayAll}
           size="large"
           style={{ textTransform: "none", backgroundColor: "white" }}
@@ -148,7 +148,7 @@ function ArtistItem() {
         <Button
           startIcon={<ShuffleIcon />}
           variant="text"
-          aria-label="play"
+          aria-label="Shuffle play"
           onClick={onPlayShuffleAll}
           size="large"
           style={{

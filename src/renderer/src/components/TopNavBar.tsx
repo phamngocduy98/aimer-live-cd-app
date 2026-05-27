@@ -53,6 +53,7 @@ const BootstrapInput = styled(InputBase)({
 interface TopNavBarProps {
   drawerWidth: number;
   isMenuOpen: boolean;
+  isHome: boolean;
   anchorEl: HTMLElement | null;
   onMenuOpen: (event: React.MouseEvent<HTMLElement>) => void;
   onMenuClose: () => void;
@@ -64,6 +65,7 @@ interface TopNavBarProps {
 export const TopNavBar: React.FC<TopNavBarProps> = ({
   drawerWidth,
   isMenuOpen,
+  isHome,
   anchorEl,
   onMenuOpen,
   onMenuClose,
@@ -154,22 +156,24 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             padding: "16px 32px 0 24px"
           }}
         >
-          <Grid xs>
-            <IconButton
-              size="large"
-              sx={{
-                fontSize: "14px",
-                "&:hover": {
+          {!isHome && (
+            <Grid item xs>
+              <IconButton
+                size="large"
+                sx={{
+                  fontSize: "14px",
+                  "&:hover": {
+                    backgroundColor: "#fcfcfc29"
+                  },
                   backgroundColor: "#fcfcfc29"
-                },
-                backgroundColor: "#fcfcfc29"
-              }}
-              onClick={onBackClick}
-            >
-              <ArrowBackIosNewIcon fontSize="inherit" />
-            </IconButton>
-          </Grid>
-          <Grid xs="auto" sx={{ display: { xs: "none", sm: "unset" } }}>
+                }}
+                onClick={onBackClick}
+              >
+                <ArrowBackIosNewIcon fontSize="inherit" />
+              </IconButton>
+            </Grid>
+          )}
+          <Grid item xs="auto" sx={{ display: { xs: "none", sm: "unset" } }}>
             <Box ref={containerRef} sx={{ position: "relative" }}>
               <BootstrapInput
                 size="small"
@@ -193,7 +197,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
               />
             </Box>
           </Grid>
-          <Grid xs="auto" sx={{ marginLeft: 2, display: { xs: "none", sm: "unset" } }}>
+          <Grid item xs="auto" sx={{ marginLeft: 2, display: { xs: "none", sm: "unset" } }}>
             <IconButton onClick={onMenuOpen} size="small">
               <Avatar sx={{ width: 32, height: 32, bgcolor: "primary.main", fontSize: "14px" }}>
                 U
