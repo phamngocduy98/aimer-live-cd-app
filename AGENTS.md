@@ -18,8 +18,7 @@
 
 ## Docs (read these first — key to understanding the app)
 
-- **GUI expected features (test plan):** `docs/gui_expected_features.md`
-- **E2E test plan:** `docs/e2e_test_plan.md` — full Playwright test plan; edit this file when asked to update the test plan
+- **GUI expected features (test plan):** `docs/gui_expected_features.md` — current source for GUI E2E scenarios
 - **Implementation & design:** `docs/implement_design.md`
 
 ## Project Structure
@@ -41,16 +40,20 @@
 
 ## E2E Testing
 
-- `e2e/setup.spec.ts` — first-run config dialog tests
-- `e2e/main-app.spec.ts` — main app shell/teardown only (auto-fills config via `.env`)
+- `e2e/admin.spec.ts` — Manage Hosts dialog coverage using seeded E2E data
+- `e2e/gui.spec.ts` — GUI coverage based on `docs/gui_expected_features.md`
 - Shared utils in `e2e/utils/`:
   - `types.ts` — `ElectronApp`, `ElectronTestContext`, `LaunchOptions`
   - `temp-dir.ts` — `createTempDir`, `cleanupTempDir`
   - `electron-app.ts` — `launchApp` (Electron lifecycle, window detection, resize)
-  - `init-setup-dialog.ts` — `fillForm`, `handleEnvConfigDialog` (first-run config auto-fill)
+  - `first-setup-dialog.ts` — first-run config auto-fill from `.env`
+  - `test-data.ts` — deterministic MongoDB seed data for E2E runs
 - `playwright.config.ts` (workers: 1, sequential); isolated temp dirs per suite
 - Typechecked via `tsconfig.e2e.json` (`pnpm typecheck:e2e`)
-- Run single file: `pnpm test:e2e -- e2e/main-app.spec.ts`
+- E2E launch uses built Electron output from `out/main/index.js`; run `pnpm build` after source changes before E2E
+- E2E seeds MongoDB per spec run; default `MONGO_DB_NAME=musicbtxa_e2e`, and seeding refuses DB names that do not end with `_e2e` or `_test`
+- E2E launches Electron with `E2E_TEST_MODE=true`; backend stream routes return deterministic local fixture media in this mode
+- Run single file: `pnpm test:e2e -- e2e/gui.spec.ts`
 - Capture screenshots: `await mainWindow.screenshot({ path: "e2e/screens/name.png" })`
 
 ### Interactive Explore Testing (no Electron, with playwright-cli)
