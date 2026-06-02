@@ -156,8 +156,8 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             padding: "16px 32px 0 24px"
           }}
         >
-          {!isHome && (
-            <Grid item xs>
+          <Grid item xs>
+            {!isHome && (
               <IconButton
                 size="large"
                 sx={{
@@ -171,8 +171,8 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
               >
                 <ArrowBackIosNewIcon fontSize="inherit" />
               </IconButton>
-            </Grid>
-          )}
+            )}
+          </Grid>
           <Grid item xs="auto" sx={{ display: { xs: "none", sm: "unset" } }}>
             <Box ref={containerRef} sx={{ position: "relative" }}>
               <BootstrapInput

@@ -34,8 +34,19 @@ const MyListItem = styled(ListItem)({
 });
 
 const MyListItemButton = styled(ListItemButton)({
+  borderRadius: "8px",
   "&:hover": {
-    borderRadius: "8px"
+    backgroundColor: "rgba(255, 255, 255, 0.08)"
+  },
+  "&.Mui-selected": {
+    backgroundColor: "rgba(255, 255, 255, 0.14)",
+    color: "#ffffff"
+  },
+  "&.Mui-selected:hover": {
+    backgroundColor: "rgba(255, 255, 255, 0.18)"
+  },
+  "&.Mui-selected .MuiListItemIcon-root": {
+    color: "#ffffff"
   }
 });
 
@@ -53,11 +64,25 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ drawerWidth, onCreatePlaylist }) => {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [location, setLocation] = useState(() => router.state.location);
   const { refreshKey } = usePlaylistRefresh();
+
+  useEffect(() => {
+    const unsubscribe = router.subscribe((state) => {
+      setLocation(state.location);
+    });
+    return unsubscribe;
+  }, []);
 
   useEffect(() => {
     appAPI.listPlaylists().then(setPlaylists);
   }, [refreshKey]);
+
+  const pathname = location.pathname;
+  const isActive = (path: string) => {
+    if (path === "/") return pathname === "/";
+    return pathname === path || pathname.startsWith(`${path}/`);
+  };
 
   return (
     <ThemeProvider theme={darkTheme}>
@@ -83,7 +108,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerWidth, onCreatePlaylist 
         </div>
         <List subheader={<MyListSubheader>MY COLLECTION</MyListSubheader>}>
           <MyListItem key={"Home"}>
-            <MyListItemButton onClick={() => router.navigate("/")}>
+            <MyListItemButton selected={isActive("/")} onClick={() => router.navigate("/")}>
               <ListItemIcon>
                 <HomeIcon />
               </ListItemIcon>
@@ -91,7 +116,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerWidth, onCreatePlaylist 
             </MyListItemButton>
           </MyListItem>
           <MyListItem key={"Playlist"}>
-            <MyListItemButton onClick={() => router.navigate("/playlists")}>
+            <MyListItemButton
+              selected={isActive("/playlists") || pathname.startsWith("/playlist/")}
+              onClick={() => router.navigate("/playlists")}
+            >
               <ListItemIcon>
                 <QueueMusicIcon />
               </ListItemIcon>
@@ -99,7 +127,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerWidth, onCreatePlaylist 
             </MyListItemButton>
           </MyListItem>
           <MyListItem key={"Albums"}>
-            <MyListItemButton onClick={() => router.navigate("/albums")}>
+            <MyListItemButton
+              selected={isActive("/albums") || pathname.startsWith("/album/")}
+              onClick={() => router.navigate("/albums")}
+            >
               <ListItemIcon>
                 <AlbumIcon />
               </ListItemIcon>
@@ -107,7 +138,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerWidth, onCreatePlaylist 
             </MyListItemButton>
           </MyListItem>
           <MyListItem key={"Songs"}>
-            <MyListItemButton onClick={() => router.navigate("/songs")}>
+            <MyListItemButton selected={isActive("/songs")} onClick={() => router.navigate("/songs")}>
               <ListItemIcon>
                 <MusicNoteIcon />
               </ListItemIcon>
@@ -115,7 +146,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerWidth, onCreatePlaylist 
             </MyListItemButton>
           </MyListItem>
           <MyListItem key={"Videos"}>
-            <MyListItemButton onClick={() => router.navigate("/videos")}>
+            <MyListItemButton selected={isActive("/videos")} onClick={() => router.navigate("/videos")}>
               <ListItemIcon>
                 <VideocamIcon />
               </ListItemIcon>
@@ -126,7 +157,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerWidth, onCreatePlaylist 
         <List subheader={<MyListSubheader>PLAYLISTS</MyListSubheader>}>
           {playlists.map((pl) => (
             <MyListItem key={pl._id}>
-              <MyListItemButton onClick={() => router.navigate(`/playlist/${pl._id}`)}>
+              <MyListItemButton
+                selected={pathname === `/playlist/${pl._id}`}
+                onClick={() => router.navigate(`/playlist/${pl._id}`)}
+              >
                 <ListItemText primary={pl.name} primaryTypographyProps={{ fontSize: "14px" }} />
               </MyListItemButton>
             </MyListItem>

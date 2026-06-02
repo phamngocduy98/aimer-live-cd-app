@@ -30,6 +30,7 @@ import { formatDuration } from "../../utils/formatDuration";
 import { SongBitDepth } from "../player/SongBitDepth";
 import { useAppDispatch, useAppSelector } from "../../store/hook";
 import { usePlaylistRefresh } from "../../contexts/PlaylistRefreshContext";
+import { artistPath, formatArtists, getPrimaryArtist } from "../../utils/artist";
 
 export const PlaylistView: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -65,53 +66,56 @@ export const PlaylistView: React.FC = () => {
   if (playlist == null) return null;
 
   return (
-    <div
-      style={{
-        background: "linear-gradient(180.04deg, rgba(12, 12, 12, 0.7) 0px, rgb(12, 12, 12) 99.96%)",
-        paddingTop: "48px"
+    <Box
+      sx={{
+        minHeight: "100vh",
+        bgcolor: "#000",
+        color: "white",
+        background: "linear-gradient(180deg, #171717 0%, #000 430px)",
+        pt: "64px",
+        pb: "120px"
       }}
     >
-      <div style={{ marginBottom: 24, paddingTop: "20dvh" }}>
-        <div style={{ display: "flex", padding: "32px 24px 0px 24px" }}>
+      <Box sx={{ px: { xs: 2, sm: 3 }, pt: { xs: 8, sm: 12 }, pb: 4 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 2, sm: 3 }, flexWrap: { xs: "wrap", sm: "nowrap" } }}>
           <Box
             sx={{
-              width: 180,
-              height: 180,
+              width: { xs: 120, sm: 180 },
+              height: { xs: 120, sm: 180 },
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              bgcolor: "#242424",
-              borderRadius: "4px",
-              mr: 3,
+              background: "linear-gradient(135deg, #2c2c2c 0%, #111 100%)",
+              borderRadius: 1,
               flexShrink: 0
             }}
           >
             <QueueMusicIcon sx={{ fontSize: 80, color: "#727272" }} />
           </Box>
-          <Box sx={{ display: "flex", flexDirection: "column", zIndex: 1 }}>
-            <Typography component="div" fontSize={12} fontWeight={700} textTransform="uppercase">
+          <Box sx={{ display: "flex", flexDirection: "column", zIndex: 1, minWidth: 0 }}>
+            <Typography color="#a7a7a7" fontSize={12} fontWeight={800} textTransform="uppercase">
               Playlist
             </Typography>
-            <Typography component="div" fontSize={32} fontWeight={700}>
+            <Typography component="h1" sx={{ fontSize: { xs: 38, sm: 58 }, fontWeight: 900, lineHeight: 1 }} noWrap>
               {playlist.name}
             </Typography>
             {playlist.description && (
-              <Typography component="div" fontSize={14} color="text.secondary" sx={{ mt: 0.5 }}>
+              <Typography component="div" fontSize={14} color="#c9c9c9" sx={{ mt: 1 }}>
                 {playlist.description}
               </Typography>
             )}
-            <Typography component="div" fontSize={14} color="text.secondary" sx={{ mt: 0.5 }}>
+            <Typography component="div" fontSize={14} color="#a7a7a7" sx={{ mt: 0.75 }}>
               {playlist.songs.length} songs
             </Typography>
           </Box>
-        </div>
+        </Box>
         <Box
           sx={{
             display: "flex",
             alignItems: "center",
-            columnGap: "16px",
-            p: "0 24px 24px 24px",
-            mt: 2
+            gap: 1.5,
+            mt: 3,
+            flexWrap: "wrap"
           }}
         >
           <Button
@@ -123,7 +127,7 @@ export const PlaylistView: React.FC = () => {
               dispatch(reset({ songs: playlist.songs, type: "audio" }));
             }}
             size="large"
-            style={{ textTransform: "none", backgroundColor: "white" }}
+            sx={{ textTransform: "none", bgcolor: "#fff", color: "#000", borderRadius: "999px", px: 3 }}
           >
             Play
           </Button>
@@ -136,10 +140,12 @@ export const PlaylistView: React.FC = () => {
               dispatch(reset({ songs: playlist.songs, shuffle: true, type: "audio" }));
             }}
             size="large"
-            style={{
+            sx={{
               textTransform: "none",
               backgroundColor: "rgba(255, 255, 255, 0.2)",
-              color: "white"
+              color: "white",
+              borderRadius: "999px",
+              px: 3
             }}
           >
             Shuffle
@@ -149,12 +155,12 @@ export const PlaylistView: React.FC = () => {
             color="error"
             size="small"
             onClick={handleDelete}
-            sx={{ ml: "auto", textTransform: "none" }}
+            sx={{ ml: { sm: "auto" }, textTransform: "none", borderRadius: "999px", px: 2 }}
           >
             Delete
           </Button>
         </Box>
-      </div>
+      </Box>
 
       <TableContainer
         sx={{
@@ -229,13 +235,27 @@ export const PlaylistView: React.FC = () => {
                     </Box>
                     <Box sx={{ display: { xs: "block", sm: "none" } }}>
                       <Typography noWrap textOverflow="ellipsis" fontSize="14px" color="#919191">
-                        {track.artist?.join(", ")}
+                        {formatArtists(track.artist)}
                       </Typography>
                     </Box>
                   </Box>
                 </NoBorderTableCell>
                 <NoBorderTableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>
-                  {track.artist?.join(", ")}
+                  <Typography
+                    noWrap
+                    textOverflow="ellipsis"
+                    fontSize="14px"
+                    color="#a0a0a0"
+                    sx={{
+                      "&:hover": { color: "white", cursor: "pointer", textDecoration: "underline" }
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(artistPath(getPrimaryArtist(track.artist)));
+                    }}
+                  >
+                    {formatArtists(track.artist)}
+                  </Typography>
                 </NoBorderTableCell>
                 <NoBorderTableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>
                   <Typography
@@ -301,11 +321,11 @@ export const PlaylistView: React.FC = () => {
           Remove from playlist
         </MenuItem>
       </Menu>
-    </div>
+    </Box>
   );
 };
 
 const NoBorderTableCell = styled(TableCell)(() => ({
-  [`&.${tableCellClasses.head}`]: { border: 0 },
+  [`&.${tableCellClasses.head}`]: { border: 0, color: "#9b9b9b", fontSize: 12 },
   [`&.${tableCellClasses.body}`]: { border: 0 }
 }));
