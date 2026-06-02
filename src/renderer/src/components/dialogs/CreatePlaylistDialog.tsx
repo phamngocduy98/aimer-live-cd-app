@@ -37,6 +37,8 @@ export const CreatePlaylistDialog: React.FC<CreatePlaylistDialogProps> = ({
 
   const handleClose = () => {
     if (submitting) return;
+    setName("");
+    setDescription("");
     onClose();
   };
 
