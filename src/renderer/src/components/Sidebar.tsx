@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import AlbumIcon from "@mui/icons-material/Album";
+import HomeIcon from "@mui/icons-material/Home";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import QueueMusicIcon from "@mui/icons-material/QueueMusic";
 import VideocamIcon from "@mui/icons-material/Videocam";
@@ -81,6 +82,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerWidth, onCreatePlaylist 
           <div style={{ fontSize: "20px", fontWeight: 700 }}>Aimer live music</div>
         </div>
         <List subheader={<MyListSubheader>MY COLLECTION</MyListSubheader>}>
+          <MyListItem key={"Home"}>
+            <MyListItemButton onClick={() => router.navigate("/")}>
+              <ListItemIcon>
+                <HomeIcon />
+              </ListItemIcon>
+              <ListItemText primary={"Home"} primaryTypographyProps={{ fontSize: "14px" }} />
+            </MyListItemButton>
+          </MyListItem>
           <MyListItem key={"Playlist"}>
             <MyListItemButton onClick={() => router.navigate("/playlists")}>
               <ListItemIcon>
@@ -90,7 +99,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerWidth, onCreatePlaylist 
             </MyListItemButton>
           </MyListItem>
           <MyListItem key={"Albums"}>
-            <MyListItemButton onClick={() => router.navigate("/")}>
+            <MyListItemButton onClick={() => router.navigate("/albums")}>
               <ListItemIcon>
                 <AlbumIcon />
               </ListItemIcon>

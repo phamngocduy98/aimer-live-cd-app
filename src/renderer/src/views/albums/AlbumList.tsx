@@ -3,43 +3,64 @@ import { Album } from "../../core/Album";
 import { AppAPI, appAPI } from "../../core/api";
 import "./albums.css";
 
-import { Box, Grid } from "@mui/material";
-import Button from "@mui/material/Button";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import CardMedia from "@mui/material/CardMedia";
+import { Avatar, Box, Grid } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import { useNavigate } from "react-router-dom";
 
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import ShuffleIcon from "@mui/icons-material/Shuffle";
-import { Song } from "../../core/Song";
-import { shuffleArray } from "../../utils/shuffleArray";
-import { useAppDispatch, useAppSelector } from "../../store/hook";
-import { reset } from "../../store/player/playerSlice";
+import MusicNoteIcon from "@mui/icons-material/MusicNote";
+import { artistPath } from "../../utils/artist";
 
 function AlbumItem({ album }: { album: Album }) {
   const navigate = useNavigate();
-  const onClick = () => {
-    navigate(`/album/${album._id}`);
-  };
   return (
-    <>
-      <Card sx={{ minWidth: 140 }}>
-        <CardMedia
-          sx={{ paddingTop: "100%" }}
-          image={`${AppAPI.HOST}/album/${album._id}/cover`}
-          title={album.title}
-          onClick={onClick}
+    <Box sx={{ minWidth: 0 }}>
+      <Box
+        onClick={() => navigate(`/album/${album._id}`)}
+        title={album.title}
+        sx={{
+          aspectRatio: "1 / 1",
+          borderRadius: 1,
+          overflow: "hidden",
+          bgcolor: "#151515",
+          cursor: "pointer",
+          boxShadow: "0 18px 44px rgba(0,0,0,.35)",
+          "&:hover img": {
+            transform: "scale(1.04)"
+          }
+        }}
+      >
+        <Box
+          component="img"
+          src={`${AppAPI.HOST}/album/${album._id}/cover`}
+          alt={album.title}
+          sx={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            display: "block",
+            transition: "transform .25s ease"
+          }}
         />
-      </Card>
-      <Typography gutterBottom variant="body1" component="div" textOverflow={"ellipsis"} noWrap>
+      </Box>
+      <Typography gutterBottom variant="body1" component="div" textOverflow="ellipsis" noWrap sx={{ mt: 1, fontWeight: 700 }}>
         {album.title}
       </Typography>
-      <Typography variant="body2" color="text.secondary">
+      <Typography
+        variant="body2"
+        color="#a7a7a7"
+        noWrap
+        sx={{
+          "&:hover": {
+            color: "#fff",
+            textDecoration: "underline",
+            cursor: "pointer"
+          }
+        }}
+        onClick={() => navigate(artistPath(album.artist))}
+      >
         {album.artist}
       </Typography>
-    </>
+    </Box>
   );
 }
 
@@ -70,21 +91,43 @@ export const Albums: React.FC = () => {
   }, [groupedAlbums]);
 
   return (
-    <div
-      style={{
-        background: `linear-gradient(180.04deg, rgba(12, 12, 12, 0.7) 0px, rgb(12, 12, 12) 99.96%), url("${
-          AppAPI.HOST
-        }/album/${albums.at(-1)?._id}/cover") top/cover`,
-        display: "flex",
-        flexDirection: "column"
+    <Box
+      sx={{
+        minHeight: "100vh",
+        bgcolor: "#000",
+        color: "white",
+        backgroundImage: albums.at(-1)
+          ? `linear-gradient(180deg, rgba(0,0,0,.34) 0%, #000 420px), url("${AppAPI.HOST}/album/${albums.at(-1)?._id}/cover")`
+          : "linear-gradient(180deg, #151515 0%, #000 420px)",
+        backgroundSize: "cover",
+        backgroundPosition: "center top",
+        pt: "64px",
+        pb: "120px"
       }}
     >
-      <ArtistItem />
-      <Grid container spacing={2} style={{ padding: "24px", background: "black" }}>
+      <Box sx={{ px: { xs: 2, sm: 3 }, pt: { xs: 8, sm: 12 }, pb: 4 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Avatar sx={{ width: 64, height: 64, borderRadius: 1, bgcolor: "rgba(255,255,255,.12)" }}>
+            <MusicNoteIcon />
+          </Avatar>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography color="#a7a7a7" fontSize={12} fontWeight={800} textTransform="uppercase">
+              Collection
+            </Typography>
+            <Typography component="h1" sx={{ fontSize: { xs: 38, sm: 58 }, fontWeight: 900, lineHeight: 1 }}>
+              Albums
+            </Typography>
+            <Typography color="#c9c9c9" sx={{ mt: 1 }}>
+              {albums.length} albums in your library
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
+      <Grid container spacing={2.5} sx={{ px: { xs: 2, sm: 3 }, pb: 3 }}>
         {sortedYears.map((year) => (
           <React.Fragment key={year}>
             <Grid item xs={12}>
-              <Typography variant="h6" sx={{ color: "text.secondary", mb: 1 }}>
+              <Typography variant="h6" sx={{ color: "#fff", mb: 1, fontWeight: 800 }}>
                 {year}
               </Typography>
             </Grid>
@@ -96,70 +139,6 @@ export const Albums: React.FC = () => {
           </React.Fragment>
         ))}
       </Grid>
-    </div>
+    </Box>
   );
 };
-
-function ArtistItem() {
-  const dispatch = useAppDispatch();
-
-  const onPlayAll = async () => {
-    const songs = await appAPI.artistTopTracks("Aimer");
-    dispatch(reset({ songs, type: "audio" }));
-  };
-
-  const onPlayShuffleAll = async () => {
-    const songs = await appAPI.artistTopTracks("Aimer");
-    dispatch(reset({ songs, shuffle: true, type: "audio" }));
-  };
-
-  return (
-    <div style={{ marginBottom: 24, paddingTop: "20dvh" }}>
-      <div style={{ display: "flex", padding: "32px 24px 0px 24px" }}>
-        <Box sx={{ display: "flex", flexDirection: "column", zIndex: 1 }}>
-          <CardContent sx={{ flex: "1 0 auto", padding: 0 }}>
-            <Typography component="div" fontSize={32} fontWeight={700}>
-              Aimer
-            </Typography>
-            <Typography component="div" fontSize={16} color="text.secondary">
-              Favorite artist, idol of phamngocduy98
-            </Typography>
-          </CardContent>
-        </Box>
-      </div>
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          columnGap: "16px",
-          p: "0 24px 24px 24px"
-        }}
-      >
-        <Button
-          startIcon={<PlayArrowIcon />}
-          variant="contained"
-          aria-label="Play all"
-          onClick={onPlayAll}
-          size="large"
-          style={{ textTransform: "none", backgroundColor: "white" }}
-        >
-          Play
-        </Button>
-        <Button
-          startIcon={<ShuffleIcon />}
-          variant="text"
-          aria-label="Shuffle play"
-          onClick={onPlayShuffleAll}
-          size="large"
-          style={{
-            textTransform: "none",
-            backgroundColor: "rgba(255, 255, 255, 0.2)",
-            color: "white"
-          }}
-        >
-          Shuffle
-        </Button>
-      </Box>
-    </div>
-  );
-}

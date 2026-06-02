@@ -33,6 +33,7 @@ import { onVideoPostion } from "../../store/thunks/onVideoPosition";
 import { QueueList } from "./FloatingQueueList";
 import "./player.css";
 import { isVideo } from "../../core/Video";
+import { artistPath, getPrimaryArtist } from "../../utils/artist";
 
 const getDominantColor = async (
   imageUrl: string
@@ -455,7 +456,7 @@ const PlayingAlbumCover = () => {
             onClick={(e) => {
               e.stopPropagation();
               dispatch(hideView("mobilePlayer"));
-              router.navigate(`/`);
+              router.navigate(artistPath(getPrimaryArtist(playingTrack?.artist)));
             }}
           >
             {playingTrack?.artist}

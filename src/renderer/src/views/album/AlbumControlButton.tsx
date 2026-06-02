@@ -4,7 +4,6 @@ import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import ShuffleIcon from "@mui/icons-material/Shuffle";
 import { useAppDispatch } from "../../store/hook";
 import { reset } from "../../store/player/playerSlice";
-import { shuffleArray } from "../../utils/shuffleArray";
 import { AlbumDetail } from "../../core/Album";
 
 export const AlbumControlButton: React.FC<{ album: AlbumDetail }> = ({ album }) => {
@@ -36,9 +35,12 @@ export const AlbumControlButton: React.FC<{ album: AlbumDetail }> = ({ album }) 
           }}
           size="large"
           fullWidth
-          style={{
+          sx={{
             textTransform: "none",
-            backgroundColor: "white"
+            backgroundColor: "white",
+            color: "#000",
+            borderRadius: "999px",
+            px: 3
           }}
         >
           Play
@@ -65,10 +67,12 @@ export const AlbumControlButton: React.FC<{ album: AlbumDetail }> = ({ album }) 
           }}
           size="large"
           fullWidth
-          style={{
+          sx={{
             textTransform: "none",
             backgroundColor: "rgba(255, 255, 255, 0.2)",
-            color: "white"
+            color: "white",
+            borderRadius: "999px",
+            px: 3
           }}
         >
           Shuffle

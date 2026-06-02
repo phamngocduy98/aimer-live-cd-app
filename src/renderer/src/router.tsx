@@ -1,6 +1,8 @@
 import { createHashRouter } from "react-router-dom";
 import { AlbumView } from "./views/album/AlbumView";
 import { Albums } from "./views/albums/AlbumList";
+import { ArtistView } from "./views/artist/ArtistView";
+import { Home } from "./views/home/Home";
 import { Songs } from "./views/songs/SongList";
 import { Videos } from "./views/videos/VideoList";
 import { SearchResults } from "./views/search/SearchResults";
@@ -10,6 +12,10 @@ import { PlaylistView } from "./views/playlist/PlaylistView";
 export const router = createHashRouter([
   {
     path: "/",
+    element: <Home />
+  },
+  {
+    path: "/albums",
     element: <Albums />
   },
   {
@@ -23,6 +29,10 @@ export const router = createHashRouter([
   {
     path: "/album/:id",
     element: <AlbumView />
+  },
+  {
+    path: "/artist/:name",
+    element: <ArtistView />
   },
   {
     path: "/search",

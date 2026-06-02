@@ -1,24 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { AlbumDetail } from "../../core/Album";
 import { AppAPI, appAPI } from "../../core/api";
-
-import { TextField } from "@mui/material";
-import Box from "@mui/material/Box";
-import IconButton from "@mui/material/IconButton";
-import { useNavigate, useParams } from "react-router-dom";
-
-import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
-
-import { useAppDispatch, useAppSelector } from "../../store/hook";
+import { Box } from "@mui/material";
+import { useParams } from "react-router-dom";
 import { AlbumInfo } from "./AlbumInfo";
 import { SongListTable } from "./SongListTable";
 import { AlbumControlButton } from "./AlbumControlButton";
 import { VideoList } from "./VideoList";
 
 export const AlbumView: React.FC = () => {
-  const dispatch = useAppDispatch();
-  const navigate = useNavigate();
-  const { playingTrack } = useAppSelector((state) => state.player);
   const [album, setAlbum] = useState<AlbumDetail | null>(null);
   const { id } = useParams();
 
@@ -48,10 +38,14 @@ export const AlbumView: React.FC = () => {
   }, [id]);
 
   return (
-    <div
-      style={{
-        background: `linear-gradient(180.04deg, rgba(12, 12, 12, 0.7) 0px, rgb(12, 12, 12) 99.96%), url("${AppAPI.HOST}/album/${id}/cover") top/cover`,
-        paddingTop: "48px"
+    <Box
+      sx={{
+        minHeight: "100vh",
+        bgcolor: "#000",
+        color: "white",
+        background: `linear-gradient(180deg, rgba(0,0,0,.24) 0%, #000 500px), linear-gradient(90deg, rgba(0,0,0,.9), rgba(0,0,0,.45)), url("${AppAPI.HOST}/album/${id}/cover") top/cover`,
+        paddingTop: "64px",
+        paddingBottom: "120px"
       }}
     >
       {album && (
@@ -62,6 +56,6 @@ export const AlbumView: React.FC = () => {
           <VideoList album={album} />
         </>
       )}
-    </div>
+    </Box>
   );
 };

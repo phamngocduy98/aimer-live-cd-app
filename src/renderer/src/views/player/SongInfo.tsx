@@ -1,10 +1,9 @@
-import { Avatar, Box, styled, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import React from "react";
-import { AppAPI } from "../../core/api";
-import { Song } from "../../core/Song";
 import { router } from "../../router";
 import { useAppDispatch, useAppSelector } from "../../store/hook";
 import { hideView } from "../../store/player/playerGuiSlice";
+import { artistPath, getPrimaryArtist } from "../../utils/artist";
 
 export const AlbumImage: React.FC<React.PropsWithChildren> = ({ children }) => {
   const dispatch = useAppDispatch();
@@ -65,7 +64,7 @@ export const AlbumImage: React.FC<React.PropsWithChildren> = ({ children }) => {
           onClick={(e) => {
             e.stopPropagation();
             dispatch(hideView("mobilePlayer"));
-            router.navigate(`/`);
+            router.navigate(artistPath(getPrimaryArtist(playingTrack?.artist)));
           }}
         >
           {playingTrack?.artist.join(", ")}
@@ -116,17 +115,3 @@ export const AlbumImage: React.FC<React.PropsWithChildren> = ({ children }) => {
     </>
   );
 };
-
-const CoverImage = styled("div")({
-  width: 64,
-  height: 64,
-  objectFit: "cover",
-  overflow: "hidden",
-  flexShrink: 0,
-  borderRadius: 8,
-  backgroundColor: "rgba(0,0,0,0.08)",
-  "& > img": {
-    width: "100%",
-    height: "100%"
-  }
-});

@@ -28,6 +28,7 @@ import { formatDuration } from "../../utils/formatDuration";
 import { SongBitDepth } from "../player/SongBitDepth";
 import { useAppDispatch, useAppSelector } from "../../store/hook";
 import { AddToPlaylistDialog } from "../../components/dialogs/AddToPlaylistDialog";
+import { artistPath, formatArtists, getPrimaryArtist } from "../../utils/artist";
 
 export const Songs: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -197,13 +198,31 @@ export const Songs: React.FC = () => {
                     </Box>
                     <Box sx={{ display: { xs: "block", sm: "none" } }}>
                       <Typography noWrap textOverflow="ellipsis" fontSize="14px" color="#919191">
-                        {track.artist?.join(", ")}
+                        {formatArtists(track.artist)}
                       </Typography>
                     </Box>
                   </Box>
                 </NoBorderTableCell>
                 <NoBorderTableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>
-                  {track.artist?.join(", ")}
+                  <Typography
+                    noWrap
+                    textOverflow="ellipsis"
+                    fontSize="14px"
+                    color="#a0a0a0"
+                    sx={{
+                      "&:hover": {
+                        color: "white",
+                        cursor: "pointer",
+                        textDecoration: "underline"
+                      }
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(artistPath(getPrimaryArtist(track.artist)));
+                    }}
+                  >
+                    {formatArtists(track.artist)}
+                  </Typography>
                 </NoBorderTableCell>
                 <NoBorderTableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>
                   <Typography

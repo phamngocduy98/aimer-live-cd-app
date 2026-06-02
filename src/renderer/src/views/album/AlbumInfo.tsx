@@ -1,16 +1,16 @@
 import Grid from "@mui/material/Unstable_Grid2";
 import { AppAPI } from "../../core/api";
-import { Album, AlbumDetail } from "../../core/Album";
-import { Avatar, Box, Typography, TypographyProps, TypographyTypeMap } from "@mui/material";
+import { AlbumDetail } from "../../core/Album";
+import { Avatar, Box, Typography } from "@mui/material";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import { formatDuration } from "../../utils/formatDuration";
 import { useAppDispatch } from "../../store/hook";
 import styled from "@emotion/styled";
 import { ComponentProps } from "react";
 import { SongBitDepth, VideoBitDepth } from "../player/SongBitDepth";
-import { Block } from "@mui/icons-material";
 import { router } from "../../router";
 import { hideView } from "../../store/player/playerGuiSlice";
+import { artistPath } from "../../utils/artist";
 
 export const AlbumInfo: React.FC<{ album: AlbumDetail }> = ({ album }) => {
   const dispatch = useAppDispatch();
@@ -59,7 +59,7 @@ export const AlbumInfo: React.FC<{ album: AlbumDetail }> = ({ album }) => {
         </Typography>
         <Typography
           variant="subtitle1"
-          color="text.secondary"
+          color="#c9c9c9"
           component="div"
           fontSize={14}
           sx={{
@@ -72,7 +72,7 @@ export const AlbumInfo: React.FC<{ album: AlbumDetail }> = ({ album }) => {
           onClick={(e) => {
             e.stopPropagation();
             dispatch(hideView("mobilePlayer"));
-            router.navigate(`/`);
+            router.navigate(artistPath(album.artist));
           }}
         >
           {album.artist}
