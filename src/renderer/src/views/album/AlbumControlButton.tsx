@@ -1,10 +1,8 @@
-import { Button } from "@mui/material";
 import Grid from "@mui/material/Unstable_Grid2";
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import ShuffleIcon from "@mui/icons-material/Shuffle";
 import { useAppDispatch } from "../../store/hook";
 import { reset } from "../../store/player/playerSlice";
 import { AlbumDetail } from "../../core/Album";
+import { PlayShuffleActions } from "../../components/view/PlayShuffleActions";
 
 export const AlbumControlButton: React.FC<{ album: AlbumDetail }> = ({ album }) => {
   const dispatch = useAppDispatch();
@@ -14,69 +12,26 @@ export const AlbumControlButton: React.FC<{ album: AlbumDetail }> = ({ album }) 
       spacing={2}
       sx={{ padding: { xs: "0 16px 16px 16px", sm: "0 28px 28px 28px" } }}
     >
-      <Grid
-        xs={6}
-        sm={"auto"}
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        columnGap={"8px"}
-      >
-        <Button
-          startIcon={<PlayArrowIcon />}
-          variant="contained"
-          aria-label="Play all"
-          onClick={() => {
+      <Grid xs={12} sm={"auto"}>
+        <PlayShuffleActions
+          playAriaLabel="Play all"
+          shuffleAriaLabel="Shuffle play"
+          sx={{ mt: 0 }}
+          onPlay={() => {
             if (album.trackList.length > 0) {
               dispatch(reset({ songs: album.trackList, type: "audio" }));
             } else {
               dispatch(reset({ songs: album.videoList, type: "video" }));
             }
           }}
-          size="large"
-          fullWidth
-          sx={{
-            textTransform: "none",
-            backgroundColor: "white",
-            color: "#000",
-            borderRadius: "999px",
-            px: 3
-          }}
-        >
-          Play
-        </Button>
-      </Grid>
-      <Grid
-        xs={6}
-        sm={"auto"}
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        columnGap={"8px"}
-      >
-        <Button
-          startIcon={<ShuffleIcon />}
-          variant="text"
-          aria-label="Shuffle play"
-          onClick={() => {
+          onShuffle={() => {
             if (album.trackList.length > 0) {
               dispatch(reset({ songs: album.trackList, shuffle: true, type: "audio" }));
             } else {
               dispatch(reset({ songs: album.videoList, shuffle: true, type: "video" }));
             }
           }}
-          size="large"
-          fullWidth
-          sx={{
-            textTransform: "none",
-            backgroundColor: "rgba(255, 255, 255, 0.2)",
-            color: "white",
-            borderRadius: "999px",
-            px: 3
-          }}
-        >
-          Shuffle
-        </Button>
+        />
       </Grid>
     </Grid>
   );
