@@ -1,6 +1,6 @@
 import Grid from "@mui/material/Unstable_Grid2";
-import { AppAPI } from "../../core/api";
-import { AlbumDetail } from "../../core/Album";
+import { AppAPI } from "../../api/api";
+import { AlbumDetail } from "../../api/Album";
 import { Avatar, Box, Typography } from "@mui/material";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import { formatDuration } from "../../utils/formatDuration";

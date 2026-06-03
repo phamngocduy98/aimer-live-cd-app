@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Playlist } from "../../core/Playlist";
-import { appAPI } from "../../core/api";
+import { Playlist } from "../../api/Playlist";
+import { appAPI } from "../../api/api";
 import { usePlaylistRefresh } from "../../contexts/PlaylistRefreshContext";
 
 import Box from "@mui/material/Box";

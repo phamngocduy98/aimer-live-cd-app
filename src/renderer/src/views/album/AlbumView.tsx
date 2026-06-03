@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { AlbumDetail } from "../../core/Album";
-import { AppAPI, appAPI } from "../../core/api";
+import { AlbumDetail } from "../../api/Album";
+import { AppAPI, appAPI } from "../../api/api";
 import { Box } from "@mui/material";
 import { useParams } from "react-router-dom";
 import { AlbumInfo } from "./AlbumInfo";

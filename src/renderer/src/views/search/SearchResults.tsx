@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { appAPI, SearchResult } from "../../core/api";
+import { appAPI, SearchResult } from "../../api/api";
 
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";

@@ -1,8 +1,8 @@
 import React from "react";
 import VideocamIcon from "@mui/icons-material/Videocam";
 import { Box, Typography } from "@mui/material";
-import { AppAPI } from "../../core/api";
-import { Video } from "../../core/Video";
+import { AppAPI } from "../../api/api";
+import { Video } from "../../api/Video";
 import { formatArtists } from "../../utils/artist";
 
 interface VideoCardProps {

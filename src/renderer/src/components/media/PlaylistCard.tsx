@@ -2,7 +2,7 @@ import React from "react";
 import QueueMusicIcon from "@mui/icons-material/QueueMusic";
 import { Box, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { Playlist } from "../../core/Playlist";
+import { Playlist } from "../../api/Playlist";
 
 interface PlaylistCardProps {
   playlist: Playlist;

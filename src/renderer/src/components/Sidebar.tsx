@@ -17,8 +17,8 @@ import {
   createTheme
 } from "@mui/material";
 import { router } from "../router";
-import { appAPI } from "../core/api";
-import { Playlist } from "../core/Playlist";
+import { appAPI } from "../api/api";
+import { Playlist } from "../api/Playlist";
 import { usePlaylistRefresh } from "../contexts/PlaylistRefreshContext";
 import styled from "@emotion/styled";
 

@@ -1,8 +1,8 @@
 import React from "react";
 import { Box, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { Album } from "../../core/Album";
-import { AppAPI } from "../../core/api";
+import { Album } from "../../api/Album";
+import { AppAPI } from "../../api/api";
 import { artistPath } from "../../utils/artist";
 
 interface AlbumCardProps {

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { PlaylistDetail } from "../../core/Playlist";
-import { appAPI } from "../../core/api";
+import { PlaylistDetail } from "../../api/Playlist";
+import { appAPI } from "../../api/api";
 import { useNavigate, useParams } from "react-router-dom";
-import { Song } from "../../core/Song";
+import { Song } from "../../api/Song";
 
 import Button from "@mui/material/Button";
 import Menu from "@mui/material/Menu";

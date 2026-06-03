@@ -17,7 +17,7 @@ import styled from "@emotion/styled";
 import Grid from "@mui/material/Unstable_Grid2";
 import React, { useEffect, useState } from "react";
 import ReactPlayer from "react-player";
-import { AppAPI } from "../../core/api";
+import { AppAPI } from "../../api/api";
 import { router } from "../../router";
 import { useAppDispatch, useAppSelector } from "../../store/hook";
 import { hideView, toggleView } from "../../store/player/playerGuiSlice";
@@ -32,7 +32,7 @@ import {
 import { onVideoPostion } from "../../store/thunks/onVideoPosition";
 import { QueueList } from "./FloatingQueueList";
 import "./player.css";
-import { isVideo } from "../../core/Video";
+import { isVideo } from "../../api/Video";
 import { artistPath, getPrimaryArtist } from "../../utils/artist";
 
 const getDominantColor = async (

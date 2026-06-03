@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Song } from "../../core/Song";
-import { AppAPI, appAPI } from "../../core/api";
+import { Song } from "../../api/Song";
+import { AppAPI, appAPI } from "../../api/api";
 
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";

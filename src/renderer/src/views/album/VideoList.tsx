@@ -1,5 +1,5 @@
 import { Box, Grid, Typography } from "@mui/material";
-import { AlbumDetail } from "../../core/Album";
+import { AlbumDetail } from "../../api/Album";
 import { useAppDispatch } from "../../store/hook";
 import { reset } from "../../store/player/playerSlice";
 import { VideoCard } from "../../components/media/VideoCard";

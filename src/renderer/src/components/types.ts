@@ -1,4 +1,4 @@
-import { Host } from "../core/api";
+import { Host } from "../api/api";
 import { SelectChangeEvent } from "@mui/material/Select";
 
 export interface ListFilesResult {

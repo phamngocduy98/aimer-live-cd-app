@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { Album } from "../../core/Album";
-import { AppAPI, appAPI } from "../../core/api";
+import { Album } from "../../api/Album";
+import { AppAPI, appAPI } from "../../api/api";
 import "./albums.css";
 
 import { Grid } from "@mui/material";

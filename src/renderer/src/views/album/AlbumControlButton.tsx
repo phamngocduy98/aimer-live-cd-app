@@ -1,7 +1,7 @@
 import Grid from "@mui/material/Unstable_Grid2";
 import { useAppDispatch } from "../../store/hook";
 import { reset } from "../../store/player/playerSlice";
-import { AlbumDetail } from "../../core/Album";
+import { AlbumDetail } from "../../api/Album";
 import { PlayShuffleActions } from "../../components/view/PlayShuffleActions";
 
 export const AlbumControlButton: React.FC<{ album: AlbumDetail }> = ({ album }) => {

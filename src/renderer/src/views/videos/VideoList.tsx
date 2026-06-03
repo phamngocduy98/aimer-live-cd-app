@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Video } from "../../core/Video";
-import { AppAPI, appAPI } from "../../core/api";
+import { Video } from "../../api/Video";
+import { AppAPI, appAPI } from "../../api/api";
 
 import Grid from "@mui/material/Grid";
 import { useAppDispatch } from "../../store/hook";

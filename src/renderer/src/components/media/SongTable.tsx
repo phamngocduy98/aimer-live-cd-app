@@ -15,7 +15,7 @@ import {
   tableCellClasses
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { Song } from "../../core/Song";
+import { Song } from "../../api/Song";
 import { useAppSelector } from "../../store/hook";
 import { artistPath, formatArtists, getPrimaryArtist } from "../../utils/artist";
 import { formatDuration } from "../../utils/formatDuration";

@@ -1,5 +1,5 @@
 import { ThunkAction, UnknownAction } from "@reduxjs/toolkit";
-import { isVideo } from "../../core/Video";
+import { isVideo } from "../../api/Video";
 import { setCurrentChapter } from "../player/playerSlice";
 import { videoOnProgress } from "../player/playerVideoControl";
 import { RootState, store } from "../store";

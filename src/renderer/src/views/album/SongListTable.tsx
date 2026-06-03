@@ -3,8 +3,8 @@ import { Menu, MenuItem } from "@mui/material";
 import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 
 import { reset } from "../../store/player/playerSlice";
-import { AlbumDetail } from "../../core/Album";
-import { Song } from "../../core/Song";
+import { AlbumDetail } from "../../api/Album";
+import { Song } from "../../api/Song";
 import { useAppDispatch } from "../../store/hook";
 import { AddToPlaylistDialog } from "../../components/dialogs/AddToPlaylistDialog";
 import { SongTable } from "../../components/media/SongTable";

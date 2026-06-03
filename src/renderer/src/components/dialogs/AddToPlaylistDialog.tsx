@@ -10,8 +10,8 @@ import {
   ListItemText,
   Typography
 } from "@mui/material";
-import { Playlist } from "../../core/Playlist";
-import { appAPI } from "../../core/api";
+import { Playlist } from "../../api/Playlist";
+import { appAPI } from "../../api/api";
 
 interface AddToPlaylistDialogProps {
   open: boolean;

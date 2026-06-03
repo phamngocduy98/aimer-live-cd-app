@@ -17,12 +17,12 @@ import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import ClearAllIcon from "@mui/icons-material/ClearAll";
 
 import CloseIcon from "@mui/icons-material/Close";
-import { AppAPI } from "../../core/api";
+import { AppAPI } from "../../api/api";
 import { useAppDispatch, useAppSelector } from "../../store/hook";
 import { deleteTrack, nextTrack, prevTrack, reset } from "../../store/player/playerSlice";
 import { hideView } from "../../store/player/playerGuiSlice";
 import styled from "@emotion/styled";
-import { isVideo, Video } from "../../core/Video";
+import { isVideo, Video } from "../../api/Video";
 import { videoOnSeek } from "../../store/player/playerVideoControl";
 import { useMemo } from "react";
 

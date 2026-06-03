@@ -6,7 +6,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import styled from "@emotion/styled";
 import { InputAdornment, InputBase, ThemeProvider, createTheme } from "@mui/material";
 import { SearchDropdown } from "./SearchDropdown";
-import { appAPI, SearchResult } from "../core/api";
+import { appAPI, SearchResult } from "../api/api";
 
 const darkTheme = createTheme({
   palette: {

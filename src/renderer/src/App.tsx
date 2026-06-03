@@ -7,7 +7,7 @@ import { FloatingQueueList } from "./views/player/FloatingQueueList";
 import MPlayerUI from "./views/player/MPlayerUI";
 import { MobilePlayer } from "./views/player/MobilePlayerUI";
 import React, { useState, useEffect, useCallback } from "react";
-import { appAPI, Host } from "./core/api";
+import { appAPI, Host } from "./api/api";
 import { SelectChangeEvent } from "@mui/material/Select";
 import { Sidebar } from "./components/Sidebar";
 import { TopNavBar } from "./components/TopNavBar";

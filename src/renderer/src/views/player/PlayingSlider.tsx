@@ -5,7 +5,7 @@ import React from "react";
 import { useAppDispatch, useAppSelector } from "../../store/hook";
 import Grid from "@mui/material/Unstable_Grid2";
 import { videoOnSeek } from "../../store/player/playerVideoControl";
-import { isVideo } from "../../core/Video";
+import { isVideo } from "../../api/Video";
 
 export function PlayingSlider() {
   const dispatch = useAppDispatch();

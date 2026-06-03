@@ -2,10 +2,10 @@ import React from "react";
 import { useAppDispatch } from "../store/hook";
 import { router } from "../router";
 import { reset } from "../store/player/playerSlice";
-import { SearchResult, AppAPI } from "../core/api";
-import { Song } from "../core/Song";
-import { Album } from "../core/Album";
-import { Video } from "../core/Video";
+import { SearchResult, AppAPI } from "../api/api";
+import { Song } from "../api/Song";
+import { Album } from "../api/Album";
+import { Video } from "../api/Video";
 
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
