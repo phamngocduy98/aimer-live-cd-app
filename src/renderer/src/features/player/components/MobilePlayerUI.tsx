@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 
 import styled from "@emotion/styled";
-import Grid from "@mui/material/Unstable_Grid2";
+import Grid from "@mui/material/Grid";
 import React, { useEffect, useState } from "react";
 import ReactPlayer from "react-player";
 import { apiAssetUrl } from "@lib/axios";
@@ -144,10 +144,11 @@ export const MobilePlayer: React.FC = () => {
           marginBottom: "90px"
         }}
       >
-        <Grid xs={12} sm={12} md={6}>
+        <Grid item xs={12} sm={12} md={6}>
           <PlayingAlbumCover />
         </Grid>
         <Grid
+          item
           md={6}
           sm={12}
           sx={{
@@ -222,7 +223,7 @@ const TopPlayingFrom = () => {
       alignItems={"center"}
       justifyContent={"center"}
     >
-      <Grid xs display={"flex"} flexDirection={"column"} rowGap={"4px"}>
+      <Grid item xs display={"flex"} flexDirection={"column"} rowGap={"4px"}>
         <Typography
           noWrap
           fontSize={9}
@@ -256,7 +257,7 @@ const TopPlayingFrom = () => {
           {playingTrack?.album?.title}
         </Typography>
       </Grid>
-      <Grid xs={"auto"}>
+      <Grid item xs={"auto"}>
         <IconButton
           size="small"
           sx={{ background: "#ffffff1a" }}
@@ -405,7 +406,7 @@ const PlayingAlbumCover = () => {
       )}
 
       <Grid container sx={{ marginTop: "32px" }}>
-        <Grid xs display={"flex"} flexDirection={"column"}>
+        <Grid item xs display={"flex"} flexDirection={"column"}>
           <Typography
             component="div"
             fontWeight={700}
@@ -463,6 +464,7 @@ const PlayingAlbumCover = () => {
           </Typography>
         </Grid>
         <Grid
+          item
           xs={"auto"}
           alignItems={"center"}
           sx={{

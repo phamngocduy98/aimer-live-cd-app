@@ -1,115 +1,134 @@
-import Grid from "@mui/material/Unstable_Grid2";
-import type { AlbumDetail } from "../types";
-import { Avatar, Box, Typography } from "@mui/material";
-import MusicNoteIcon from "@mui/icons-material/MusicNote";
-import { formatDuration } from "@utils/formatDuration";
+import { Box, Typography } from "@mui/material";
 import { useAppDispatch } from "@app/hooks";
-import styled from "@emotion/styled";
-import { ComponentProps } from "react";
+import { hideView } from "@features/player/store/playerGuiSlice";
 import { SongBitDepth, VideoBitDepth } from "@features/player/components/SongBitDepth";
 import { router } from "@app/router";
-import { hideView } from "@features/player/store/playerGuiSlice";
 import { artistPath } from "@utils/artist";
+import { formatDuration } from "@utils/formatDuration";
 import { apiAssetUrl } from "@lib/axios";
+import type { AlbumDetail } from "../types";
 
 export const AlbumInfo: React.FC<{ album: AlbumDetail }> = ({ album }) => {
   const dispatch = useAppDispatch();
+  const trackDuration = album.trackList.reduce((total, track) => total + track.duration, 0);
+  const videoDuration = album.videoList.reduce((total, video) => total + video.duration, 0);
+
+  const openArtist = () => {
+    dispatch(hideView("mobilePlayer"));
+    router.navigate(artistPath(album.artist));
+  };
+
   return (
-    <Grid
-      container
-      spacing={2}
+    <Box
       sx={{
-        padding: { xs: "16px", sm: "28px" },
-        cursor: "default",
-        userSelect: "none"
+        display: "flex",
+        flexDirection: { xs: "column", md: "row" },
+        alignItems: { xs: "center", md: "center" },
+        justifyContent: { md: "flex-start" },
+        gap: { xs: 2.5, md: 4 },
+        textAlign: { xs: "center", md: "left" }
       }}
     >
-      <Grid xs={12} sm={"auto"} display="flex" justifyContent="center" alignItems="center">
-        <Avatar
-          sx={{
-            borderRadius: "3px",
-            height: { xs: 148, sm: 240 },
-            width: { xs: 148, sm: 240 }
-          }}
-              src={apiAssetUrl(`/album/${album._id}/cover`)}
-        >
-          <MusicNoteIcon />
-        </Avatar>
-      </Grid>
-      <Grid
-        xs={12}
-        sm
-        display="flex"
-        flexDirection={"column"}
-        justifyContent="center"
-        sx={{ alignItems: { xs: "center", sm: "start" } }}
+      <Box
+        component="img"
+        src={apiAssetUrl(`/album/${album._id}/cover`)}
+        alt={album.title}
+        sx={{
+          width: { xs: 218, sm: 240, md: 250 },
+          aspectRatio: "1 / 1",
+          borderRadius: 1.5,
+          objectFit: "cover",
+          bgcolor: "#181818",
+          boxShadow: "0 28px 80px rgba(0,0,0,.58)",
+          flexShrink: 0
+        }}
+      />
+
+      <Box
+        sx={{
+          minWidth: 0,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: { xs: "center", md: "flex-start" },
+          maxWidth: 760
+        }}
       >
         <Typography
-          component="div"
-          fontWeight={700}
+          component="h1"
           sx={{
-            fontSize: { xs: 20, sm: 32 },
-            width: "100%",
-            textAlign: { xs: "center", sm: "start" }
+            fontSize: { xs: 31, sm: 42, md: 48 },
+            fontWeight: 900,
+            lineHeight: 1,
+            letterSpacing: "-.035em",
+            textShadow: "0 2px 24px rgba(0,0,0,.55)"
           }}
-          noWrap
-          textOverflow="ellipsis"
         >
           {album.title}
         </Typography>
-        <Typography
-          variant="subtitle1"
-          color="#c9c9c9"
-          component="div"
-          fontSize={14}
-          sx={{
-            pt: "8px",
-            "&:hover": {
-              textDecoration: "underline",
-              cursor: "pointer"
-            }
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-            dispatch(hideView("mobilePlayer"));
-            router.navigate(artistPath(album.artist));
-          }}
-        >
-          {album.artist}
-        </Typography>
-        <SubInfoTg
-          sx={{
-            display: { xs: "none", sm: "block" },
-            marginTop: { xs: 0, sm: "24px" }
-          }}
-        >
-          {album.trackList.length} TRACKS (
-          {formatDuration(album.trackList.reduce((pre, t) => pre + t.duration, 0))}) /{" "}
-          {album.videoList.length} VIDEOS (
-          {formatDuration(album.videoList.reduce((pre, t) => pre + t.duration, 0))})
-        </SubInfoTg>
+
         <Box
-          display={"flex"}
-          alignItems={"center"}
-          justifyContent={"center"}
-          sx={{ marginTop: "14px" }}
-          columnGap={"8px"}
+          onClick={openArtist}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            mt: 2,
+            cursor: "pointer",
+            "&:hover .artist-name": { textDecoration: "underline" }
+          }}
         >
-          <SubInfoTg>{album.year}</SubInfoTg>
+          <Box
+            component="img"
+            src={apiAssetUrl(`/album/${album._id}/cover`)}
+            alt=""
+            sx={{
+              width: 28,
+              height: 28,
+              borderRadius: "50%",
+              objectFit: "cover",
+              border: "1px solid rgba(255,255,255,.26)"
+            }}
+          />
+          <Typography className="artist-name" fontSize={16} fontWeight={800}>
+            {album.artist}
+          </Typography>
+        </Box>
+
+        <Typography
+          sx={{
+            display: { xs: "none", md: "flex" },
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 0.75,
+            mt: 2.25,
+            color: "rgba(255,255,255,.78)",
+            fontSize: 12,
+            fontWeight: 800,
+            letterSpacing: ".075em",
+            textTransform: "uppercase"
+          }}
+        >
+          <span>{album.trackList.length} tracks</span>
+          <span>·</span>
+          <span>{formatDuration(trackDuration)}</span>
+          {album.videoList.length > 0 && (
+            <>
+              <span>·</span>
+              <span>
+                {album.videoList.length} videos ({formatDuration(videoDuration)})
+              </span>
+            </>
+          )}
+        </Typography>
+
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 2 }}>
+          <Typography fontSize={13} fontWeight={850}>
+            {album.year}
+          </Typography>
           {album.trackList.length > 0 ? <SongBitDepth song={album.trackList[0]} /> : null}
           {album.videoList.length > 0 ? <VideoBitDepth video={album.videoList[0]} /> : null}
         </Box>
-      </Grid>
-    </Grid>
+      </Box>
+    </Box>
   );
 };
-
-const SubInfoTg = styled((props: ComponentProps<typeof Typography>) => (
-  // @ts-ignore
-  <Typography {...props} variant="subtitle1" color="text.secondary" component="div" />
-))(() => ({
-  fontSize: "10px",
-  lineHeight: "16px",
-  letterSpacing: "1.2px",
-  fontWeight: 600
-}));

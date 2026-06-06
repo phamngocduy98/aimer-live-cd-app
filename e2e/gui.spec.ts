@@ -51,17 +51,25 @@ test.describe("GUI expected features", () => {
     await expect(ctx.mainWindow.getByText("E2E Album Beta")).toBeVisible();
 
     await openSidebarPage(ctx.mainWindow, "Songs");
+    const songFilter = ctx.mainWindow.getByLabel("Filter songs");
+    await expect(songFilter).toBeVisible();
     await expect(ctx.mainWindow.getByRole("table", { name: "songs table" })).toBeVisible();
     await expect(ctx.mainWindow.getByText("E2E Song One").first()).toBeVisible();
+    await songFilter.fill("Search Ballad");
+    await expect(ctx.mainWindow.getByText("E2E Song One")).not.toBeVisible();
+    await expect(ctx.mainWindow.getByText("E2E Search Ballad")).toBeVisible();
+    await songFilter.clear();
 
     await openSidebarPage(ctx.mainWindow, "Videos");
     await expect(ctx.mainWindow.getByRole("img", { name: "E2E Video One" })).toBeVisible();
     await expect(ctx.mainWindow.getByText("E2E Video One").first()).toBeVisible();
 
     await openSidebarPage(ctx.mainWindow, "Playlists");
+    await expect(ctx.mainWindow.getByLabel("Filter playlists")).toBeVisible();
     await expect(ctx.mainWindow.getByRole("main").getByText("E2E Playlist Seed")).toBeVisible();
 
     await openSidebarPage(ctx.mainWindow, "Albums");
+    await expect(ctx.mainWindow.getByLabel("Filter albums")).toBeVisible();
     await openAlbum(ctx.mainWindow);
     await expect(ctx.mainWindow.getByText("E2E Video One")).toBeVisible();
   });
@@ -135,7 +143,9 @@ test.describe("GUI expected features", () => {
     await expect(ctx.mainWindow.getByText("E2E Search Ballad")).not.toBeVisible();
 
     await ctx.mainWindow.getByRole("button", { name: "Delete" }).click();
-    await expect(ctx.mainWindow.getByRole("main").getByText("E2E Created Playlist")).not.toBeVisible();
+    await expect(
+      ctx.mainWindow.getByRole("main").getByText("E2E Created Playlist")
+    ).not.toBeVisible();
   });
 
   test("plays a song and marks it as now playing", async () => {
@@ -145,6 +155,49 @@ test.describe("GUI expected features", () => {
 
     await songRow.dispatchEvent("dblclick");
     await expect(songRow).toHaveClass(/Mui-selected/);
+  });
+
+  test("renders the artist page with responsive actions, tracks, and albums", async () => {
+    await openSidebarPage(ctx.mainWindow, "Songs");
+    await ctx.mainWindow
+      .getByRole("row", { name: /E2E Song One/ })
+      .getByText("E2E Artist", { exact: true })
+      .last()
+      .click();
+
+    await expect(ctx.mainWindow.getByRole("heading", { name: "E2E Artist" })).toBeVisible();
+    await expect(ctx.mainWindow.getByRole("button", { name: "Following" })).toBeVisible();
+    await expect(ctx.mainWindow.getByRole("button", { name: "Artist radio" })).toBeVisible();
+    await expect(ctx.mainWindow.getByRole("table", { name: "artist songs table" })).toBeVisible();
+    await expect(ctx.mainWindow.getByTitle("E2E Album Alpha")).toBeVisible();
+
+    await ctx.electronApp
+      .browserWindow(ctx.mainWindow)
+      .then((win) => win.evaluate((browserWindow) => browserWindow.setSize(390, 760)));
+
+    await expect(ctx.mainWindow.getByRole("button", { name: "Share" })).toBeVisible();
+    await expect(ctx.mainWindow.getByText("E2E Song One").first()).toBeVisible();
+  });
+
+  test("renders the album detail hero, actions, tracks, and related albums", async () => {
+    await openAlbum(ctx.mainWindow);
+
+    await expect(ctx.mainWindow.getByRole("heading", { name: "E2E Album Alpha" })).toBeVisible();
+    await expect(ctx.mainWindow.getByRole("button", { name: "Play all" })).toBeVisible();
+    await expect(ctx.mainWindow.getByRole("button", { name: "Shuffle play" })).toBeVisible();
+    await expect(ctx.mainWindow.getByRole("button", { name: "Add" })).toBeVisible();
+    await expect(ctx.mainWindow.getByRole("button", { name: "Credits" })).toBeVisible();
+    await expect(ctx.mainWindow.getByRole("table", { name: "album songs table" })).toBeVisible();
+    await expect(ctx.mainWindow.getByText("More Albums by E2E Artist")).toBeVisible();
+    await expect(ctx.mainWindow.getByTitle("E2E Album Beta")).toBeVisible();
+
+    await ctx.electronApp
+      .browserWindow(ctx.mainWindow)
+      .then((win) => win.evaluate((browserWindow) => browserWindow.setSize(390, 760)));
+
+    await expect(ctx.mainWindow.getByRole("button", { name: "Share" })).toBeVisible();
+    await expect(ctx.mainWindow.getByText("Released 2026")).toBeVisible();
+    await expect(ctx.mainWindow.getByText("E2E Song One").first()).toBeVisible();
   });
 
   test("opens video queue and navigates chapters", async () => {
@@ -157,19 +210,23 @@ test.describe("GUI expected features", () => {
     await expect(ctx.mainWindow.getByText("IN THIS VIDEO", { exact: true }).first()).toBeVisible();
     await expect(ctx.mainWindow.getByText("E2E Intro").first()).toBeVisible();
     await expect(ctx.mainWindow.getByText("E2E Chorus").first()).toBeVisible();
-    await ctx.mainWindow.getByRole("button", { name: /E2E Chorus/ }).last().click();
+    await ctx.mainWindow
+      .getByRole("button", { name: /E2E Chorus/ })
+      .last()
+      .click();
   });
 
   test("responsive smoke renders screens and player at mobile width", async () => {
     await openSidebarPage(ctx.mainWindow, "Songs");
     await expect(ctx.mainWindow.getByText("E2E Song One").first()).toBeVisible();
+    await ctx.mainWindow.getByRole("button", { name: "Songs actions" }).click();
+    await ctx.mainWindow.getByRole("menuitem", { name: "Play all" }).click();
 
     await ctx.electronApp
       .browserWindow(ctx.mainWindow)
       .then((win) => win.evaluate((browserWindow) => browserWindow.setSize(390, 760)));
 
     await expect(ctx.mainWindow.getByText("E2E Song One").first()).toBeVisible();
-    await ctx.mainWindow.getByRole("button", { name: "play" }).first().click();
     await expect(ctx.mainWindow.getByText("E2E Song One").first()).toBeVisible();
     await ctx.mainWindow.mouse.click(195, 735);
     await expect(ctx.mainWindow.getByText("Playing from:", { exact: true })).toBeVisible();

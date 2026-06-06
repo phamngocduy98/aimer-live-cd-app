@@ -1,13 +1,6 @@
 import MenuIcon from "@mui/icons-material/Menu";
-import {
-  Alert,
-  Avatar,
-  IconButton,
-  Slide,
-  SlideProps,
-  Snackbar
-} from "@mui/material";
-import Grid from "@mui/material/Unstable_Grid2";
+import { Alert, Avatar, IconButton, Slide, SlideProps, Snackbar } from "@mui/material";
+import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import * as React from "react";
 import { useGlobalAudioPlayer } from "react-use-audio-player";
@@ -144,6 +137,7 @@ export function MPlayerUI() {
         spacing={"16px"}
       >
         <Grid
+          item
           xs
           sm={4}
           sx={{
@@ -193,6 +187,7 @@ export function MPlayerUI() {
         </Grid>
 
         <Grid
+          item
           xs={showMobilePlayer ? 12 : "auto"}
           sm={4}
           display="flex"
@@ -205,6 +200,7 @@ export function MPlayerUI() {
         </Grid>
 
         <Grid
+          item
           sm={4}
           display={"flex"}
           justifyContent={"flex-end"}

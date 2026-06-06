@@ -32,7 +32,15 @@ export const PlayShuffleActions: React.FC<PlayShuffleActionsProps> = ({
       onClick={onPlay}
       size="large"
       fullWidth={fullWidth}
-      sx={{ textTransform: "none", bgcolor: "#fff", color: "#000", borderRadius: "999px", px: 3 }}
+      sx={{
+        bgcolor: "#fff",
+        color: "#000",
+        borderRadius: "999px",
+        px: 3.5,
+        minHeight: 46,
+        fontWeight: 800,
+        "&:hover": { bgcolor: "#e8e8e8", transform: "translateY(-1px)" }
+      }}
     >
       {playLabel}
     </Button>
@@ -44,11 +52,14 @@ export const PlayShuffleActions: React.FC<PlayShuffleActionsProps> = ({
       size="large"
       fullWidth={fullWidth}
       sx={{
-        textTransform: "none",
-        bgcolor: "rgba(255,255,255,.16)",
+        bgcolor: "rgba(255,255,255,.14)",
         color: "#fff",
         borderRadius: "999px",
-        px: 3
+        px: 3.5,
+        minHeight: 46,
+        fontWeight: 800,
+        border: "1px solid rgba(255,255,255,.08)",
+        "&:hover": { bgcolor: "rgba(255,255,255,.22)", transform: "translateY(-1px)" }
       }}
     >
       {shuffleLabel}

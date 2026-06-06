@@ -11,9 +11,7 @@ interface VideoCardProps {
 }
 
 export const VideoCard: React.FC<VideoCardProps> = ({ video, onClick }) => {
-  const coverUrl = video.album?._id
-    ? apiAssetUrl(`/album/${video.album._id}/cover`)
-    : undefined;
+  const coverUrl = video.album?._id ? apiAssetUrl(`/album/${video.album._id}/cover`) : undefined;
 
   return (
     <Box sx={{ minWidth: 0 }}>
@@ -22,16 +20,21 @@ export const VideoCard: React.FC<VideoCardProps> = ({ video, onClick }) => {
         onClick={() => onClick(video)}
         sx={{
           aspectRatio: "16 / 9",
-          borderRadius: 1,
+          borderRadius: 1.25,
           overflow: "hidden",
           bgcolor: "#151515",
           cursor: "pointer",
-          boxShadow: "0 18px 44px rgba(0,0,0,.35)",
+          boxShadow: "0 16px 36px rgba(0,0,0,.28)",
+          transition: "transform .22s ease, box-shadow .22s ease",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           "&:hover img": {
             transform: "scale(1.04)"
+          },
+          "&:hover": {
+            transform: "translateY(-3px)",
+            boxShadow: "0 22px 48px rgba(0,0,0,.48)"
           }
         }}
       >
@@ -52,7 +55,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({ video, onClick }) => {
           <VideocamIcon sx={{ fontSize: 44, color: "#bdbdbd" }} />
         )}
       </Box>
-      <Typography noWrap fontWeight={700} sx={{ mt: 1 }}>
+      <Typography noWrap fontWeight={750} sx={{ mt: 1.15, letterSpacing: "-.01em" }}>
         {video.title}
       </Typography>
       <Typography noWrap color="#9b9b9b" fontSize={13}>

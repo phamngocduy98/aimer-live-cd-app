@@ -3,7 +3,7 @@ import { useGlobalAudioPlayer } from "react-use-audio-player";
 import { formatDuration } from "@utils/formatDuration";
 import React from "react";
 import { useAppDispatch, useAppSelector } from "@app/hooks";
-import Grid from "@mui/material/Unstable_Grid2";
+import Grid from "@mui/material/Grid";
 import { videoOnSeek } from "../store/playerVideoControl";
 import { isVideo } from "@features/library";
 
@@ -44,6 +44,7 @@ export function PlayingSlider() {
         }}
       >
         <Grid
+          item
           xs={showMobilePlayer ? 6 : "auto"}
           sm={"auto"}
           sx={{
@@ -60,6 +61,7 @@ export function PlayingSlider() {
           <TinyText>{formatDuration(_position)}</TinyText>
         </Grid>
         <Grid
+          item
           xs={showMobilePlayer ? 12 : true}
           sm
           order={showMobilePlayer ? 0 : 1}
@@ -116,6 +118,7 @@ export function PlayingSlider() {
           />
         </Grid>
         <Grid
+          item
           xs={showMobilePlayer ? 6 : "auto"}
           sm={"auto"}
           order={2}

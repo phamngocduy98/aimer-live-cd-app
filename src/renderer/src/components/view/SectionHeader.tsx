@@ -7,6 +7,7 @@ interface SectionHeaderProps {
   icon?: React.ReactNode;
   action?: string;
   onAction?: () => void;
+  actions?: React.ReactNode;
   sx?: SxProps<Theme>;
 }
 
@@ -16,12 +17,18 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
   icon,
   action,
   onAction,
+  actions,
   sx
 }) => (
-  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2, ...sx }}>
+  <Box
+    sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2, ...sx }}
+  >
     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
       {icon && <Box sx={{ display: "flex", color: "#fff" }}>{icon}</Box>}
-      <Typography component="h2" fontSize={24} fontWeight={800}>
+      <Typography
+        component="h2"
+        sx={{ fontSize: { xs: 22, sm: 25 }, fontWeight: 850, letterSpacing: "-.025em" }}
+      >
         {title}
       </Typography>
       {count != null && (
@@ -30,8 +37,19 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
         </Typography>
       )}
     </Box>
-    {action && (
-      <Button onClick={onAction} sx={{ color: "#a7a7a7", fontWeight: 700 }}>
+    {actions}
+    {!actions && action && (
+      <Button
+        onClick={onAction}
+        sx={{
+          color: "#d0d0d0",
+          fontWeight: 750,
+          minWidth: 0,
+          px: 1,
+          mr: -1,
+          "&:hover": { color: "#fff" }
+        }}
+      >
         {action}
       </Button>
     )}

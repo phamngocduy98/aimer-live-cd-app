@@ -12,19 +12,11 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  ListSubheader,
-  ThemeProvider,
-  createTheme
+  ListSubheader
 } from "@mui/material";
 import { router } from "@app/router";
 import { usePlaylists } from "@features/playlist";
 import styled from "@emotion/styled";
-
-const darkTheme = createTheme({
-  palette: {
-    mode: "dark"
-  }
-});
 
 const MyListItem = styled(ListItem)({
   padding: "0 8px",
@@ -49,10 +41,13 @@ const MyListItemButton = styled(ListItemButton)({
 });
 
 const MyListSubheader = styled(ListSubheader)({
-  fontSize: "12px",
+  fontSize: "11px",
+  fontWeight: 800,
+  letterSpacing: ".1em",
   lineHeight: "36px",
   marginLeft: "8px",
-  backgroundColor: "rgb(0, 0, 0)"
+  color: "#6f6f6f",
+  backgroundColor: "transparent"
 });
 
 interface SidebarProps {
@@ -78,7 +73,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerWidth, onCreatePlaylist 
   };
 
   return (
-    <ThemeProvider theme={darkTheme}>
+    <>
       <Drawer
         sx={{
           display: { xs: "none", md: "block" },
@@ -86,18 +81,24 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerWidth, onCreatePlaylist 
           flexShrink: 0,
           "& .MuiDrawer-paper": {
             width: drawerWidth,
-            boxSizing: "border-box"
+            boxSizing: "border-box",
+            borderRight: "1px solid rgba(255,255,255,.06)"
           },
           userSelect: "none"
         }}
         PaperProps={{
-          sx: { backgroundColor: "rgb(0, 0, 0)" }
+          sx: { background: "linear-gradient(180deg, #080808 0%, #000 55%)" }
         }}
         variant="permanent"
         anchor="left"
       >
-        <div style={{ padding: "16px 24px" }}>
-          <div style={{ fontSize: "20px", fontWeight: 700 }}>Aimer live music</div>
+        <div style={{ padding: "20px 24px 18px" }}>
+          <div style={{ fontSize: "20px", fontWeight: 900, letterSpacing: "-0.04em" }}>
+            Aimer live
+          </div>
+          <div style={{ fontSize: "11px", color: "#707070", marginTop: "2px" }}>
+            Personal music library
+          </div>
         </div>
         <List subheader={<MyListSubheader>MY COLLECTION</MyListSubheader>}>
           <MyListItem key={"Home"}>
@@ -131,7 +132,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerWidth, onCreatePlaylist 
             </MyListItemButton>
           </MyListItem>
           <MyListItem key={"Songs"}>
-            <MyListItemButton selected={isActive("/songs")} onClick={() => router.navigate("/songs")}>
+            <MyListItemButton
+              selected={isActive("/songs")}
+              onClick={() => router.navigate("/songs")}
+            >
               <ListItemIcon>
                 <MusicNoteIcon />
               </ListItemIcon>
@@ -139,7 +143,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerWidth, onCreatePlaylist 
             </MyListItemButton>
           </MyListItem>
           <MyListItem key={"Videos"}>
-            <MyListItemButton selected={isActive("/videos")} onClick={() => router.navigate("/videos")}>
+            <MyListItemButton
+              selected={isActive("/videos")}
+              onClick={() => router.navigate("/videos")}
+            >
               <ListItemIcon>
                 <VideocamIcon />
               </ListItemIcon>
@@ -171,6 +178,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ drawerWidth, onCreatePlaylist 
           </MyListItem>
         </List>
       </Drawer>
-    </ThemeProvider>
+    </>
   );
 };

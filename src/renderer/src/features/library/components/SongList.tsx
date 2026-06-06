@@ -1,20 +1,17 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import type { Song } from "../types";
 
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 
 import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
-import MusicNoteIcon from "@mui/icons-material/MusicNote";
-
 import { reset } from "@features/player/store/playerSlice";
 import { useAppDispatch } from "@app/hooks";
 import { AddToPlaylistDialog } from "@features/playlist";
 import { SongTable } from "@components/media/SongTable";
-import { MediaHero } from "@components/view/MediaHero";
+import { CollectionHeader } from "@components/view/CollectionHeader";
 import { PageScaffold } from "@components/view/PageScaffold";
-import { PlayShuffleActions } from "@components/view/PlayShuffleActions";
-import { apiAssetUrl } from "@lib/axios";
+import { formatArtists } from "@utils/artist";
 import { useSongs } from "../hooks/useLibrary";
 
 export const Songs: React.FC = () => {
@@ -23,6 +20,18 @@ export const Songs: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [contextSong, setContextSong] = useState<Song | null>(null);
   const [addToPlaylistOpen, setAddToPlaylistOpen] = useState(false);
+  const [filter, setFilter] = useState("");
+
+  const visibleSongs = useMemo(() => {
+    const query = filter.trim().toLocaleLowerCase();
+    if (!query) return songs;
+
+    return songs.filter((song) =>
+      [song.title, formatArtists(song.artist), song.album?.title]
+        .filter(Boolean)
+        .some((value) => value?.toLocaleLowerCase().includes(query))
+    );
+  }, [filter, songs]);
 
   const onPlayAll = () => {
     if (songs.length === 0) return;
@@ -35,34 +44,39 @@ export const Songs: React.FC = () => {
   };
 
   return (
-    <PageScaffold
-      backgroundImage={
-        songs[0]?.album?._id
-          ? `linear-gradient(180deg, rgba(0,0,0,.24) 0%, #000 430px), linear-gradient(90deg, rgba(0,0,0,.9), rgba(0,0,0,.48)), url("${apiAssetUrl(`/album/${songs[0].album._id}/cover`)}")`
-          : "linear-gradient(180deg, #151515 0%, #000 430px)"
-      }
-    >
-      <MediaHero
-        eyebrow="Collection"
+    <PageScaffold>
+      <CollectionHeader
         title="Songs"
-        subtitle={`${songs.length} tracks`}
-        icon={<MusicNoteIcon />}
-      >
-        <PlayShuffleActions onPlay={onPlayAll} onShuffle={onPlayShuffleAll} />
-      </MediaHero>
-
-      <SongTable
-        songs={songs}
-        ariaLabel="songs table"
-        showActions
-        onPlayFromIndex={(idx) =>
-          dispatch(reset({ songs: songs.slice(idx), history: songs.slice(0, idx), type: "audio" }))
-        }
-        onActionClick={(event, song) => {
-          setAnchorEl(event.currentTarget);
-          setContextSong(song);
-        }}
+        filterLabel="Filter songs"
+        filterValue={filter}
+        onFilterChange={setFilter}
+        actions={[
+          { label: "Play all", onClick: onPlayAll },
+          { label: "Shuffle all", onClick: onPlayShuffleAll },
+          { label: `${songs.length} songs`, disabled: true }
+        ]}
       />
+
+      <div style={{ maxWidth: 1440, margin: "0 auto" }}>
+        <SongTable
+          songs={visibleSongs}
+          ariaLabel="songs table"
+          showActions
+          onPlayFromIndex={(idx) =>
+            dispatch(
+              reset({
+                songs: visibleSongs.slice(idx),
+                history: visibleSongs.slice(0, idx),
+                type: "audio"
+              })
+            )
+          }
+          onActionClick={(event, song) => {
+            setAnchorEl(event.currentTarget);
+            setContextSong(song);
+          }}
+        />
+      </div>
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}

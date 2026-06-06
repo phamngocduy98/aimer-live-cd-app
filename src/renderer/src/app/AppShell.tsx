@@ -1,25 +1,25 @@
-import React, { Suspense, useState } from "react"
-import { Box } from "@mui/material"
-import type { SelectChangeEvent } from "@mui/material/Select"
-import { Outlet, useLocation, useNavigate } from "react-router-dom"
-import { Sidebar } from "@components/layout/Sidebar"
-import { TopNavBar } from "@components/layout/TopNavBar"
-import { ErrorBoundary } from "@components/common/ErrorBoundary"
-import { LoadingFallback } from "@components/common/LoadingFallback"
-import { Player } from "@features/player"
-import { AddHostDialog, ManageHostsDialog, type NewHostState } from "@features/hosts"
-import { CreatePlaylistDialog } from "@features/playlist"
+import React, { Suspense, useState } from "react";
+import { Box } from "@mui/material";
+import type { SelectChangeEvent } from "@mui/material/Select";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Sidebar } from "@components/layout/Sidebar";
+import { TopNavBar } from "@components/layout/TopNavBar";
+import { ErrorBoundary } from "@components/common/ErrorBoundary";
+import { LoadingFallback } from "@components/common/LoadingFallback";
+import { Player } from "@features/player";
+import { AddHostDialog, ManageHostsDialog, type NewHostState } from "@features/hosts";
+import { CreatePlaylistDialog } from "@features/playlist";
 
-const drawerWidth = 240
+const drawerWidth = 240;
 
 export function AppShell() {
-  const location = useLocation()
-  const navigate = useNavigate()
-  const isHome = location.pathname === "/"
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
-  const [isHostDialogOpen, setIsHostDialogOpen] = useState(false)
-  const [isAddHostDialogOpen, setIsAddHostDialogOpen] = useState(false)
-  const [isCreatePlaylistOpen, setIsCreatePlaylistOpen] = useState(false)
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isHome = location.pathname === "/";
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const [isHostDialogOpen, setIsHostDialogOpen] = useState(false);
+  const [isAddHostDialogOpen, setIsAddHostDialogOpen] = useState(false);
+  const [isCreatePlaylistOpen, setIsCreatePlaylistOpen] = useState(false);
   const [newHost, setNewHost] = useState<NewHostState>({
     host: "",
     provider: "infinityfree.net",
@@ -29,7 +29,7 @@ export function AppShell() {
     ftpUsername: "",
     ftpPassword: "",
     ftpRoot: "/htdocs"
-  })
+  });
 
   const handleNewHostChange =
     (field: string) =>
@@ -37,25 +37,22 @@ export function AppShell() {
       const value =
         "type" in event.target && event.target.type === "number"
           ? Number(event.target.value)
-          : event.target.value
-      setNewHost((current) => ({ ...current, [field]: value }))
-    }
+          : event.target.value;
+      setNewHost((current) => ({ ...current, [field]: value }));
+    };
 
   return (
-    <Box sx={{ display: "flex", height: "100vh", marginBottom: "350px" }}>
-      <Sidebar
-        drawerWidth={drawerWidth}
-        onCreatePlaylist={() => setIsCreatePlaylistOpen(true)}
-      />
+    <Box sx={{ display: "flex", height: "100dvh", bgcolor: "#000" }}>
+      <Sidebar drawerWidth={drawerWidth} onCreatePlaylist={() => setIsCreatePlaylistOpen(true)} />
       <Box
         component="main"
         sx={{
           flexGrow: 1,
           bgcolor: "black",
           height: "100%",
-          paddingBottom: "86px",
+          minWidth: 0,
           overflow: "hidden auto",
-          marginBottom: 330
+          scrollbarGutter: "stable"
         }}
       >
         <ErrorBoundary>
@@ -74,9 +71,7 @@ export function AppShell() {
         onMenuClose={() => setAnchorEl(null)}
         onManageHostsClick={() => setIsHostDialogOpen(true)}
         onBackClick={() => navigate("/")}
-        onSearch={(query) =>
-          navigate(query ? `/search?q=${encodeURIComponent(query)}` : "/")
-        }
+        onSearch={(query) => navigate(query ? `/search?q=${encodeURIComponent(query)}` : "/")}
       />
       <Player />
       <ManageHostsDialog
@@ -95,5 +90,5 @@ export function AppShell() {
         onClose={() => setIsCreatePlaylistOpen(false)}
       />
     </Box>
-  )
+  );
 }

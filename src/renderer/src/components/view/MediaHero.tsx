@@ -26,7 +26,17 @@ export const MediaHero: React.FC<MediaHeroProps> = ({
   children,
   sx
 }) => (
-  <Box sx={{ px: { xs: 2, sm: 3 }, pt: { xs: 8, sm: 12 }, pb: 4, ...sx }}>
+  <Box
+    sx={{
+      width: "100%",
+      maxWidth: 1440,
+      mx: "auto",
+      px: { xs: 2.5, sm: 4, lg: 6 },
+      pt: { xs: 8, sm: 12 },
+      pb: 4,
+      ...sx
+    }}
+  >
     <Box
       sx={{
         display: "flex",
@@ -61,9 +71,10 @@ export const MediaHero: React.FC<MediaHeroProps> = ({
         <Typography
           component="h1"
           sx={{
-            fontSize: { xs: 38, sm: 58 },
+            fontSize: { xs: 40, sm: 58, lg: 66 },
             fontWeight: 900,
-            lineHeight: 1,
+            lineHeight: 0.98,
+            letterSpacing: "-.035em",
             mt: icon || imageSrc ? 0 : 1,
             ...titleSx
           }}

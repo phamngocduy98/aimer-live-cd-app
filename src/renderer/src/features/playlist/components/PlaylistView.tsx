@@ -14,11 +14,7 @@ import { SongTable } from "@components/media/SongTable";
 import { MediaHero } from "@components/view/MediaHero";
 import { PageScaffold } from "@components/view/PageScaffold";
 import { PlayShuffleActions } from "@components/view/PlayShuffleActions";
-import {
-  useDeletePlaylist,
-  usePlaylist,
-  useRemoveSongFromPlaylist
-} from "../hooks/usePlaylists";
+import { useDeletePlaylist, usePlaylist, useRemoveSongFromPlaylist } from "../hooks/usePlaylists";
 
 export const PlaylistView: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -67,30 +63,38 @@ export const PlaylistView: React.FC = () => {
           color="error"
           size="small"
           onClick={handleDelete}
-          sx={{ mt: 1.5, textTransform: "none", borderRadius: "999px", px: 2, alignSelf: "flex-start" }}
+          sx={{
+            mt: 1.5,
+            textTransform: "none",
+            borderRadius: "999px",
+            px: 2,
+            alignSelf: "flex-start"
+          }}
         >
           Delete
         </Button>
       </MediaHero>
 
-      <SongTable
-        songs={playlist.songs}
-        ariaLabel="playlist songs table"
-        showActions
-        onPlayFromIndex={(idx) =>
-          dispatch(
-            reset({
-              songs: playlist.songs.slice(idx),
-              history: playlist.songs.slice(0, idx),
-              type: "audio"
-            })
-          )
-        }
-        onActionClick={(event, song) => {
-          setAnchorEl(event.currentTarget);
-          setContextSong(song);
-        }}
-      />
+      <div style={{ maxWidth: 1440, margin: "0 auto" }}>
+        <SongTable
+          songs={playlist.songs}
+          ariaLabel="playlist songs table"
+          showActions
+          onPlayFromIndex={(idx) =>
+            dispatch(
+              reset({
+                songs: playlist.songs.slice(idx),
+                history: playlist.songs.slice(0, idx),
+                type: "audio"
+              })
+            )
+          }
+          onActionClick={(event, song) => {
+            setAnchorEl(event.currentTarget);
+            setContextSong(song);
+          }}
+        />
+      </div>
 
       <Menu
         anchorEl={anchorEl}

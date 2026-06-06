@@ -24,6 +24,7 @@ export const SongListTable: React.FC<{ album: AlbumDetail }> = ({ album }) => {
         showAlbum={false}
         showQuality={false}
         showActions
+        mobileEmphasis
         onPlayFromIndex={(idx) =>
           dispatch(
             reset({

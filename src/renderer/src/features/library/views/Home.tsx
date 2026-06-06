@@ -50,7 +50,14 @@ export const Home: React.FC = () => {
           : "linear-gradient(180deg, #141414 0%, #000 520px)"
       }
     >
-      <Box sx={{ px: { xs: 2, sm: 3, lg: 4 }, pt: { xs: 7, sm: 12 }, maxWidth: 1280 }}>
+      <Box
+        sx={{
+          px: { xs: 2.5, sm: 4, lg: 6 },
+          pt: { xs: 7, sm: 12 },
+          maxWidth: 1440,
+          mx: "auto"
+        }}
+      >
         <Typography
           sx={{
             color: "#a7a7a7",
@@ -79,14 +86,25 @@ export const Home: React.FC = () => {
         <PlayShuffleActions onPlay={playRecent} onShuffle={shuffleRecent} />
       </Box>
 
-      <Box sx={{ px: { xs: 2, sm: 3, lg: 4 }, mt: { xs: 7, sm: 10 } }}>
+      <Box
+        sx={{
+          px: { xs: 2.5, sm: 4, lg: 6 },
+          mt: { xs: 7, sm: 10 },
+          maxWidth: 1440,
+          mx: "auto"
+        }}
+      >
         <Grid container spacing={1.5} sx={{ mb: 5 }}>
           <StatTile icon={<AlbumIcon />} label="Albums" value={albums.length} />
           <StatTile icon={<MusicNoteIcon />} label="Tracks" value={songs.length} />
           <StatTile icon={<QueueMusicIcon />} label="Artists" value={artistCount} />
         </Grid>
 
-        <SectionHeader title="Featured albums" action="View all" onAction={() => navigate("/albums")} />
+        <SectionHeader
+          title="Featured albums"
+          action="View all"
+          onAction={() => navigate("/albums")}
+        />
         <Grid container spacing={2.5}>
           {albums.map((album) => (
             <Grid key={album._id} item xs={6} sm={4} md={3} lg={2}>
@@ -97,31 +115,33 @@ export const Home: React.FC = () => {
 
         <SectionHeader title="Artists to revisit" sx={{ mt: 5 }} />
         <Grid container spacing={1.5}>
-          {[...new Set([heroArtist, ...albums.map((album) => album.artist)])].slice(0, 8).map((artist) => (
-            <Grid key={artist} item xs={12} sm={6} md={4} lg={3}>
-              <Box
-                onClick={() => navigate(artistPath(artist))}
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1.5,
-                  bgcolor: "rgba(255,255,255,.055)",
-                  border: "1px solid rgba(255,255,255,.08)",
-                  borderRadius: 1,
-                  p: 1,
-                  cursor: "pointer",
-                  "&:hover": { bgcolor: "rgba(255,255,255,.1)" }
-                }}
-              >
-                <Avatar sx={{ bgcolor: "#222", color: "#fff", fontWeight: 700 }}>
-                  {artist.slice(0, 1).toUpperCase()}
-                </Avatar>
-                <Typography noWrap fontWeight={700}>
-                  {artist}
-                </Typography>
-              </Box>
-            </Grid>
-          ))}
+          {[...new Set([heroArtist, ...albums.map((album) => album.artist)])]
+            .slice(0, 8)
+            .map((artist) => (
+              <Grid key={artist} item xs={12} sm={6} md={4} lg={3}>
+                <Box
+                  onClick={() => navigate(artistPath(artist))}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    bgcolor: "rgba(255,255,255,.055)",
+                    border: "1px solid rgba(255,255,255,.08)",
+                    borderRadius: 1,
+                    p: 1,
+                    cursor: "pointer",
+                    "&:hover": { bgcolor: "rgba(255,255,255,.1)" }
+                  }}
+                >
+                  <Avatar sx={{ bgcolor: "#222", color: "#fff", fontWeight: 700 }}>
+                    {artist.slice(0, 1).toUpperCase()}
+                  </Avatar>
+                  <Typography noWrap fontWeight={700}>
+                    {artist}
+                  </Typography>
+                </Box>
+              </Grid>
+            ))}
         </Grid>
       </Box>
     </PageScaffold>

@@ -1,8 +1,9 @@
-import { Box, Grid, Typography } from "@mui/material";
+import { Box, Grid } from "@mui/material";
 import type { AlbumDetail } from "../types";
 import { useAppDispatch } from "@app/hooks";
 import { reset } from "@features/player/store/playerSlice";
 import { VideoCard } from "@components/media/VideoCard";
+import { SectionHeader } from "@components/view/SectionHeader";
 
 export const VideoList: React.FC<{ album: AlbumDetail }> = ({ album }) => {
   const dispatch = useAppDispatch();
@@ -10,10 +11,8 @@ export const VideoList: React.FC<{ album: AlbumDetail }> = ({ album }) => {
   if (album.videoList.length === 0) return null;
 
   return (
-    <Box sx={{ bgcolor: "#000", px: { xs: 2, sm: 3 }, py: 3 }}>
-      <Typography component="h2" fontSize={22} fontWeight={800} sx={{ mb: 2 }}>
-        Videos
-      </Typography>
+    <Box sx={{ maxWidth: 1440, mx: "auto", px: { xs: 2.5, sm: 4, lg: 6 }, py: 5 }}>
+      <SectionHeader title="Videos" />
       <Grid container spacing={2.5}>
         {album.videoList.map((vid, idx) => (
           <Grid key={vid._id} item xs={6} sm={4} md={3} lg={2}>

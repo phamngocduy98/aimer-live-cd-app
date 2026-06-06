@@ -20,6 +20,7 @@ import { useAppSelector } from "@app/hooks";
 import { artistPath, formatArtists, getPrimaryArtist } from "@utils/artist";
 import { formatDuration } from "@utils/formatDuration";
 import { SongBitDepth } from "@features/player/components/SongBitDepth";
+import { apiAssetUrl } from "@lib/axios";
 
 interface SongTableProps {
   songs: Song[];
@@ -30,6 +31,8 @@ interface SongTableProps {
   showAlbum?: boolean;
   showQuality?: boolean;
   showActions?: boolean;
+  showArtwork?: boolean;
+  mobileEmphasis?: boolean;
   mobileSubtitle?: "artist" | "album";
   onActionClick?: (event: React.MouseEvent<HTMLElement>, song: Song) => void;
 }
@@ -43,6 +46,8 @@ export const SongTable: React.FC<SongTableProps> = ({
   showAlbum = true,
   showQuality = true,
   showActions = false,
+  showArtwork = false,
+  mobileEmphasis = false,
   mobileSubtitle = "artist",
   onActionClick
 }) => {
@@ -52,8 +57,8 @@ export const SongTable: React.FC<SongTableProps> = ({
   return (
     <TableContainer
       sx={{
-        background: "black",
-        padding: { xs: "8px 16px", sm: "8px 24px" },
+        background: "transparent",
+        padding: { xs: "6px 8px", sm: "8px 0" },
         cursor: "default",
         userSelect: "none"
       }}
@@ -76,7 +81,9 @@ export const SongTable: React.FC<SongTableProps> = ({
           {songs.map((song, index) => {
             const isPlaying = song._id === playingTrack?._id;
             const mobileText =
-              mobileSubtitle === "album" ? song.album?.title ?? "Unknown" : formatArtists(song.artist);
+              mobileSubtitle === "album"
+                ? (song.album?.title ?? "Unknown")
+                : formatArtists(song.artist);
 
             return (
               <TableRow
@@ -85,6 +92,8 @@ export const SongTable: React.FC<SongTableProps> = ({
                 selected={isPlaying}
                 onDoubleClick={() => onPlayFromIndex(index)}
                 sx={{
+                  transition: "background-color .16s ease",
+                  "&:hover": { backgroundColor: "rgba(255,255,255,.065)" },
                   "&:last-child td, &:last-child th": { border: 0 },
                   "& th": {
                     borderTopLeftRadius: "5px",
@@ -95,7 +104,7 @@ export const SongTable: React.FC<SongTableProps> = ({
                     borderTopRightRadius: "5px",
                     borderBottomRightRadius: "5px"
                   },
-                  "&.Mui-selected": { backgroundColor: "#ffffff1a" }
+                  "&.Mui-selected": { backgroundColor: "rgba(38,231,223,.11)" }
                 }}
               >
                 <NoBorderTableCell align="center" component="th" scope="row" width={30}>
@@ -108,14 +117,44 @@ export const SongTable: React.FC<SongTableProps> = ({
                   )}
                 </NoBorderTableCell>
                 <NoBorderTableCell>
-                  <Box sx={{ display: "flex", flexDirection: "column" }}>
-                    <Typography noWrap textOverflow="ellipsis" fontSize="14px">
-                      {song.title}
-                    </Typography>
-                    <Box sx={{ display: { xs: "block", sm: "none" } }}>
-                      <Typography noWrap textOverflow="ellipsis" fontSize="14px" color="#919191">
-                        {mobileText}
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
+                    {showArtwork && (
+                      <Box
+                        component="img"
+                        src={apiAssetUrl(`/album/${song.album?._id}/cover`)}
+                        alt=""
+                        sx={{
+                          width: { xs: 52, sm: 44 },
+                          height: { xs: 52, sm: 44 },
+                          borderRadius: 0.75,
+                          objectFit: "cover",
+                          bgcolor: "#181818",
+                          flexShrink: 0
+                        }}
+                      />
+                    )}
+                    <Box sx={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+                      <Typography
+                        noWrap
+                        textOverflow="ellipsis"
+                        sx={{
+                          fontSize: { xs: mobileEmphasis ? 17 : 14, sm: 14 },
+                          fontWeight: mobileEmphasis ? 750 : 600
+                        }}
+                      >
+                        {song.title}
                       </Typography>
+                      <Box sx={{ display: { xs: "block", sm: "none" } }}>
+                        <Typography
+                          noWrap
+                          textOverflow="ellipsis"
+                          fontSize={mobileEmphasis ? 15 : 14}
+                          color={mobileEmphasis ? "#f2f2f2" : "#919191"}
+                          fontWeight={mobileEmphasis ? 650 : 400}
+                        >
+                          {mobileText}
+                        </Typography>
+                      </Box>
                     </Box>
                   </Box>
                 </NoBorderTableCell>
@@ -144,11 +183,17 @@ export const SongTable: React.FC<SongTableProps> = ({
                   </NoBorderTableCell>
                 )}
                 {showQuality && (
-                  <NoBorderTableCell align="center" sx={{ display: { xs: "none", sm: "table-cell" } }}>
+                  <NoBorderTableCell
+                    align="center"
+                    sx={{ display: { xs: "none", sm: "table-cell" } }}
+                  >
                     <SongBitDepth song={song} />
                   </NoBorderTableCell>
                 )}
-                <NoBorderTableCell align="center" sx={{ display: { xs: "none", sm: "table-cell" } }}>
+                <NoBorderTableCell
+                  align="center"
+                  sx={{ display: { xs: "none", sm: "table-cell" } }}
+                >
                   <Typography fontSize="14px" color="#919191">
                     {formatDuration(song.duration)}
                   </Typography>
@@ -173,10 +218,9 @@ export const SongTable: React.FC<SongTableProps> = ({
   );
 };
 
-const MetadataLink: React.FC<React.PropsWithChildren<{ onClick: (event: React.MouseEvent) => void }>> = ({
-  children,
-  onClick
-}) => (
+const MetadataLink: React.FC<
+  React.PropsWithChildren<{ onClick: (event: React.MouseEvent) => void }>
+> = ({ children, onClick }) => (
   <Typography
     noWrap
     textOverflow="ellipsis"

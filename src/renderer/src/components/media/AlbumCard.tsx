@@ -20,11 +20,16 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({ album, secondary = "artist
         title={album.title}
         sx={{
           aspectRatio: "1 / 1",
-          borderRadius: 1,
+          borderRadius: 1.25,
           overflow: "hidden",
           bgcolor: "#151515",
           cursor: "pointer",
-          boxShadow: "0 18px 44px rgba(0,0,0,.35)",
+          boxShadow: "0 16px 36px rgba(0,0,0,.28)",
+          transition: "transform .22s ease, box-shadow .22s ease",
+          "&:hover": {
+            transform: "translateY(-3px)",
+            boxShadow: "0 22px 48px rgba(0,0,0,.48)"
+          },
           "&:hover img": {
             transform: "scale(1.04)"
           }
@@ -43,7 +48,7 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({ album, secondary = "artist
           }}
         />
       </Box>
-      <Typography noWrap fontWeight={700} sx={{ mt: 1 }}>
+      <Typography noWrap fontWeight={750} sx={{ mt: 1.15, letterSpacing: "-.01em" }}>
         {album.title}
       </Typography>
       {secondary === "artist" && (

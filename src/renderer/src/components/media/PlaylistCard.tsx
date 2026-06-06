@@ -12,21 +12,29 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
   const navigate = useNavigate();
 
   return (
-    <Box sx={{ minWidth: 0, cursor: "pointer" }} onClick={() => navigate(`/playlist/${playlist._id}`)}>
+    <Box
+      sx={{ minWidth: 0, cursor: "pointer" }}
+      onClick={() => navigate(`/playlist/${playlist._id}`)}
+    >
       <Box
         sx={{
           aspectRatio: "1 / 1",
-          borderRadius: 1,
-          background: "linear-gradient(135deg, #2c2c2c 0%, #111 100%)",
+          borderRadius: 1.25,
+          background:
+            "radial-gradient(circle at 28% 22%, rgba(38,231,223,.26), transparent 35%), linear-gradient(135deg, #292929 0%, #0d0d0d 100%)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          boxShadow: "0 18px 44px rgba(0,0,0,.35)",
+          boxShadow: "0 16px 36px rgba(0,0,0,.28)",
           border: "1px solid rgba(255,255,255,.06)",
-          "&:hover": { background: "linear-gradient(135deg, #383838 0%, #151515 100%)" }
+          transition: "transform .22s ease, box-shadow .22s ease",
+          "&:hover": {
+            transform: "translateY(-3px)",
+            boxShadow: "0 22px 48px rgba(0,0,0,.48)"
+          }
         }}
       >
-        <QueueMusicIcon sx={{ fontSize: 64, color: "#bdbdbd" }} />
+        <QueueMusicIcon sx={{ fontSize: 64, color: "#e4fffd" }} />
       </Box>
       <Typography noWrap textOverflow="ellipsis" fontSize={14} fontWeight={700} sx={{ mt: 1 }}>
         {playlist.name}

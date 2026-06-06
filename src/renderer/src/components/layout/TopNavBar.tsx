@@ -1,19 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { Debouncer } from "@tanstack/pacer";
-import { Box, Grid, IconButton, Menu, MenuItem, Avatar } from "@mui/material";
+import { Box, Grid, IconButton, Menu, MenuItem, Avatar, Typography } from "@mui/material";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import SearchIcon from "@mui/icons-material/Search";
 import styled from "@emotion/styled";
-import { InputAdornment, InputBase, ThemeProvider, createTheme } from "@mui/material";
+import { InputAdornment, InputBase } from "@mui/material";
 import { SearchDropdown } from "@components/search/SearchDropdown";
 import type { SearchResult } from "@renderer/types/shared";
 import { search } from "@features/search";
-
-const darkTheme = createTheme({
-  palette: {
-    mode: "dark"
-  }
-});
 
 const BootstrapInput = styled(InputBase)({
   "& .MuiInputAdornment-positionStart": {
@@ -30,9 +24,9 @@ const BootstrapInput = styled(InputBase)({
     color: "black"
   },
   "& .MuiInputBase-input": {
-    borderRadius: "12px",
+    borderRadius: "999px",
     position: "relative",
-    backgroundColor: "#242429cc",
+    backgroundColor: "rgba(32,32,32,.82)",
     border: "1px solid",
     borderColor: "#ffffff1a",
     fontSize: "14px",
@@ -41,8 +35,8 @@ const BootstrapInput = styled(InputBase)({
     transition:
       "border-color 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, background-color 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
     "&:focus": {
-      boxShadow: "rgba(25, 118, 210, 0.25) 0 0 0 0.2rem",
-      borderColor: "#1976d2",
+      boxShadow: "rgba(38,231,223,.18) 0 0 0 0.2rem",
+      borderColor: "#26e7df",
       backgroundColor: "white",
       color: "black",
       width: "400px",
@@ -138,13 +132,17 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
   };
 
   return (
-    <ThemeProvider theme={darkTheme}>
+    <>
       <Box
         sx={{
           position: "fixed",
           top: 0,
           right: 0,
           zIndex: 1200,
+          height: 64,
+          borderBottom: "1px solid rgba(255,255,255,.055)",
+          background: "linear-gradient(180deg, rgba(0,0,0,.78), rgba(0,0,0,.34))",
+          backdropFilter: "blur(18px)",
           width: {
             xs: "100%",
             md: `calc(100% - ${drawerWidth}px)`
@@ -154,19 +152,34 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
         <Grid
           container
           sx={{
-            padding: "16px 32px 0 24px"
+            height: 64,
+            alignItems: "center",
+            padding: { xs: "0 16px", sm: "0 24px 0 20px" }
           }}
         >
           <Grid item xs>
-            {!isHome && (
+            {isHome ? (
+              <Typography
+                sx={{
+                  display: { xs: "block", md: "none" },
+                  fontWeight: 900,
+                  letterSpacing: "-.03em"
+                }}
+              >
+                Aimer live
+              </Typography>
+            ) : (
               <IconButton
-                size="large"
+                aria-label="Back"
+                size="small"
                 sx={{
                   fontSize: "14px",
                   "&:hover": {
                     backgroundColor: "#fcfcfc29"
                   },
-                  backgroundColor: "#fcfcfc29"
+                  backgroundColor: "rgba(255,255,255,.12)",
+                  width: 36,
+                  height: 36
                 }}
                 onClick={onBackClick}
               >
@@ -200,7 +213,9 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           </Grid>
           <Grid item xs="auto" sx={{ marginLeft: 2, display: { xs: "none", sm: "unset" } }}>
             <IconButton onClick={onMenuOpen} size="small">
-              <Avatar sx={{ width: 32, height: 32, bgcolor: "primary.main", fontSize: "14px" }}>
+              <Avatar
+                sx={{ width: 34, height: 34, bgcolor: "#f4f4f4", color: "#111", fontWeight: 800 }}
+              >
                 U
               </Avatar>
             </IconButton>
@@ -217,6 +232,6 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           Manage Hosts
         </MenuItem>
       </Menu>
-    </ThemeProvider>
+    </>
   );
 };

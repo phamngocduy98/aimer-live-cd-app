@@ -43,13 +43,19 @@ export const Videos: React.FC = () => {
         />
       </MediaHero>
 
-      <Grid container spacing={2.5} sx={{ px: { xs: 2, sm: 3 }, pb: 3 }}>
+      <Grid
+        container
+        spacing={2.5}
+        sx={{ maxWidth: 1440, mx: "auto", px: { xs: 2.5, sm: 4, lg: 6 }, pb: 3 }}
+      >
         {videos.map((video, idx) => (
           <Grid key={video._id} item xs={6} sm={4} md={3} lg={2}>
             <VideoCard
               video={video}
               onClick={() =>
-                dispatch(reset({ songs: videos.slice(idx), history: videos.slice(0, idx), type: "video" }))
+                dispatch(
+                  reset({ songs: videos.slice(idx), history: videos.slice(0, idx), type: "video" })
+                )
               }
             />
           </Grid>
