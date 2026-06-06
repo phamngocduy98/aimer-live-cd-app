@@ -11,7 +11,7 @@ import Grid from "@mui/material/Unstable_Grid2";
 import Box from "@mui/material/Box";
 import * as React from "react";
 import { useGlobalAudioPlayer } from "react-use-audio-player";
-import { AppAPI } from "../../../api/api";
+import { apiAssetUrl } from "@lib/axios";
 import { useAppDispatch, useAppSelector } from "@app/hooks";
 import { toggleView } from "../store/playerGuiSlice";
 import { ControlButton } from "./ControlButton";
@@ -19,11 +19,10 @@ import { PlayingSlider } from "./PlayingSlider";
 import { AlbumImage } from "./SongInfo";
 import { VolumeController } from "./VolumeController";
 import { nextTrack } from "../store/playerSlice";
-import { Song } from "../../../api/Song";
+import type { Song, Video } from "@features/library";
 import { SongBitDepth, VideoBitDepth } from "./SongBitDepth";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import { Video } from "../../../api/Video";
 import ReactPlayer from "react-player";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import {
@@ -84,7 +83,7 @@ export function MPlayerUI() {
       return;
     }
 
-    let newSrc = `${AppAPI.HOST}/stream/${playingTrack.type}/${playingTrack._id}`;
+    let newSrc = apiAssetUrl(`/stream/${playingTrack.type}/${playingTrack._id}`);
     // support youtubeUrl
     if ((playingTrack as Video).youtubeUrl != null) {
       newSrc = (playingTrack as Video).youtubeUrl!;
@@ -156,7 +155,7 @@ export function MPlayerUI() {
             {playingTrack.type === "audio" ? (
               <Avatar
                 sx={{ borderRadius: "8px", height: 54, width: 54 }}
-                src={`${AppAPI.HOST}/song/${playingTrack?._id}/cover`}
+                src={apiAssetUrl(`/song/${playingTrack?._id}/cover`)}
               >
                 <MusicNoteIcon />
               </Avatar>

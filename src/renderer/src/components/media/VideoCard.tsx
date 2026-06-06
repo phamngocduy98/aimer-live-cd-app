@@ -1,9 +1,9 @@
 import React from "react";
 import VideocamIcon from "@mui/icons-material/Videocam";
 import { Box, Typography } from "@mui/material";
-import { AppAPI } from "../../api/api";
-import { Video } from "../../api/Video";
-import { formatArtists } from "../../utils/artist";
+import type { Video } from "@features/library";
+import { formatArtists } from "@utils/artist";
+import { apiAssetUrl } from "@lib/axios";
 
 interface VideoCardProps {
   video: Video;
@@ -11,7 +11,9 @@ interface VideoCardProps {
 }
 
 export const VideoCard: React.FC<VideoCardProps> = ({ video, onClick }) => {
-  const coverUrl = video.album?._id ? `${AppAPI.HOST}/album/${video.album._id}/cover` : undefined;
+  const coverUrl = video.album?._id
+    ? apiAssetUrl(`/album/${video.album._id}/cover`)
+    : undefined;
 
   return (
     <Box sx={{ minWidth: 0 }}>

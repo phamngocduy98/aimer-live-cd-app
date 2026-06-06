@@ -1,10 +1,11 @@
 import { Providers } from "./providers"
-import { AppShell } from "./AppShell"
+import { RouterProvider } from "react-router-dom"
+import { router } from "./router"
 
 export default function App() {
   return (
     <Providers>
-      <AppShell />
+      <RouterProvider router={router} />
     </Providers>
   )
 }

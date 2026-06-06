@@ -17,8 +17,8 @@ import styled from "@emotion/styled";
 import Grid from "@mui/material/Unstable_Grid2";
 import React, { useEffect, useState } from "react";
 import ReactPlayer from "react-player";
-import { AppAPI } from "../../../api/api";
-import { router } from "../../../router";
+import { apiAssetUrl } from "@lib/axios";
+import { router } from "@app/router";
 import { useAppDispatch, useAppSelector } from "@app/hooks";
 import { hideView, toggleView } from "../store/playerGuiSlice";
 import { nextTrack, reset } from "../store/playerSlice";
@@ -32,7 +32,7 @@ import {
 import { onVideoPostion } from "../thunks/onVideoPosition";
 import { QueueList } from "./FloatingQueueList";
 import "./player.css";
-import { isVideo } from "../../../api/Video";
+import { isVideo } from "@features/library";
 import { artistPath, getPrimaryArtist } from "@utils/artist";
 
 const getDominantColor = async (
@@ -101,7 +101,7 @@ export const MobilePlayer: React.FC = () => {
       setDominantColor(null);
       return;
     }
-    const coverUrl = `${AppAPI.HOST}/album/${albumId}/cover`;
+    const coverUrl = apiAssetUrl(`/album/${albumId}/cover`);
     getDominantColor(coverUrl)
       .then((color) => setDominantColor(color))
       .catch(() => setDominantColor(null));
@@ -346,7 +346,7 @@ const PlayingAlbumCover = () => {
                   height: "100%",
                   borderRadius: "8px"
                 }}
-                src={`${AppAPI.HOST}/album/${playingTrack?.album?._id}/cover`}
+                src={apiAssetUrl(`/album/${playingTrack?.album?._id}/cover`)}
               >
                 <MusicNoteIcon />
               </Avatar>

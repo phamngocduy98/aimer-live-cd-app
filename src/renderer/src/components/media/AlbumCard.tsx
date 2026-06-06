@@ -1,9 +1,9 @@
 import React from "react";
 import { Box, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { Album } from "../../api/Album";
-import { AppAPI } from "../../api/api";
-import { artistPath } from "../../utils/artist";
+import type { Album } from "@features/library";
+import { artistPath } from "@utils/artist";
+import { apiAssetUrl } from "@lib/axios";
 
 interface AlbumCardProps {
   album: Album;
@@ -32,7 +32,7 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({ album, secondary = "artist
       >
         <Box
           component="img"
-          src={`${AppAPI.HOST}/album/${album._id}/cover`}
+          src={apiAssetUrl(`/album/${album._id}/cover`)}
           alt={album.title}
           sx={{
             width: "100%",

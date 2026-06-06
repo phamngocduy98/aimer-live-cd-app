@@ -55,11 +55,11 @@ test.describe("GUI expected features", () => {
     await expect(ctx.mainWindow.getByText("E2E Song One").first()).toBeVisible();
 
     await openSidebarPage(ctx.mainWindow, "Videos");
-    await expect(ctx.mainWindow.getByRole("table", { name: "videos table" })).toBeVisible();
-    await expect(ctx.mainWindow.getByText("E2E Video One")).toBeVisible();
+    await expect(ctx.mainWindow.getByRole("img", { name: "E2E Video One" })).toBeVisible();
+    await expect(ctx.mainWindow.getByText("E2E Video One").first()).toBeVisible();
 
     await openSidebarPage(ctx.mainWindow, "Playlists");
-    await expect(ctx.mainWindow.getByText("E2E Playlist Seed")).toBeVisible();
+    await expect(ctx.mainWindow.getByRole("main").getByText("E2E Playlist Seed")).toBeVisible();
 
     await openSidebarPage(ctx.mainWindow, "Albums");
     await openAlbum(ctx.mainWindow);
@@ -123,7 +123,7 @@ test.describe("GUI expected features", () => {
       .click();
 
     await openSidebarPage(ctx.mainWindow, "Playlists");
-    await ctx.mainWindow.getByText("E2E Created Playlist").click();
+    await ctx.mainWindow.getByRole("main").getByText("E2E Created Playlist").click();
     await expect(ctx.mainWindow.getByText("Created from Playwright")).toBeVisible();
     await expect(ctx.mainWindow.getByText("E2E Search Ballad")).toBeVisible();
 
@@ -150,7 +150,7 @@ test.describe("GUI expected features", () => {
   test("opens video queue and navigates chapters", async () => {
     await openAlbum(ctx.mainWindow);
 
-    await ctx.mainWindow.locator('[title="E2E Album Alpha"]').last().click();
+    await ctx.mainWindow.getByTitle("E2E Video One").click();
     await expect(ctx.mainWindow.getByText("E2E Video One").first()).toBeVisible();
     await openQueue(ctx.mainWindow);
     await expect(ctx.mainWindow.getByText("PLAYING", { exact: true }).first()).toBeVisible();

@@ -1,6 +1,6 @@
 import { Box, Typography } from "@mui/material";
 import React from "react";
-import { router } from "../../../router";
+import { router } from "@app/router";
 import { useAppDispatch, useAppSelector } from "@app/hooks";
 import { hideView } from "../store/playerGuiSlice";
 import { artistPath, getPrimaryArtist } from "@utils/artist";

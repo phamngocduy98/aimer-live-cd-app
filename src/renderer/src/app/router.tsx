@@ -1,22 +1,47 @@
 import { createHashRouter } from "react-router-dom"
-import { AlbumView } from "../views/album/AlbumView"
-import { Albums } from "../views/albums/AlbumList"
-import { ArtistView } from "../views/artist/ArtistView"
-import { Home } from "../views/home/Home"
-import { Songs } from "../views/songs/SongList"
-import { Videos } from "../views/videos/VideoList"
-import { SearchResults } from "../views/search/SearchResults"
-import { Playlists } from "../views/playlists/PlaylistList"
-import { PlaylistView } from "../views/playlist/PlaylistView"
+import { AppShell } from "./AppShell"
 
 export const router = createHashRouter([
-  { path: "/", element: <Home /> },
-  { path: "/albums", element: <Albums /> },
-  { path: "/songs", element: <Songs /> },
-  { path: "/videos", element: <Videos /> },
-  { path: "/album/:id", element: <AlbumView /> },
-  { path: "/artist/:name", element: <ArtistView /> },
-  { path: "/search", element: <SearchResults /> },
-  { path: "/playlists", element: <Playlists /> },
-  { path: "/playlist/:id", element: <PlaylistView /> }
+  {
+    element: <AppShell />,
+    children: [
+      {
+        path: "/",
+        lazy: () => import("@features/library").then((module) => ({ Component: module.Home }))
+      },
+      {
+        path: "/albums",
+        lazy: () => import("@features/library").then((module) => ({ Component: module.Albums }))
+      },
+      {
+        path: "/songs",
+        lazy: () => import("@features/library").then((module) => ({ Component: module.Songs }))
+      },
+      {
+        path: "/videos",
+        lazy: () => import("@features/library").then((module) => ({ Component: module.Videos }))
+      },
+      {
+        path: "/album/:id",
+        lazy: () => import("@features/album").then((module) => ({ Component: module.AlbumView }))
+      },
+      {
+        path: "/artist/:name",
+        lazy: () => import("@features/artist").then((module) => ({ Component: module.ArtistView }))
+      },
+      {
+        path: "/search",
+        lazy: () => import("@features/search").then((module) => ({ Component: module.SearchResults }))
+      },
+      {
+        path: "/playlists",
+        lazy: () => import("@features/playlist").then((module) => ({ Component: module.Playlists }))
+      },
+      {
+        path: "/playlist/:id",
+        lazy: () =>
+          import("@features/playlist").then((module) => ({ Component: module.PlaylistView }))
+      }
+    ]
+  }
 ])

@@ -16,12 +16,12 @@ import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import ClearAllIcon from "@mui/icons-material/ClearAll";
 
 import CloseIcon from "@mui/icons-material/Close";
-import { AppAPI } from "../../../api/api";
+import { apiAssetUrl } from "@lib/axios";
 import { useAppDispatch, useAppSelector } from "@app/hooks";
 import { deleteTrack, nextTrack, prevTrack, reset } from "../store/playerSlice";
 import { hideView } from "../store/playerGuiSlice";
 import styled from "@emotion/styled";
-import { isVideo } from "../../../api/Video";
+import { isVideo } from "@features/library";
 import { videoOnSeek } from "../store/playerVideoControl";
 
 export const FloatingQueueList = () => {
@@ -109,7 +109,7 @@ export const QueueList: React.FC = () => {
                 <ListItemAvatar>
                   <Avatar
                     sx={{ borderRadius: "4px" }}
-                    src={`${AppAPI.HOST}/album/${song.album?._id}/cover`}
+                    src={apiAssetUrl(`/album/${song.album?._id}/cover`)}
                   >
                     <MusicNoteIcon />
                   </Avatar>
@@ -187,7 +187,7 @@ export const QueueList: React.FC = () => {
                     <ListItemAvatar>
                       <Avatar
                         sx={{ borderRadius: "4px" }}
-                        src={`${AppAPI.HOST}/album/${playingTrack.album?._id}/cover`}
+                        src={apiAssetUrl(`/album/${playingTrack.album?._id}/cover`)}
                       >
                         <MusicNoteIcon />
                       </Avatar>
@@ -251,7 +251,7 @@ export const QueueList: React.FC = () => {
                   <ListItemAvatar>
                     <Avatar
                       sx={{ borderRadius: "4px" }}
-                      src={`${AppAPI.HOST}/album/${song.album?._id}/cover`}
+                      src={apiAssetUrl(`/album/${song.album?._id}/cover`)}
                     >
                       <MusicNoteIcon />
                     </Avatar>

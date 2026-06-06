@@ -26,7 +26,10 @@
 - `src/main/index.ts` — main process
 - `src/preload/index.ts` — preload
 - `src/renderer/` — React frontend (`/index.html`, `/password.html`, `src/`)
-  - `components/` — `Sidebar.tsx`, `TopNavBar.tsx`, `dialogs/`, `types.ts`
+  - `app/` — providers, router, Redux store, and application shell
+  - `features/` — domain APIs, hooks, types, and components
+  - `components/` — shared layout, media, view, search, and common UI
+  - `lib/` — Axios and TanStack Query clients
 - `src/main/backend/` — layered backend (`config/`, `models/`, `db/`, `routes/`, `services/`, `utils/`, `types/`, `scripts/`, `webdav/`)
 - Client API calls: `src/renderer/src/core/api.ts`
 

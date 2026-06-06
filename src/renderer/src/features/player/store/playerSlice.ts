@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Song } from "../../../api/Song";
-import { shuffleArray } from "../../../utils/shuffleArray";
-import { isVideo, IVideoChapter, Video } from "../../../api/Video";
+import type { IVideoChapter, Song, Video } from "@features/library";
+import { isVideo } from "@features/library";
+import { shuffleArray } from "@utils/shuffleArray";
 
 type MSong = Song | Video;
 

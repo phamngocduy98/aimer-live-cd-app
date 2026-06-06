@@ -1,7 +1,6 @@
 import styled from "@emotion/styled";
-import { Song } from "../../../api/Song";
+import type { Song, Video } from "@features/library";
 import { Chip, Tooltip, tooltipClasses, TooltipProps } from "@mui/material";
-import { Video } from "../../../api/Video";
 
 export const SongBitDepth: React.FC<{ song: Song }> = ({ song }) => {
   const bitdepth = [

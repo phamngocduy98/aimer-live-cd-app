@@ -19,6 +19,18 @@
 | File storage     | FTP-based, split into encrypted parts           |
 | Encryption       | AES-256-CTR (per-file IV)                       |
 
+### Renderer Folder Structure
+
+The renderer uses a feature-based layout:
+
+- `src/renderer/src/app/` owns application providers, routing, Redux setup, and the layout shell.
+- `src/renderer/src/features/` owns domain APIs, React Query hooks, types, and UI for player, library, albums, playlists, search, artists, and hosts.
+- `src/renderer/src/components/` contains shared layout, media, view, search, and common components.
+- `src/renderer/src/lib/` contains the configured Axios client and TanStack Query client.
+- `src/renderer/src/types/` contains types shared across multiple features.
+
+Routes are lazy-loaded by feature. Redux remains scoped to player state, while server state is loaded and invalidated through TanStack Query. See `docs/superpowers/specs/2026-06-06-renderer-refactor-design.md` for the full structure.
+
 ## Features
 
 ### Music Streaming
