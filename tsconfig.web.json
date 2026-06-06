@@ -13,6 +13,24 @@
     "paths": {
       "@renderer/*": [
         "src/renderer/src/*"
+      ],
+      "@app/*": [
+        "src/renderer/src/app/*"
+      ],
+      "@components/*": [
+        "src/renderer/src/components/*"
+      ],
+      "@features/*": [
+        "src/renderer/src/features/*"
+      ],
+      "@hooks/*": [
+        "src/renderer/src/hooks/*"
+      ],
+      "@lib/*": [
+        "src/renderer/src/lib/*"
+      ],
+      "@utils/*": [
+        "src/renderer/src/utils/*"
       ]
     },
     "module": "ESNext",

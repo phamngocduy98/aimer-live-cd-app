@@ -13,7 +13,15 @@ export default defineConfig({
     }
   },
   resolve: {
-    alias: { "@renderer": resolve(__dirname, "src") }
+    alias: {
+      "@renderer": resolve(__dirname, "src"),
+      "@app": resolve(__dirname, "src/app"),
+      "@components": resolve(__dirname, "src/components"),
+      "@features": resolve(__dirname, "src/features"),
+      "@hooks": resolve(__dirname, "src/hooks"),
+      "@lib": resolve(__dirname, "src/lib"),
+      "@utils": resolve(__dirname, "src/utils")
+    }
   },
   plugins: [react()],
   server: {
