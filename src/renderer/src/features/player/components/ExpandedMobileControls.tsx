@@ -20,9 +20,11 @@ import { togglePlayPauseVideo, videoOnSeek } from "../store/playerVideoControl";
 import { onNextTrack } from "../thunks/onNextTrack";
 import { onPrevTrack } from "../thunks/onPrevTrack";
 import { toggleView } from "../store/playerGuiSlice";
+import { SongActionsMenu } from "@components/media/MediaActionsMenu";
 
 export function ExpandedMobileControls() {
   const dispatch = useAppDispatch();
+  const [optionsOpen, setOptionsOpen] = React.useState(false);
   const {
     playingTrack,
     currentChapterDuration,
@@ -66,7 +68,7 @@ export function ExpandedMobileControls() {
   };
 
   return (
-    <Box sx={{ px: 2.5, pb: 0.5 }}>
+    <Box sx={{ px: 1.5, pb: 0.5 }}>
       <Slider
         aria-label="Playback position"
         size="small"
@@ -110,6 +112,7 @@ export function ExpandedMobileControls() {
         <ControlIcon
           label="previous song"
           disabled={!canPrevious}
+          iconSize={32}
           onClick={() => dispatch(onPrevTrack())}
         >
           <SkipPrevious />
@@ -117,19 +120,20 @@ export function ExpandedMobileControls() {
         <IconButton
           aria-label={isPlaying ? "pause" : "play"}
           onClick={() => (video ? dispatch(togglePlayPauseVideo()) : togglePlayPause())}
-          sx={{ width: 58, height: 58, mx: "auto", color: "#fff" }}
+          sx={{ width: 68, height: 68, mx: "auto", color: "#fff" }}
         >
           {!ready || loading ? (
-            <CircularProgress size={34} thickness={4} color="inherit" />
+            <CircularProgress size={40} thickness={4} color="inherit" />
           ) : isPlaying ? (
-            <PauseRounded sx={{ fontSize: 46 }} />
+            <PauseRounded sx={{ fontSize: 54 }} />
           ) : (
-            <PlayArrowRounded sx={{ fontSize: 50 }} />
+            <PlayArrowRounded sx={{ fontSize: 58 }} />
           )}
         </IconButton>
         <ControlIcon
           label="next song"
           disabled={!canNext}
+          iconSize={32}
           onClick={() => dispatch(onNextTrack({ isUser: true }))}
         >
           <SkipNext />
@@ -154,6 +158,7 @@ export function ExpandedMobileControls() {
         </IconButton>
         <IconButton
           aria-label="Player options"
+          onClick={() => setOptionsOpen(true)}
           sx={{
             width: 50,
             height: 50,
@@ -164,6 +169,11 @@ export function ExpandedMobileControls() {
           <MoreHorizIcon />
         </IconButton>
       </Box>
+      <SongActionsMenu
+        track={playingTrack}
+        open={optionsOpen}
+        onClose={() => setOptionsOpen(false)}
+      />
     </Box>
   );
 }
@@ -172,11 +182,19 @@ interface ControlIconProps {
   label: string;
   active?: boolean;
   disabled?: boolean;
+  iconSize?: number;
   onClick: () => void;
   children: React.ReactNode;
 }
 
-function ControlIcon({ label, active, disabled, onClick, children }: ControlIconProps) {
+function ControlIcon({
+  label,
+  active,
+  disabled,
+  iconSize = 25,
+  onClick,
+  children
+}: ControlIconProps) {
   return (
     <IconButton
       aria-label={label}
@@ -188,7 +206,7 @@ function ControlIcon({ label, active, disabled, onClick, children }: ControlIcon
         mx: "auto",
         color: active ? "primary.main" : "#fff",
         opacity: disabled ? 0.35 : 1,
-        "& .MuiSvgIcon-root": { fontSize: 25 }
+        "& .MuiSvgIcon-root": { fontSize: iconSize }
       }}
     >
       {children}
@@ -216,7 +234,7 @@ function TimeLabel({ children }: React.PropsWithChildren) {
   return (
     <Typography
       component="span"
-      sx={{ color: "rgba(255,255,255,.62)", fontSize: 10, fontWeight: 700, lineHeight: 1.4 }}
+      sx={{ color: "rgba(255,255,255,.68)", fontSize: 12, fontWeight: 700, lineHeight: 1.4 }}
     >
       {children}
     </Typography>

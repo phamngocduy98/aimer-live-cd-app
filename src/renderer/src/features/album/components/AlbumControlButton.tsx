@@ -5,13 +5,12 @@ import IosShareOutlinedIcon from "@mui/icons-material/IosShareOutlined";
 import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
 import ShuffleRoundedIcon from "@mui/icons-material/ShuffleRounded";
-import { Box, Button, Menu, MenuItem, Snackbar, Typography } from "@mui/material";
+import { Box, Button, Menu, Snackbar, Typography } from "@mui/material";
 import { useAppDispatch } from "@app/hooks";
 import { reset } from "@features/player/store/playerSlice";
 import { AddToPlaylistDialog } from "@features/playlist";
-import { router } from "@app/router";
-import { artistPath } from "@utils/artist";
 import type { AlbumDetail } from "../types";
+import { AlbumActionsMenu } from "@components/media/MediaActionsMenu";
 
 export const AlbumControlButton: React.FC<{ album: AlbumDetail }> = ({ album }) => {
   const dispatch = useAppDispatch();
@@ -152,17 +151,13 @@ export const AlbumControlButton: React.FC<{ album: AlbumDetail }> = ({ album }) 
         </Box>
       </Menu>
 
-      <Menu anchorEl={moreAnchor} open={Boolean(moreAnchor)} onClose={() => setMoreAnchor(null)}>
-        <MenuItem onClick={copyAlbumLink}>Copy album link</MenuItem>
-        <MenuItem
-          onClick={() => {
-            setMoreAnchor(null);
-            router.navigate(artistPath(album.artist));
-          }}
-        >
-          Go to artist
-        </MenuItem>
-      </Menu>
+      <AlbumActionsMenu
+        album={album}
+        anchorEl={moreAnchor}
+        open={Boolean(moreAnchor)}
+        onClose={() => setMoreAnchor(null)}
+        onAddToPlaylist={() => setAddToPlaylistOpen(true)}
+      />
 
       <AddToPlaylistDialog
         open={addToPlaylistOpen}

@@ -156,10 +156,10 @@ function useAudioTime() {
 }
 
 const TinyText = styled(Typography)({
-  fontSize: "10px",
+  fontSize: "12px",
   fontWeight: 600,
-  letterSpacing: "1.2px",
-  lineHeight: "16px",
+  letterSpacing: "0.5px",
+  lineHeight: "18px",
   color: "#ffffff99",
   textTransform: "uppercase"
 });

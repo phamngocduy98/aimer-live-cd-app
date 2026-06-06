@@ -14,6 +14,7 @@ interface PlayerSlice {
   chapters: IVideoChapter[];
   currentChapterIdx: number | null;
   currentChapterDuration: number;
+  favoriteTrackIds: string[];
 }
 
 const playerSlice = createSlice({
@@ -26,7 +27,8 @@ const playerSlice = createSlice({
     repeat: 0,
     chapters: [],
     currentChapterIdx: null,
-    currentChapterDuration: 0
+    currentChapterDuration: 0,
+    favoriteTrackIds: []
   } satisfies PlayerSlice as PlayerSlice,
   reducers: {
     reset(
@@ -131,6 +133,11 @@ const playerSlice = createSlice({
     deleteTrack(state, payload: PayloadAction<{ songId: string }>) {
       state.queue = state.queue.filter((s) => s._id !== payload.payload.songId);
     },
+    toggleFavorite(state, payload: PayloadAction<{ trackId: string }>) {
+      const index = state.favoriteTrackIds.indexOf(payload.payload.trackId);
+      if (index >= 0) state.favoriteTrackIds.splice(index, 1);
+      else state.favoriteTrackIds.push(payload.payload.trackId);
+    },
     setCurrentChapter(
       state,
       payload: PayloadAction<{
@@ -148,6 +155,7 @@ export const {
   nextTrack,
   prevTrack,
   deleteTrack,
+  toggleFavorite,
   reset,
   toggleShuffleQueue,
   toggleRepeat,

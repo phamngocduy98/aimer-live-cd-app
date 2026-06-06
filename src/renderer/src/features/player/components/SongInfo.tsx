@@ -4,23 +4,69 @@ import { router } from "@app/router";
 import { useAppDispatch, useAppSelector } from "@app/hooks";
 import { hideView } from "../store/playerGuiSlice";
 import { artistPath, getPrimaryArtist } from "@utils/artist";
+import FullscreenIcon from "@mui/icons-material/Fullscreen";
 
 export const AlbumImage: React.FC<React.PropsWithChildren> = ({ children }) => {
   const dispatch = useAppDispatch();
   const playingTrack = useAppSelector((state) => state.player.playingTrack);
+  const showMobilePlayer = useAppSelector((state) => state.playerGui.mobilePlayer);
   const currentChapter = useAppSelector(
     (state) => state.player.chapters[state.player.currentChapterIdx ?? -1]
   );
   return (
     <>
-      {children}
       <Box
         sx={{
-          ml: { xs: 1.25, sm: 1.5 },
+          position: "relative",
+          display: "flex",
+          flexShrink: 0,
+          maxWidth: showMobilePlayer ? 0 : 112,
+          opacity: showMobilePlayer ? 0 : 1,
+          transform: showMobilePlayer ? "scale(.78) translateY(10px)" : "scale(1)",
+          overflow: "hidden",
+          transition: showMobilePlayer
+            ? "max-width 170ms ease, opacity 110ms ease, transform 170ms ease"
+            : "max-width 190ms ease, opacity 150ms 40ms ease, transform 190ms ease",
+          "&:hover .album-expand-icon": {
+            opacity: 1,
+            transform: "translate(-50%, -50%) scale(1)"
+          },
+          "&::after": {
+            content: '""',
+            position: "absolute",
+            inset: 0,
+            bgcolor: "rgba(0,0,0,.28)",
+            opacity: 0,
+            transition: "opacity 130ms ease"
+          },
+          "&:hover::after": { opacity: 1 }
+        }}
+      >
+        {children}
+        <FullscreenIcon
+          className="album-expand-icon"
+          sx={{
+            position: "absolute",
+            zIndex: 1,
+            top: "50%",
+            left: "50%",
+            color: "#fff",
+            opacity: 0,
+            transform: "translate(-50%, -50%) scale(.72)",
+            transition: "opacity 130ms ease, transform 130ms ease",
+            pointerEvents: "none"
+          }}
+        />
+      </Box>
+      <Box
+        sx={{
+          ml: showMobilePlayer ? 0 : { xs: 1.25, sm: 1.5 },
           minWidth: 0,
           display: "flex",
           flexDirection: "column",
-          alignItems: "flex-start"
+          alignItems: "flex-start",
+          justifyContent: "center",
+          transition: "margin-left 170ms ease"
         }}
       >
         <Typography
@@ -29,8 +75,9 @@ export const AlbumImage: React.FC<React.PropsWithChildren> = ({ children }) => {
           color="text.primary"
           textOverflow={"ellipsis"}
           maxWidth={"100%"}
-          fontSize={{ xs: 13, sm: 14 }}
-          lineHeight="20px"
+          fontSize={{ xs: 14, sm: 15 }}
+          lineHeight="21px"
+          fontWeight={700}
           padding={0}
           sx={{
             "&:hover": {
@@ -50,11 +97,12 @@ export const AlbumImage: React.FC<React.PropsWithChildren> = ({ children }) => {
         </Typography>
         <Typography
           component="span"
-          fontSize={12}
-          lineHeight="18px"
+          noWrap
+          fontSize={13}
+          lineHeight="20px"
           textOverflow={"ellipsis"}
           color="text.secondary"
-          width={"auto"}
+          maxWidth={"100%"}
           fontWeight={500}
           padding={0}
           sx={{
@@ -74,12 +122,11 @@ export const AlbumImage: React.FC<React.PropsWithChildren> = ({ children }) => {
         <Typography
           component="span"
           noWrap
-          fontSize={9}
-          letterSpacing={"1.2px"}
+          fontSize={12}
+          lineHeight="18px"
           color="text.secondary"
           textOverflow={"ellipsis"}
-          fontWeight={600}
-          textTransform={"uppercase"}
+          fontWeight={500}
           maxWidth={"100%"}
           sx={{
             display: {
@@ -88,16 +135,14 @@ export const AlbumImage: React.FC<React.PropsWithChildren> = ({ children }) => {
             }
           }}
         >
-          {"Playing from: "}
           <Typography
             component={"span"}
             noWrap
-            fontSize={9}
-            letterSpacing={"1.2px"}
+            fontSize="inherit"
+            lineHeight="inherit"
             color="text.secondary"
             textOverflow={"ellipsis"}
-            fontWeight={600}
-            textTransform={"uppercase"}
+            fontWeight={500}
             sx={{
               "&:hover": {
                 textDecoration: "underline",
@@ -110,7 +155,7 @@ export const AlbumImage: React.FC<React.PropsWithChildren> = ({ children }) => {
               router.navigate(`/album/${playingTrack?.album?._id}`);
             }}
           >
-            {playingTrack?.album?.title}
+            {playingTrack?.type === "video" ? "Videos" : playingTrack?.album?.title}
           </Typography>
         </Typography>
       </Box>

@@ -41,6 +41,8 @@ export const ControlButton = () => {
 
   return (
     <Box
+      role="group"
+      aria-label="Playback controls"
       sx={{
         display: "flex",
         alignItems: "center",
@@ -51,7 +53,6 @@ export const ControlButton = () => {
         gap: { sm: 0.25, md: 0.75 },
         order: { xs: showMobilePlayer ? 1 : 0, sm: 0 }
       }}
-      onClick={(e) => e.stopPropagation()}
     >
       <IconButton
         aria-label="shuffle"
@@ -92,10 +93,12 @@ export const ControlButton = () => {
             sm: "inline-flex"
           },
           fontSize: {
-            xs: "35px",
-            sm: "22px"
+            xs: "40px",
+            sm: "28px"
           },
-          p: { sm: 0.75 }
+          width: { xs: showMobilePlayer ? 54 : 42, sm: 48 },
+          height: { xs: showMobilePlayer ? 54 : 42, sm: 48 },
+          p: 0
         }}
       >
         <SkipPrevious fontSize="inherit" htmlColor={canPrev ? mainIconColor : disabledIconColor} />
@@ -110,11 +113,11 @@ export const ControlButton = () => {
         size="medium"
         sx={{
           fontSize: {
-            xs: "50px",
-            sm: "36px"
+            xs: "56px",
+            sm: "44px"
           },
-          width: { xs: showMobilePlayer ? 64 : 44, sm: 44 },
-          height: { xs: showMobilePlayer ? 64 : 44, sm: 44 },
+          width: { xs: showMobilePlayer ? 70 : 50, sm: 54 },
+          height: { xs: showMobilePlayer ? 70 : 50, sm: 54 },
           p: 0
         }}
       >
@@ -136,10 +139,12 @@ export const ControlButton = () => {
         size="medium"
         sx={{
           fontSize: {
-            xs: showMobilePlayer ? "35px" : "24px",
-            sm: "22px"
+            xs: showMobilePlayer ? "40px" : "28px",
+            sm: "28px"
           },
-          p: { sm: 0.75 }
+          width: { xs: showMobilePlayer ? 54 : 42, sm: 48 },
+          height: { xs: showMobilePlayer ? 54 : 42, sm: 48 },
+          p: 0
         }}
       >
         <SkipNext fontSize="inherit" htmlColor={canNext ? mainIconColor : disabledIconColor} />

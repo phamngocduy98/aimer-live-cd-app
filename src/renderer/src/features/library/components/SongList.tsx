@@ -1,13 +1,7 @@
 import React, { useMemo, useState } from "react";
-import type { Song } from "../types";
-
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-
-import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
+import { Box } from "@mui/material";
 import { reset } from "@features/player/store/playerSlice";
 import { useAppDispatch } from "@app/hooks";
-import { AddToPlaylistDialog } from "@features/playlist";
 import { SongTable } from "@components/media/SongTable";
 import { CollectionHeader } from "@components/view/CollectionHeader";
 import { PageScaffold } from "@components/view/PageScaffold";
@@ -17,9 +11,6 @@ import { useSongs } from "../hooks/useLibrary";
 export const Songs: React.FC = () => {
   const dispatch = useAppDispatch();
   const { data: songs = [] } = useSongs();
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [contextSong, setContextSong] = useState<Song | null>(null);
-  const [addToPlaylistOpen, setAddToPlaylistOpen] = useState(false);
   const [filter, setFilter] = useState("");
 
   const visibleSongs = useMemo(() => {
@@ -57,11 +48,13 @@ export const Songs: React.FC = () => {
         ]}
       />
 
-      <div style={{ maxWidth: 1440, margin: "0 auto" }}>
+      <Box sx={{ maxWidth: 1440, mx: "auto", px: { xs: 2.5, sm: 4, lg: 6 }, pb: 3 }}>
         <SongTable
           songs={visibleSongs}
           ariaLabel="songs table"
+          showQuality={false}
           showActions
+          showAddToPlaylist
           onPlayFromIndex={(idx) =>
             dispatch(
               reset({
@@ -71,38 +64,8 @@ export const Songs: React.FC = () => {
               })
             )
           }
-          onActionClick={(event, song) => {
-            setAnchorEl(event.currentTarget);
-            setContextSong(song);
-          }}
         />
-      </div>
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={() => setAnchorEl(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        transformOrigin={{ vertical: "top", horizontal: "right" }}
-      >
-        <MenuItem
-          onClick={() => {
-            setAnchorEl(null);
-            setAddToPlaylistOpen(true);
-          }}
-        >
-          <PlaylistAddIcon sx={{ mr: 1, fontSize: 20 }} />
-          Add to Playlist
-        </MenuItem>
-      </Menu>
-
-      <AddToPlaylistDialog
-        open={addToPlaylistOpen}
-        onClose={() => {
-          setAddToPlaylistOpen(false);
-          setContextSong(null);
-        }}
-        songIds={contextSong ? [contextSong._id] : []}
-      />
+      </Box>
     </PageScaffold>
   );
 };

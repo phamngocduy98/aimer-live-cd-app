@@ -1,4 +1,5 @@
 import MenuIcon from "@mui/icons-material/Menu";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { Alert, Avatar, IconButton, Slide, SlideProps, Snackbar } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
@@ -14,8 +15,6 @@ import { VolumeController } from "./VolumeController";
 import { nextTrack } from "../store/playerSlice";
 import type { Song, Video } from "@features/library";
 import { SongBitDepth, VideoBitDepth } from "./SongBitDepth";
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import ReactPlayer from "react-player";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import {
@@ -29,6 +28,8 @@ import {
   videoOnSeek
 } from "../store/playerVideoControl";
 import { onVideoPostion } from "../thunks/onVideoPosition";
+import { FavoriteButton } from "./FavoriteButton";
+import { SongActionsMenu } from "@components/media/MediaActionsMenu";
 
 function SlideTransition(props: SlideProps) {
   return <Slide {...props} direction="up" />;
@@ -43,6 +44,7 @@ export function MPlayerUI() {
     useAppSelector((state) => state.playerVideoControl);
   const showMobilePlayer = useAppSelector((state) => state.playerGui.mobilePlayer);
   const { load, stop, loop, volume, src, error, playing } = useGlobalAudioPlayer();
+  const [actionsAnchor, setActionsAnchor] = React.useState<HTMLElement | null>(null);
 
   React.useEffect(() => {
     clearTimeout(timeoutRef.current);
@@ -122,6 +124,16 @@ export function MPlayerUI() {
       </Snackbar>
       <Grid
         container
+        role="button"
+        tabIndex={0}
+        aria-label="Toggle full screen player"
+        onClick={() => dispatch(toggleView("mobilePlayer"))}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            dispatch(toggleView("mobilePlayer"));
+          }
+        }}
         sx={{
           background: "transparent",
           minHeight: { xs: 72, sm: 84 },
@@ -188,6 +200,16 @@ export function MPlayerUI() {
               <div>No video</div>
             )}
           </AlbumImage>
+          <FavoriteButton size={22} />
+          <IconButton
+            aria-label="Player track actions"
+            onClick={(event) => {
+              event.stopPropagation();
+              setActionsAnchor(event.currentTarget);
+            }}
+          >
+            <MoreHorizIcon />
+          </IconButton>
         </Grid>
 
         <Grid
@@ -225,14 +247,6 @@ export function MPlayerUI() {
               columnGap: { sm: "2px", md: "8px" }
             }}
           >
-            <Box sx={{ display: { xs: "none", md: "flex" } }}>
-              {playingTrack.type === "audio" ? (
-                <SongBitDepth song={playingTrack as Song} />
-              ) : (
-                <VideoBitDepth video={playingTrack as Video} />
-              )}
-            </Box>
-            <VolumeController />
             <IconButton
               aria-label="Open play queue"
               onClick={(e) => {
@@ -242,19 +256,23 @@ export function MPlayerUI() {
             >
               <MenuIcon />
             </IconButton>
-            <IconButton
-              aria-label={showMobilePlayer ? "Collapse player" : "Expand player"}
-              sx={{ backgroundColor: "#ebebff1a" }}
-              onClick={(e) => {
-                e.stopPropagation();
-                dispatch(toggleView("mobilePlayer"));
-              }}
-            >
-              {showMobilePlayer ? <KeyboardArrowDownIcon /> : <KeyboardArrowUpIcon />}
-            </IconButton>
+            <VolumeController />
+            <Box sx={{ display: { xs: "none", md: "flex" } }}>
+              {playingTrack.type === "audio" ? (
+                <SongBitDepth song={playingTrack as Song} />
+              ) : (
+                <VideoBitDepth video={playingTrack as Video} />
+              )}
+            </Box>
           </Box>
         </Grid>
       </Grid>
+      <SongActionsMenu
+        track={playingTrack}
+        open={Boolean(actionsAnchor)}
+        anchorEl={actionsAnchor}
+        onClose={() => setActionsAnchor(null)}
+      />
     </>
   );
 }

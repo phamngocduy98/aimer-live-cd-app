@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Grid, Typography } from "@mui/material";
+import { Box, Grid, Typography } from "@mui/material";
 import { AlbumCard } from "@components/media/AlbumCard";
 import { CollectionHeader } from "@components/view/CollectionHeader";
 import { PageScaffold } from "@components/view/PageScaffold";
@@ -30,24 +30,22 @@ export const Albums: React.FC = () => {
         actions={[{ label: `${albums.length} albums`, disabled: true }]}
       />
 
-      <Grid
-        container
-        spacing={2.5}
-        sx={{ maxWidth: 1440, mx: "auto", px: { xs: 2.5, sm: 4, lg: 6 }, pb: 3 }}
-      >
-        {visibleAlbums.map((album) => (
-          <Grid key={album._id} item xs={6} sm={4} md={3} lg={2}>
-            <AlbumCard album={album} />
-          </Grid>
-        ))}
-        {visibleAlbums.length === 0 && (
-          <Grid item xs={12}>
-            <Typography color="text.secondary" sx={{ py: 5, textAlign: "center" }}>
-              No albums match &ldquo;{filter}&rdquo;
-            </Typography>
-          </Grid>
-        )}
-      </Grid>
+      <Box sx={{ maxWidth: 1440, mx: "auto", px: { xs: 2.5, sm: 4, lg: 6 }, pb: 3 }}>
+        <Grid container spacing={2.5}>
+          {visibleAlbums.map((album) => (
+            <Grid key={album._id} item xs={6} sm={4} md={3} lg={2}>
+              <AlbumCard album={album} />
+            </Grid>
+          ))}
+          {visibleAlbums.length === 0 && (
+            <Grid item xs={12}>
+              <Typography color="text.secondary" sx={{ py: 5, textAlign: "center" }}>
+                No albums match &ldquo;{filter}&rdquo;
+              </Typography>
+            </Grid>
+          )}
+        </Grid>
+      </Box>
     </PageScaffold>
   );
 };

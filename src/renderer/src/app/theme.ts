@@ -26,6 +26,19 @@ export const darkTheme = createTheme({
     }
   },
   components: {
+    MuiIconButton: {
+      styleOverrides: {
+        root: {
+          transition: "transform 150ms cubic-bezier(.22, 1, .36, 1), background-color 150ms ease",
+          "&:hover": {
+            transform: "scale(1.1)"
+          },
+          "&.Mui-disabled:hover": {
+            transform: "none"
+          }
+        }
+      }
+    },
     MuiButton: {
       styleOverrides: {
         root: {

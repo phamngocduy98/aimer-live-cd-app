@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "@emotion/styled";
+import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import {
@@ -20,7 +21,13 @@ import { useAppSelector } from "@app/hooks";
 import { artistPath, formatArtists, getPrimaryArtist } from "@utils/artist";
 import { formatDuration } from "@utils/formatDuration";
 import { SongBitDepth } from "@features/player/components/SongBitDepth";
+import { AddToPlaylistDialog } from "@features/playlist";
 import { apiAssetUrl } from "@lib/axios";
+import {
+  type ActionMenuPosition,
+  type ExtraMediaAction,
+  SongActionsMenu
+} from "./MediaActionsMenu";
 
 interface SongTableProps {
   songs: Song[];
@@ -31,10 +38,11 @@ interface SongTableProps {
   showAlbum?: boolean;
   showQuality?: boolean;
   showActions?: boolean;
+  showAddToPlaylist?: boolean;
   showArtwork?: boolean;
   mobileEmphasis?: boolean;
   mobileSubtitle?: "artist" | "album";
-  onActionClick?: (event: React.MouseEvent<HTMLElement>, song: Song) => void;
+  getExtraActions?: (song: Song) => ExtraMediaAction[];
 }
 
 export const SongTable: React.FC<SongTableProps> = ({
@@ -46,13 +54,22 @@ export const SongTable: React.FC<SongTableProps> = ({
   showAlbum = true,
   showQuality = true,
   showActions = false,
+  showAddToPlaylist = false,
   showArtwork = false,
   mobileEmphasis = false,
   mobileSubtitle = "artist",
-  onActionClick
+  getExtraActions
 }) => {
   const navigate = useNavigate();
   const { playingTrack } = useAppSelector((state) => state.player);
+  const [contextSong, setContextSong] = React.useState<Song | null>(null);
+  const [playlistSong, setPlaylistSong] = React.useState<Song | null>(null);
+  const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
+  const [anchorPosition, setAnchorPosition] = React.useState<ActionMenuPosition | null>(null);
+  const closeActions = () => {
+    setAnchorEl(null);
+    setAnchorPosition(null);
+  };
 
   return (
     <TableContainer
@@ -74,7 +91,12 @@ export const SongTable: React.FC<SongTableProps> = ({
             {showAlbum && <NoBorderTableCell>ALBUM</NoBorderTableCell>}
             {showQuality && <NoBorderTableCell align="center">QUALITY</NoBorderTableCell>}
             <NoBorderTableCell align="center">TIME</NoBorderTableCell>
-            {showActions && <NoBorderTableCell align="center" width={30}></NoBorderTableCell>}
+            {showActions && (
+              <NoBorderTableCell
+                align="center"
+                width={showAddToPlaylist ? 88 : 44}
+              ></NoBorderTableCell>
+            )}
           </TableRow>
         </TableHead>
         <TableBody>
@@ -91,6 +113,12 @@ export const SongTable: React.FC<SongTableProps> = ({
                 key={song._id}
                 selected={isPlaying}
                 onDoubleClick={() => onPlayFromIndex(index)}
+                onContextMenu={(event) => {
+                  event.preventDefault();
+                  setContextSong(song);
+                  setAnchorEl(null);
+                  setAnchorPosition({ top: event.clientY, left: event.clientX });
+                }}
                 sx={{
                   transition: "background-color .16s ease",
                   "&:hover": { backgroundColor: "rgba(255,255,255,.065)" },
@@ -199,11 +227,32 @@ export const SongTable: React.FC<SongTableProps> = ({
                   </Typography>
                 </NoBorderTableCell>
                 {showActions && (
-                  <NoBorderTableCell align="center" width={60}>
+                  <NoBorderTableCell
+                    align="center"
+                    width={showAddToPlaylist ? 88 : 44}
+                    sx={{ whiteSpace: "nowrap" }}
+                  >
+                    {showAddToPlaylist && (
+                      <IconButton
+                        size="small"
+                        aria-label={`Add ${song.title} to playlist`}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setPlaylistSong(song);
+                        }}
+                      >
+                        <AddRoundedIcon fontSize="medium" />
+                      </IconButton>
+                    )}
                     <IconButton
                       size="small"
                       aria-label="More actions"
-                      onClick={(event) => onActionClick?.(event, song)}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setContextSong(song);
+                        setAnchorPosition(null);
+                        setAnchorEl(event.currentTarget);
+                      }}
                     >
                       <MoreHorizIcon fontSize="medium" />
                     </IconButton>
@@ -214,6 +263,19 @@ export const SongTable: React.FC<SongTableProps> = ({
           })}
         </TableBody>
       </Table>
+      <SongActionsMenu
+        track={contextSong}
+        open={Boolean(anchorEl || anchorPosition)}
+        anchorEl={anchorEl}
+        anchorPosition={anchorPosition}
+        onClose={closeActions}
+        extraActions={contextSong ? (getExtraActions?.(contextSong) ?? []) : []}
+      />
+      <AddToPlaylistDialog
+        open={Boolean(playlistSong)}
+        onClose={() => setPlaylistSong(null)}
+        songIds={playlistSong ? [playlistSong._id] : []}
+      />
     </TableContainer>
   );
 };

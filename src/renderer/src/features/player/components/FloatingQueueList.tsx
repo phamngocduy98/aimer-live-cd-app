@@ -22,7 +22,9 @@ import { useAppDispatch, useAppSelector } from "@app/hooks";
 import { deleteTrack, nextTrack, prevTrack, reset } from "../store/playerSlice";
 import { hideView } from "../store/playerGuiSlice";
 import { isVideo } from "@features/library";
+import type { Song, Video } from "@features/library";
 import { videoOnSeek } from "../store/playerVideoControl";
+import { SongActionsMenu } from "@components/media/MediaActionsMenu";
 
 export const FloatingQueueList = () => {
   const { playingQueue, mobilePlayer } = useAppSelector((state) => state.playerGui);
@@ -120,6 +122,7 @@ export const QueueList: React.FC<{ onClear?: () => void }> = ({ onClear }) => {
           {history.map((song, idx) => (
             <QueueRow
               key={`history_${song._id}_${idx}`}
+              track={song}
               title={song.title}
               artist={song.artist.join(", ")}
               cover={song.album?._id}
@@ -131,11 +134,12 @@ export const QueueList: React.FC<{ onClear?: () => void }> = ({ onClear }) => {
 
       {playingTrack && (
         <QueueSection
-          title="Playing from: Mix"
+          title={isVideo(playingTrack) ? "Videos" : (playingTrack.album?.title ?? "Mix")}
           action={onClear ? <Button onClick={onClear}>Clear</Button> : undefined}
         >
           <QueueRow
             active
+            track={playingTrack}
             title={playingTrack.title}
             artist={playingTrack.artist.join(", ")}
             cover={playingTrack.album?._id}
@@ -148,6 +152,7 @@ export const QueueList: React.FC<{ onClear?: () => void }> = ({ onClear }) => {
           {playingTrack.chapters.map((chapter) => (
             <QueueRow
               key={`chapter_${chapter.time}`}
+              track={playingTrack}
               active={chapter === playingChapter}
               title={chapter.title}
               artist={chapter.subTitle}
@@ -163,6 +168,7 @@ export const QueueList: React.FC<{ onClear?: () => void }> = ({ onClear }) => {
           {queue.map((song, idx) => (
             <QueueRow
               key={`queue_${song._id}_${idx}`}
+              track={song}
               title={song.title}
               artist={song.artist.join(", ")}
               cover={song.album?._id}
@@ -203,6 +209,7 @@ function QueueSection({
 }
 
 interface QueueRowProps {
+  track: Song | Video;
   title: string;
   artist: string;
   cover?: string;
@@ -211,33 +218,52 @@ interface QueueRowProps {
   onClick?: () => void;
 }
 
-function QueueRow({ title, artist, cover, active, action, onClick }: QueueRowProps) {
+function QueueRow({ track, title, artist, cover, active, action, onClick }: QueueRowProps) {
+  const [actionsAnchor, setActionsAnchor] = React.useState<HTMLElement | null>(null);
   return (
-    <ListItem disablePadding secondaryAction={action}>
-      <ListItemButton onClick={onClick} sx={{ borderRadius: 2, px: 1, py: 0.75 }}>
-        <ListItemAvatar sx={{ minWidth: 66 }}>
-          <Avatar
-            variant="rounded"
-            src={cover ? apiAssetUrl(`/album/${cover}/cover`) : undefined}
-            sx={{ width: 56, height: 56, borderRadius: 1.25 }}
-          >
-            {active ? <VolumeUpIcon /> : <MusicNoteIcon />}
-          </Avatar>
-        </ListItemAvatar>
-        <ListItemText
-          primary={title}
-          secondary={artist}
-          primaryTypographyProps={{
-            noWrap: true,
-            fontSize: 15,
-            fontWeight: 750,
-            color: active ? "#ffd42a" : "#fff"
-          }}
-          secondaryTypographyProps={{ noWrap: true, fontSize: 14 }}
-        />
-        {!action && <MoreHorizIcon sx={{ ml: 1, color: "text.secondary", fontSize: 20 }} />}
-      </ListItemButton>
-    </ListItem>
+    <>
+      <ListItem disablePadding secondaryAction={action}>
+        <ListItemButton onClick={onClick} sx={{ borderRadius: 2, px: 1, py: 0.75 }}>
+          <ListItemAvatar sx={{ minWidth: 66 }}>
+            <Avatar
+              variant="rounded"
+              src={cover ? apiAssetUrl(`/album/${cover}/cover`) : undefined}
+              sx={{ width: 56, height: 56, borderRadius: 1.25 }}
+            >
+              {active ? <VolumeUpIcon /> : <MusicNoteIcon />}
+            </Avatar>
+          </ListItemAvatar>
+          <ListItemText
+            primary={title}
+            secondary={artist}
+            primaryTypographyProps={{
+              noWrap: true,
+              fontSize: 15,
+              fontWeight: 750,
+              color: active ? "#ffd42a" : "#fff"
+            }}
+            secondaryTypographyProps={{ noWrap: true, fontSize: 14 }}
+          />
+          {!action && (
+            <IconButton
+              aria-label={`${title} actions`}
+              onClick={(event) => {
+                event.stopPropagation();
+                setActionsAnchor(event.currentTarget);
+              }}
+            >
+              <MoreHorizIcon sx={{ color: "text.secondary", fontSize: 20 }} />
+            </IconButton>
+          )}
+        </ListItemButton>
+      </ListItem>
+      <SongActionsMenu
+        track={track}
+        open={Boolean(actionsAnchor)}
+        anchorEl={actionsAnchor}
+        onClose={() => setActionsAnchor(null)}
+      />
+    </>
   );
 }
 

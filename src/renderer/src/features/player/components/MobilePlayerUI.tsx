@@ -1,7 +1,5 @@
-import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import OndemandVideoOutlinedIcon from "@mui/icons-material/OndemandVideoOutlined";
 import {
@@ -20,7 +18,7 @@ import ReactPlayer from "react-player";
 import { apiAssetUrl } from "@lib/axios";
 import { router } from "@app/router";
 import { useAppDispatch, useAppSelector } from "@app/hooks";
-import { hideView, toggleView } from "../store/playerGuiSlice";
+import { hideView } from "../store/playerGuiSlice";
 import { nextTrack } from "../store/playerSlice";
 import { reset } from "../store/playerSlice";
 import {
@@ -35,6 +33,7 @@ import { QueuePanel } from "./FloatingQueueList";
 import { isVideo } from "@features/library";
 import { artistPath, getPrimaryArtist } from "@utils/artist";
 import { useArtist } from "@features/artist/hooks/useArtist";
+import { FavoriteButton } from "./FavoriteButton";
 
 interface MobilePlayerProps {
   desktopChromeVisible?: boolean;
@@ -43,27 +42,20 @@ interface MobilePlayerProps {
 export const MobilePlayer: React.FC<MobilePlayerProps> = ({ desktopChromeVisible = true }) => {
   const dispatch = useAppDispatch();
   const theme = useTheme();
-  const desktop = useMediaQuery(theme.breakpoints.up("md"));
+  const desktop = useMediaQuery(theme.breakpoints.up("sm"));
   const playingTrack = useAppSelector((state) => state.player.playingTrack);
   const queueOpen = useAppSelector((state) => state.playerGui.playingQueue);
-  const [dominantColor, setDominantColor] = React.useState<{
-    r: number;
-    g: number;
-    b: number;
-  } | null>(null);
+  const [backgroundColor, setBackgroundColor] = React.useState("#633126");
 
   React.useEffect(() => {
     const albumId = playingTrack?.album?._id;
     if (!albumId) {
-      setDominantColor(null);
+      setBackgroundColor("#633126");
       return;
     }
-    getDominantColor(apiAssetUrl(`/album/${albumId}/cover`)).then(setDominantColor);
+    getAlbumBackgroundColor(apiAssetUrl(`/album/${albumId}/cover`)).then(setBackgroundColor);
   }, [playingTrack?.album?._id]);
 
-  const gradient = dominantColor
-    ? `linear-gradient(180deg, rgba(${dominantColor.r},${dominantColor.g},${dominantColor.b},.52), rgba(${dominantColor.r},${dominantColor.g},${dominantColor.b},.2))`
-    : "linear-gradient(180deg, #756b50, #514832)";
   const desktopVideo = isVideo(playingTrack);
 
   return (
@@ -73,8 +65,7 @@ export const MobilePlayer: React.FC<MobilePlayerProps> = ({ desktopChromeVisible
         position: "relative",
         width: "100dvw",
         height: "100dvh",
-        bgcolor: "#000",
-        backgroundImage: { xs: gradient, md: desktopVideo ? "none" : gradient },
+        bgcolor: { xs: backgroundColor, sm: desktopVideo ? "#000" : backgroundColor },
         color: "#fff",
         overflow: "hidden",
         userSelect: "none"
@@ -84,7 +75,7 @@ export const MobilePlayer: React.FC<MobilePlayerProps> = ({ desktopChromeVisible
 
       {desktopVideo ? <DesktopVideo /> : <AudioPlayerContent queueOpen={queueOpen} />}
 
-      <Box sx={{ display: { xs: "block", md: "none" } }}>
+      <Box sx={{ display: { xs: "block", sm: "none" } }}>
         <MobileTrackDetails />
       </Box>
 
@@ -96,8 +87,7 @@ export const MobilePlayer: React.FC<MobilePlayerProps> = ({ desktopChromeVisible
                 position: "absolute",
                 zIndex: 20,
                 inset: "0 0 180px",
-                bgcolor: "rgba(30,34,26,.94)",
-                backdropFilter: "blur(22px)",
+                bgcolor: backgroundColor,
                 overflow: "hidden"
               }}
             >
@@ -140,6 +130,25 @@ function PlayerHeader({
   video: boolean;
 }) {
   const dispatch = useAppDispatch();
+  const [fullscreen, setFullscreen] = React.useState(Boolean(document.fullscreenElement));
+
+  React.useEffect(() => {
+    const updateFullscreen = () => setFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener("fullscreenchange", updateFullscreen);
+    return () => document.removeEventListener("fullscreenchange", updateFullscreen);
+  }, []);
+
+  const toggleFullscreen = async () => {
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      } else {
+        await document.documentElement.requestFullscreen();
+      }
+    } catch (error) {
+      console.error("Unable to toggle fullscreen", error);
+    }
+  };
 
   return (
     <Box
@@ -151,22 +160,22 @@ function PlayerHeader({
         left: 0,
         right: 0,
         height: 88,
-        px: { xs: 2.5, md: 2.75 },
+        px: { xs: 2.5, sm: 2.75 },
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        opacity: { xs: 1, md: video && !desktopChromeVisible ? 0 : 1 },
+        opacity: { xs: 1, sm: video && !desktopChromeVisible ? 0 : 1 },
         transform: {
           xs: "none",
-          md: video && !desktopChromeVisible ? "translateY(-16px)" : "none"
+          sm: video && !desktopChromeVisible ? "translateY(-16px)" : "none"
         },
         transition: "opacity 220ms ease, transform 220ms ease",
-        pointerEvents: { md: video && !desktopChromeVisible ? "none" : "auto" }
+        pointerEvents: { sm: video && !desktopChromeVisible ? "none" : "auto" }
       }}
     >
       <ArtistIdentity />
-      <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 0.25, md: 1 } }}>
-        <Box sx={{ display: { xs: "none", md: "flex" }, gap: 1 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 0.25, sm: 1 } }}>
+        <Box sx={{ display: { xs: "none", sm: "flex" }, gap: 1 }}>
           <HeaderPill>{video ? "Similar videos" : "Similar tracks"}</HeaderPill>
           <HeaderPill>Credits</HeaderPill>
           {!video && <HeaderPill>Lyrics</HeaderPill>}
@@ -176,7 +185,11 @@ function PlayerHeader({
             <OndemandVideoOutlinedIcon />
           </IconButton>
         )}
-        <IconButton aria-label="Fullscreen" sx={{ display: { xs: "none", md: "inline-flex" } }}>
+        <IconButton
+          aria-label={fullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+          sx={{ display: { xs: "none", sm: "inline-flex" } }}
+          onClick={() => void toggleFullscreen()}
+        >
           <FullscreenIcon />
         </IconButton>
         <IconButton aria-label="Minimize player" onClick={() => dispatch(hideView("mobilePlayer"))}>
@@ -188,6 +201,7 @@ function PlayerHeader({
 }
 
 function ArtistIdentity() {
+  const dispatch = useAppDispatch();
   const playingTrack = useAppSelector((state) => state.player.playingTrack);
   const artist = getPrimaryArtist(playingTrack?.artist);
   const { data } = useArtist(artist);
@@ -202,31 +216,45 @@ function ArtistIdentity() {
   const scheduleClose = () => {
     closeTimer.current = setTimeout(() => setAnchor(null), 120);
   };
+  const openArtist = () => {
+    setAnchor(null);
+    dispatch(hideView("mobilePlayer"));
+    router.navigate(artistPath(artist));
+  };
 
   return (
     <>
       <Box
         onMouseEnter={(event) => open(event.currentTarget)}
         onMouseLeave={scheduleClose}
-        onClick={() => router.navigate(artistPath(artist))}
+        onClick={openArtist}
         sx={{
           display: "flex",
           alignItems: "center",
           gap: 1.25,
-          p: { xs: 0, md: "6px 16px 6px 6px" },
+          p: { xs: 0, sm: "6px 16px 6px 6px" },
           borderRadius: "999px",
-          bgcolor: { xs: "transparent", md: "rgba(255,255,255,.1)" },
-          cursor: "pointer"
+          bgcolor: { xs: "transparent", sm: "rgba(255,255,255,.1)" },
+          cursor: "pointer",
+          "&:hover .artist-avatar": {
+            transform: "scale(1.12)"
+          }
         }}
       >
         <Avatar
+          className="artist-avatar"
           aria-label={artist}
           src={apiAssetUrl(`/album/${playingTrack?.album?._id}/cover`)}
-          sx={{ width: 46, height: 46, border: "1px solid rgba(255,255,255,.22)" }}
+          sx={{
+            width: 46,
+            height: 46,
+            border: "1px solid rgba(255,255,255,.22)",
+            transition: "transform 160ms cubic-bezier(.22, 1, .36, 1)"
+          }}
         >
           {artist.slice(0, 1)}
         </Avatar>
-        <Typography sx={{ display: { xs: "none", md: "block" }, fontWeight: 800 }}>
+        <Typography sx={{ display: { xs: "none", sm: "block" }, fontWeight: 800 }}>
           {artist}
         </Typography>
       </Box>
@@ -267,7 +295,7 @@ function ArtistIdentity() {
               {following ? "Following" : "Follow"}
             </Button>
             <Button
-              onClick={() => router.navigate(artistPath(artist))}
+              onClick={openArtist}
               sx={{ borderRadius: "999px", bgcolor: "#2b2b2b", color: "#fff" }}
             >
               Read more
@@ -286,41 +314,24 @@ function AudioPlayerContent({ queueOpen }: { queueOpen: boolean }) {
     <Box
       sx={{
         position: "absolute",
-        top: { xs: 100, md: 92 },
-        bottom: { xs: 310, md: 120 },
+        top: { xs: 100, sm: 92 },
+        bottom: { xs: 310, sm: 120 },
         left: 0,
-        right: { xs: 0, md: queueOpen ? "436px" : 0 },
+        right: { xs: 0, sm: queueOpen ? "436px" : 0 },
         display: "grid",
         placeItems: "center",
         transition: "right 280ms ease"
       }}
     >
-      <Avatar
-        aria-label="Album artwork"
-        variant="square"
+      <InteractiveAlbumArtwork
         src={apiAssetUrl(`/album/${playingTrack?.album?._id}/cover`)}
-        sx={{
-          width: {
-            xs: "min(calc(100vw - 80px), 46vh)",
-            md: queueOpen ? "min(58vh, calc(100vw - 520px))" : "min(66vh, 58vw)"
-          },
-          height: {
-            xs: "min(calc(100vw - 80px), 46vh)",
-            md: queueOpen ? "min(58vh, calc(100vw - 520px))" : "min(66vh, 58vw)"
-          },
-          borderRadius: 0,
-          boxShadow: "0 20px 44px rgba(0,0,0,.22)",
-          transition: "width 280ms ease, height 280ms ease"
-        }}
-      >
-        <MusicNoteIcon />
-      </Avatar>
+        queueOpen={queueOpen}
+      />
     </Box>
   );
 }
 
 function MobileTrackDetails() {
-  const dispatch = useAppDispatch();
   const playingTrack = useAppSelector((state) => state.player.playingTrack);
   const currentChapter = useAppSelector(
     (state) => state.player.chapters[state.player.currentChapterIdx ?? -1]
@@ -352,19 +363,14 @@ function MobileTrackDetails() {
           {playingTrack?.artist.join(", ")}
         </Typography>
       </Box>
-      <IconButton aria-label="Favorite">
-        <FavoriteBorderIcon sx={{ fontSize: 34 }} />
-      </IconButton>
-      <IconButton aria-label="More actions" onClick={() => dispatch(toggleView("playingQueue"))}>
-        <MoreHorizIcon />
-      </IconButton>
+      <FavoriteButton size={34} />
     </Box>
   );
 }
 
 function DesktopVideo() {
   const theme = useTheme();
-  const desktop = useMediaQuery(theme.breakpoints.up("md"));
+  const desktop = useMediaQuery(theme.breakpoints.up("sm"));
   const videoRef = React.useRef<ReactPlayer | null>(null);
   const dispatch = useAppDispatch();
   const showMobilePlayer = useAppSelector((state) => state.playerGui.mobilePlayer);
@@ -414,7 +420,19 @@ function DesktopVideo() {
         left: 20,
         right: 20,
         bottom: 310,
-        placeItems: "center"
+        placeItems: "center",
+        overflow: "hidden",
+        "& > div": {
+          maxWidth: "100%",
+          maxHeight: "100%"
+        },
+        "& video, & iframe": {
+          width: "100% !important",
+          height: "100% !important",
+          maxWidth: "100%",
+          maxHeight: "100%",
+          objectFit: "contain"
+        }
       }}
     >
       <ReactPlayer
@@ -432,6 +450,77 @@ function DesktopVideo() {
         onBufferEnd={() => dispatch(videoOnBufferEnd())}
         onProgress={(state) => dispatch(onVideoPostion(state.playedSeconds))}
         onEnded={() => dispatch(nextTrack())}
+      />
+    </Box>
+  );
+}
+
+function InteractiveAlbumArtwork({ src, queueOpen }: { src: string; queueOpen: boolean }) {
+  const [pointer, setPointer] = React.useState({ x: 50, y: 50, active: false });
+  const rotateX = pointer.active ? (50 - pointer.y) * 0.09 : 0;
+  const rotateY = pointer.active ? (pointer.x - 50) * 0.09 : 0;
+  const reflectionX = 100 - pointer.x;
+  const reflectionY = 100 - pointer.y;
+
+  return (
+    <Box
+      onMouseMove={(event) => {
+        const bounds = event.currentTarget.getBoundingClientRect();
+        setPointer({
+          x: ((event.clientX - bounds.left) / bounds.width) * 100,
+          y: ((event.clientY - bounds.top) / bounds.height) * 100,
+          active: true
+        });
+      }}
+      onMouseLeave={() => setPointer({ x: 50, y: 50, active: false })}
+      sx={{
+        position: "relative",
+        width: {
+          xs: "min(calc(100vw - 80px), 46vh)",
+          sm: queueOpen ? "min(58vh, calc(100vw - 520px))" : "min(66vh, 58vw)"
+        },
+        height: {
+          xs: "min(calc(100vw - 80px), 46vh)",
+          sm: queueOpen ? "min(58vh, calc(100vw - 520px))" : "min(66vh, 58vw)"
+        },
+        transform: {
+          xs: "none",
+          sm: `perspective(1100px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(${
+            pointer.active ? 1.015 : 1
+          })`
+        },
+        transformStyle: "preserve-3d",
+        transition: pointer.active
+          ? "width 280ms ease, height 280ms ease, transform 70ms linear"
+          : "width 280ms ease, height 280ms ease, transform 240ms cubic-bezier(.22, 1, .36, 1)",
+        boxShadow: pointer.active
+          ? `${(pointer.x - 50) * -0.22}px ${(pointer.y - 50) * -0.22}px 52px rgba(0,0,0,.38)`
+          : "0 20px 44px rgba(0,0,0,.22)"
+      }}
+    >
+      <Avatar
+        aria-label="Album artwork"
+        variant="square"
+        src={src}
+        sx={{ width: "100%", height: "100%", borderRadius: 0 }}
+      >
+        <MusicNoteIcon />
+      </Avatar>
+      <Box
+        sx={{
+          display: { xs: "none", sm: "block" },
+          position: "absolute",
+          zIndex: 2,
+          inset: 0,
+          pointerEvents: "none",
+          backgroundImage: `
+            radial-gradient(circle at ${reflectionX}% ${reflectionY}%, rgba(255,255,255,.15) 0%, rgba(255,255,255,.12) 10%, rgba(255,255,255,.08) 20%, rgba(255,255,255,.04) 35%, rgba(255,255,255,.02) 50%, rgba(255,255,255,.004) 65%, transparent 80%),
+            repeating-linear-gradient(8deg, rgba(255,255,255,.012) 0 1px, transparent 1px 4px)
+          `,
+          mixBlendMode: "screen",
+          opacity: pointer.active ? 1 : 0,
+          transition: "opacity 160ms ease"
+        }}
       />
     </Box>
   );
@@ -455,9 +544,18 @@ function HeaderPill({ children }: React.PropsWithChildren) {
   );
 }
 
-async function getDominantColor(
-  imageUrl: string
-): Promise<{ r: number; g: number; b: number } | null> {
+const PLAYER_BACKGROUND_PALETTE = [
+  "#96391f",
+  "#7f292d",
+  "#71375f",
+  "#4d3f78",
+  "#315a72",
+  "#24605d",
+  "#3f6438",
+  "#75502d"
+] as const;
+
+async function getAlbumBackgroundColor(imageUrl: string): Promise<string> {
   return new Promise((resolve) => {
     const image = new Image();
     image.crossOrigin = "anonymous";
@@ -466,16 +564,49 @@ async function getDominantColor(
       try {
         const canvas = document.createElement("canvas");
         const context = canvas.getContext("2d");
-        if (!context) return resolve(null);
-        canvas.width = 1;
-        canvas.height = 1;
-        context.drawImage(image, 0, 0, 1, 1);
-        const [r, g, b] = context.getImageData(0, 0, 1, 1).data;
-        resolve({ r, g, b });
+        if (!context) return resolve(PLAYER_BACKGROUND_PALETTE[0]);
+        canvas.width = 24;
+        canvas.height = 24;
+        context.drawImage(image, 0, 0, 24, 24);
+        const pixels = context.getImageData(0, 0, 24, 24).data;
+        let best = { r: 150, g: 57, b: 31, score: -1 };
+
+        for (let index = 0; index < pixels.length; index += 4) {
+          const r = pixels[index];
+          const g = pixels[index + 1];
+          const b = pixels[index + 2];
+          const max = Math.max(r, g, b);
+          const min = Math.min(r, g, b);
+          const saturation = max === 0 ? 0 : (max - min) / max;
+          const brightness = max / 255;
+          const score = saturation * 1.6 + brightness * 0.35;
+          if (saturation > 0.28 && brightness > 0.18 && score > best.score) {
+            best = { r, g, b, score };
+          }
+        }
+
+        resolve(
+          PLAYER_BACKGROUND_PALETTE.reduce(
+            (closest, color) => {
+              const [r, g, b] = hexToRgb(color);
+              const distance = Math.hypot(best.r - r, best.g - g, best.b - b);
+              return distance < closest.distance ? { color, distance } : closest;
+            },
+            { color: PLAYER_BACKGROUND_PALETTE[0] as string, distance: Number.POSITIVE_INFINITY }
+          ).color
+        );
       } catch {
-        resolve(null);
+        resolve(PLAYER_BACKGROUND_PALETTE[0]);
       }
     };
-    image.onerror = () => resolve(null);
+    image.onerror = () => resolve(PLAYER_BACKGROUND_PALETTE[0]);
   });
+}
+
+function hexToRgb(color: string): [number, number, number] {
+  return [
+    Number.parseInt(color.slice(1, 3), 16),
+    Number.parseInt(color.slice(3, 5), 16),
+    Number.parseInt(color.slice(5, 7), 16)
+  ];
 }

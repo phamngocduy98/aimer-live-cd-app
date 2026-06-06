@@ -1,10 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import type { Song } from "@features/library";
-
 import Button from "@mui/material/Button";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
 
 import QueueMusicIcon from "@mui/icons-material/QueueMusic";
 
@@ -19,8 +15,6 @@ import { useDeletePlaylist, usePlaylist, useRemoveSongFromPlaylist } from "../ho
 export const PlaylistView: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [contextSong, setContextSong] = useState<Song | null>(null);
   const { id = "" } = useParams();
   const { data: playlist } = usePlaylist(id);
   const deletePlaylist = useDeletePlaylist();
@@ -33,7 +27,7 @@ export const PlaylistView: React.FC = () => {
 
   const handleRemoveSong = (songId: string) => {
     if (!id) return;
-    removeSong.mutate({ playlistId: id, songId }, { onSuccess: () => setAnchorEl(null) });
+    removeSong.mutate({ playlistId: id, songId });
   };
 
   if (playlist == null) return null;
@@ -89,28 +83,11 @@ export const PlaylistView: React.FC = () => {
               })
             )
           }
-          onActionClick={(event, song) => {
-            setAnchorEl(event.currentTarget);
-            setContextSong(song);
-          }}
+          getExtraActions={(song) => [
+            { label: "Remove from playlist", onClick: () => handleRemoveSong(song._id) }
+          ]}
         />
       </div>
-
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={() => setAnchorEl(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        transformOrigin={{ vertical: "top", horizontal: "right" }}
-      >
-        <MenuItem
-          onClick={() => {
-            if (contextSong) handleRemoveSong(contextSong._id);
-          }}
-        >
-          Remove from playlist
-        </MenuItem>
-      </Menu>
     </PageScaffold>
   );
 };

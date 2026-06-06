@@ -1,6 +1,5 @@
 import { Box } from "@mui/material";
 import { useAppDispatch, useAppSelector } from "@app/hooks";
-import { toggleView } from "../store/playerGuiSlice";
 import { MPlayerUI } from "./MPlayerUI";
 import { MobilePlayer } from "./MobilePlayerUI";
 import { FloatingQueueList } from "./FloatingQueueList";
@@ -8,13 +7,18 @@ import { ExpandedMobileControls } from "./ExpandedMobileControls";
 import { MobileNavigation } from "@components/layout/MobileNavigation";
 import { isVideo } from "@features/library";
 import React from "react";
+import { hideView } from "../store/playerGuiSlice";
 
 export function Player() {
+  const dispatch = useAppDispatch();
   const showMobilePlayer = useAppSelector((state) => state.playerGui.mobilePlayer);
   const playingTrack = useAppSelector((state) => state.player.playingTrack);
-  const dispatch = useAppDispatch();
   const desktopVideoOpen = showMobilePlayer && isVideo(playingTrack);
   const [desktopChromeVisible, setDesktopChromeVisible] = React.useState(true);
+
+  React.useEffect(() => {
+    if (!playingTrack) dispatch(hideView("mobilePlayer"));
+  }, [dispatch, playingTrack]);
 
   React.useEffect(() => {
     if (!desktopVideoOpen) {
@@ -39,6 +43,30 @@ export function Player() {
     };
   }, [desktopVideoOpen]);
 
+  if (!playingTrack) {
+    return (
+      <Box
+        sx={{
+          display: { xs: "block", md: "none" },
+          position: "fixed",
+          bottom: 8,
+          left: 8,
+          right: 8,
+          zIndex: 1202,
+          userSelect: "none",
+          borderRadius: "30px",
+          border: "1px solid rgba(255,255,255,.13)",
+          background: "#00000040",
+          backdropFilter: "blur(26px)",
+          WebkitBackdropFilter: "blur(26px)",
+          boxShadow: "inset 0 0 0 .5px #ffffff14"
+        }}
+      >
+        <MobileNavigation />
+      </Box>
+    );
+  }
+
   return (
     <>
       <Box
@@ -49,39 +77,34 @@ export function Player() {
           right: { xs: 8, sm: 10 },
           zIndex: showMobilePlayer ? 1301 : 1202,
           userSelect: "none",
-          overflow: showMobilePlayer ? "visible" : "hidden",
+          overflow: "visible",
           borderRadius: { xs: showMobilePlayer ? "26px" : "30px", sm: "24px" },
           border: {
-            xs: showMobilePlayer ? "none" : "1px solid rgba(255,255,255,.13)",
-            sm: "1px solid rgba(255,255,255,.13)"
+            xs: showMobilePlayer ? "none" : "1px solid rgba(255,255,255,.13)"
           },
           background: {
-            xs: showMobilePlayer
-              ? "transparent"
-              : "linear-gradient(135deg, rgba(34,34,34,.78) 0%, rgba(12,12,12,.66) 58%, rgba(28,28,28,.72) 100%)",
-            sm: "linear-gradient(135deg, rgba(34,34,34,.78) 0%, rgba(12,12,12,.66) 58%, rgba(28,28,28,.72) 100%)"
+            xs: showMobilePlayer ? "transparent" : "#00000040",
+            sm: "#00000040"
           },
-          backdropFilter: { xs: showMobilePlayer ? "none" : "blur(28px)", sm: "blur(28px)" },
+          backdropFilter: { xs: showMobilePlayer ? "none" : "blur(26px)", sm: "blur(26px)" },
           WebkitBackdropFilter: {
-            xs: showMobilePlayer ? "none" : "blur(28px)",
-            sm: "blur(28px)"
+            xs: showMobilePlayer ? "none" : "blur(26px)",
+            sm: "blur(26px)"
           },
           boxShadow: {
-            xs: showMobilePlayer
-              ? "none"
-              : "0 18px 55px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.08)",
-            sm: "0 18px 55px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.08)"
+            xs: showMobilePlayer ? "none" : "inset 0 0 0 .5px #ffffff14",
+            sm: "inset 0 0 0 .5px #ffffff14"
           },
           opacity: {
             xs: 1,
-            md: desktopVideoOpen && !desktopChromeVisible ? 0 : 1
+            sm: desktopVideoOpen && !desktopChromeVisible ? 0 : 1
           },
           transform: {
             xs: "none",
-            md: desktopVideoOpen && !desktopChromeVisible ? "translateY(18px)" : "translateY(0)"
+            sm: desktopVideoOpen && !desktopChromeVisible ? "translateY(18px)" : "translateY(0)"
           },
           pointerEvents: {
-            md: desktopVideoOpen && !desktopChromeVisible ? "none" : "auto"
+            sm: desktopVideoOpen && !desktopChromeVisible ? "none" : "auto"
           },
           transition:
             "opacity 220ms ease, transform 220ms ease, background 220ms ease, width 220ms ease"
@@ -96,28 +119,7 @@ export function Player() {
           </Box>
         )}
         {!showMobilePlayer && (
-          <Box
-            component="button"
-            type="button"
-            aria-label="Expand player"
-            onClick={() => dispatch(toggleView("mobilePlayer"))}
-            sx={{
-              display: { xs: "block", sm: "none" },
-              position: "absolute",
-              zIndex: 1,
-              top: 0,
-              left: 0,
-              width: "calc(100% - 116px)",
-              height: 82,
-              p: 0,
-              border: 0,
-              bgcolor: "transparent",
-              cursor: "pointer"
-            }}
-          />
-        )}
-        {!showMobilePlayer && (
-          <Box sx={{ display: { xs: "block", sm: "none" } }}>
+          <Box sx={{ display: { xs: "block", md: "none" } }}>
             <MobileNavigation />
           </Box>
         )}
@@ -130,8 +132,14 @@ export function Player() {
           left: 0,
           right: 0,
           zIndex: 1300,
-          transform: `translateY(${showMobilePlayer ? "0" : "100dvh"})`,
-          transition: "transform .6s ease"
+          visibility: showMobilePlayer ? "visible" : "hidden",
+          opacity: showMobilePlayer ? 1 : 0,
+          transform: `translate3d(0, ${showMobilePlayer ? "0" : "100%"}, 0)`,
+          transition: showMobilePlayer
+            ? "transform 240ms cubic-bezier(.22, 1, .36, 1), opacity 150ms ease, visibility 0s"
+            : "transform 170ms cubic-bezier(.4, 0, 1, 1), opacity 120ms ease, visibility 0s 170ms",
+          pointerEvents: showMobilePlayer ? "auto" : "none",
+          willChange: showMobilePlayer ? "transform" : "auto"
         }}
       >
         <MobilePlayer desktopChromeVisible={desktopChromeVisible} />
