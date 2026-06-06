@@ -8,8 +8,8 @@ import MenuItem from "@mui/material/MenuItem";
 import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 
-import { reset } from "../../store/player/playerSlice";
-import { useAppDispatch } from "../../store/hook";
+import { reset } from "@features/player/store/playerSlice";
+import { useAppDispatch } from "@app/hooks";
 import { AddToPlaylistDialog } from "../../components/dialogs/AddToPlaylistDialog";
 import { SongTable } from "../../components/media/SongTable";
 import { MediaHero } from "../../components/view/MediaHero";

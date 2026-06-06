@@ -2,10 +2,10 @@ import { Fragment, useState } from "react";
 import { Menu, MenuItem } from "@mui/material";
 import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 
-import { reset } from "../../store/player/playerSlice";
+import { reset } from "@features/player/store/playerSlice";
 import { AlbumDetail } from "../../api/Album";
 import { Song } from "../../api/Song";
-import { useAppDispatch } from "../../store/hook";
+import { useAppDispatch } from "@app/hooks";
 import { AddToPlaylistDialog } from "../../components/dialogs/AddToPlaylistDialog";
 import { SongTable } from "../../components/media/SongTable";
 

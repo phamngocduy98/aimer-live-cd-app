@@ -1,7 +1,7 @@
 import { Box, Grid, Typography } from "@mui/material";
 import { AlbumDetail } from "../../api/Album";
-import { useAppDispatch } from "../../store/hook";
-import { reset } from "../../store/player/playerSlice";
+import { useAppDispatch } from "@app/hooks";
+import { reset } from "@features/player/store/playerSlice";
 import { VideoCard } from "../../components/media/VideoCard";
 
 export const VideoList: React.FC<{ album: AlbumDetail }> = ({ album }) => {

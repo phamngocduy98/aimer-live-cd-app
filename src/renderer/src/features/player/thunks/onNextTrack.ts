@@ -1,8 +1,8 @@
 import { ThunkAction, UnknownAction } from "@reduxjs/toolkit";
-import { isVideo } from "../../api/Video";
-import { nextTrack, setCurrentChapter } from "../player/playerSlice";
-import { videoOnProgress, videoOnSeek } from "../player/playerVideoControl";
-import { RootState, store } from "../store";
+import { nextTrack } from "../store/playerSlice";
+import { videoOnSeek } from "../store/playerVideoControl";
+import type { RootState } from "@app/store";
+import { store } from "@app/store";
 
 export const onNextTrack =
   (

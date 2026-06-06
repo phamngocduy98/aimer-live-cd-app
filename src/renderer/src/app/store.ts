@@ -1,7 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit"
-import playerGuiReducer from "../store/player/playerGuiSlice"
-import playerReducer from "../store/player/playerSlice"
-import playerVideoControlReducer from "../store/player/playerVideoControl"
+import playerGuiReducer from "@features/player/store/playerGuiSlice"
+import playerReducer from "@features/player/store/playerSlice"
+import playerVideoControlReducer from "@features/player/store/playerVideoControl"
 
 export const store = configureStore({
   reducer: {

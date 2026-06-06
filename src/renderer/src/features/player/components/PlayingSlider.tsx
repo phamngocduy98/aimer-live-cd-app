@@ -1,11 +1,11 @@
-import { Box, Slider, styled, Typography, useTheme } from "@mui/material";
+import { Slider, styled, Typography, useTheme } from "@mui/material";
 import { useGlobalAudioPlayer } from "react-use-audio-player";
-import { formatDuration } from "../../utils/formatDuration";
+import { formatDuration } from "@utils/formatDuration";
 import React from "react";
-import { useAppDispatch, useAppSelector } from "../../store/hook";
+import { useAppDispatch, useAppSelector } from "@app/hooks";
 import Grid from "@mui/material/Unstable_Grid2";
-import { videoOnSeek } from "../../store/player/playerVideoControl";
-import { isVideo } from "../../api/Video";
+import { videoOnSeek } from "../store/playerVideoControl";
+import { isVideo } from "../../../api/Video";
 
 export function PlayingSlider() {
   const dispatch = useAppDispatch();
@@ -15,7 +15,7 @@ export function PlayingSlider() {
   const currentChapter = useAppSelector(
     (state) => state.player.chapters[state.player.currentChapterIdx ?? -1]
   );
-  const { seek, duration, isReady } = useGlobalAudioPlayer();
+  const { seek, isReady } = useGlobalAudioPlayer();
   const position = useAudioTime();
   const theme = useTheme();
 

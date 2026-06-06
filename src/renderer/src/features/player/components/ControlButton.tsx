@@ -1,6 +1,4 @@
 import {
-  FastForwardRounded,
-  FastRewindRounded,
   PauseRounded,
   PlayArrowRounded,
   Repeat,
@@ -11,17 +9,14 @@ import {
 } from "@mui/icons-material";
 import { Box, CircularProgress, IconButton, useTheme } from "@mui/material";
 import { useGlobalAudioPlayer } from "react-use-audio-player";
-import { useAppDispatch, useAppSelector } from "../../store/hook";
+import { useAppDispatch, useAppSelector } from "@app/hooks";
 import {
-  nextTrack,
-  prevTrack,
   toggleRepeat,
   toggleShuffleQueue
-} from "../../store/player/playerSlice";
-import styled from "@emotion/styled";
-import { togglePlayPauseVideo } from "../../store/player/playerVideoControl";
-import { onNextTrack } from "../../store/thunks/onNextTrack";
-import { onPrevTrack } from "../../store/thunks/onPrevTrack";
+} from "../store/playerSlice";
+import { togglePlayPauseVideo } from "../store/playerVideoControl";
+import { onNextTrack } from "../thunks/onNextTrack";
+import { onPrevTrack } from "../thunks/onPrevTrack";
 
 export const ControlButton = () => {
   const dispatch = useAppDispatch();
@@ -35,7 +30,7 @@ export const ControlButton = () => {
 
   const { togglePlayPause, isReady, isLoading, playing } = useGlobalAudioPlayer();
 
-  const { videoVolume, videoUrl, videoPlaying, videoLoop, videoIsLoading, videoIsReady } =
+  const { videoPlaying, videoIsLoading, videoIsReady } =
     useAppSelector((state) => state.playerVideoControl);
 
   const _isLoading = playingTrack?.type === "video" ? videoIsLoading : isLoading;

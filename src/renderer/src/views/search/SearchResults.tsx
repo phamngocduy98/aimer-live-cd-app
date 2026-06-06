@@ -11,8 +11,8 @@ import { AlbumCard } from "../../components/media/AlbumCard";
 import { SongTable } from "../../components/media/SongTable";
 import { VideoCard } from "../../components/media/VideoCard";
 import { SectionHeader } from "../../components/view/SectionHeader";
-import { useAppDispatch } from "../../store/hook";
-import { reset } from "../../store/player/playerSlice";
+import { useAppDispatch } from "@app/hooks";
+import { reset } from "@features/player/store/playerSlice";
 
 export const SearchResults: React.FC = () => {
   const [searchParams] = useSearchParams();

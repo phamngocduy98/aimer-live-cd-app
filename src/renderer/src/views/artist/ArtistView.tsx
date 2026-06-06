@@ -12,8 +12,8 @@ import { SectionHeader } from "../../components/view/SectionHeader";
 import { Album } from "../../api/Album";
 import { AppAPI, appAPI } from "../../api/api";
 import { Song } from "../../api/Song";
-import { useAppDispatch } from "../../store/hook";
-import { reset } from "../../store/player/playerSlice";
+import { useAppDispatch } from "@app/hooks";
+import { reset } from "@features/player/store/playerSlice";
 import { formatDuration } from "../../utils/formatDuration";
 
 export const ArtistView: React.FC = () => {

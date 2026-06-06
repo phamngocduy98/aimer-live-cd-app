@@ -1,11 +1,7 @@
 import { Box, ThemeProvider, CssBaseline, createTheme } from "@mui/material";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./router";
-import { useAppDispatch, useAppSelector } from "./store/hook";
-import { toggleView } from "./store/player/playerGuiSlice";
-import { FloatingQueueList } from "./views/player/FloatingQueueList";
-import MPlayerUI from "./views/player/MPlayerUI";
-import { MobilePlayer } from "./views/player/MobilePlayerUI";
+import { Player } from "@features/player";
 import React, { useState, useEffect, useCallback } from "react";
 import { appAPI, Host } from "./api/api";
 import { SelectChangeEvent } from "@mui/material/Select";
@@ -26,8 +22,6 @@ const darkTheme = createTheme({
 });
 
 function App() {
-  const showMobilePlayer = useAppSelector((state) => state.playerGui.mobilePlayer);
-  const dispatch = useAppDispatch();
   const [location, setLocation] = useState(() => router.state.location);
 
   useEffect(() => {
@@ -219,35 +213,7 @@ function App() {
           }}
         />
 
-        <Box
-          sx={{
-            position: "fixed",
-            bottom: { xs: showMobilePlayer ? "80px" : 0, sm: 0 },
-            left: 0,
-            right: 0,
-            zIndex: 1202,
-            userSelect: "none"
-          }}
-          onClick={() => dispatch(toggleView("mobilePlayer"))}
-        >
-          <MPlayerUI />
-        </Box>
-
-        <div
-          style={{
-            position: "fixed",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            zIndex: 1201,
-            transform: `translateY(${showMobilePlayer ? "0" : "100dvh"})`,
-            transition: "transform .6s ease"
-          }}
-        >
-          <MobilePlayer />
-        </div>
-
-        <FloatingQueueList />
+        <Player />
 
         <ManageHostsDialog
           open={isHostDialogOpen}

@@ -1,8 +1,9 @@
 import { ThunkAction, UnknownAction } from "@reduxjs/toolkit";
-import { isVideo } from "../../api/Video";
-import { setCurrentChapter } from "../player/playerSlice";
-import { videoOnProgress } from "../player/playerVideoControl";
-import { RootState, store } from "../store";
+import { isVideo } from "../../../api/Video";
+import { setCurrentChapter } from "../store/playerSlice";
+import { videoOnProgress } from "../store/playerVideoControl";
+import type { RootState } from "@app/store";
+import { store } from "@app/store";
 
 export const onVideoPostion =
   (position: number): ThunkAction<void, RootState, unknown, UnknownAction> =>

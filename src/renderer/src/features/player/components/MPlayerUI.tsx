@@ -2,8 +2,6 @@ import MenuIcon from "@mui/icons-material/Menu";
 import {
   Alert,
   Avatar,
-  Button,
-  Chip,
   IconButton,
   Slide,
   SlideProps,
@@ -13,20 +11,19 @@ import Grid from "@mui/material/Unstable_Grid2";
 import Box from "@mui/material/Box";
 import * as React from "react";
 import { useGlobalAudioPlayer } from "react-use-audio-player";
-import { AppAPI } from "../../api/api";
-import { useAppDispatch, useAppSelector } from "../../store/hook";
-import { toggleView } from "../../store/player/playerGuiSlice";
+import { AppAPI } from "../../../api/api";
+import { useAppDispatch, useAppSelector } from "@app/hooks";
+import { toggleView } from "../store/playerGuiSlice";
 import { ControlButton } from "./ControlButton";
 import { PlayingSlider } from "./PlayingSlider";
 import { AlbumImage } from "./SongInfo";
 import { VolumeController } from "./VolumeController";
-import { nextTrack } from "../../store/player/playerSlice";
-import { Song } from "../../api/Song";
-import styled from "@emotion/styled";
+import { nextTrack } from "../store/playerSlice";
+import { Song } from "../../../api/Song";
 import { SongBitDepth, VideoBitDepth } from "./SongBitDepth";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import { Video } from "../../api/Video";
+import { Video } from "../../../api/Video";
 import ReactPlayer from "react-player";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import {
@@ -36,17 +33,16 @@ import {
   videoOnBuffer,
   videoOnBufferEnd,
   videoOnError,
-  videoOnProgress,
   videoOnReady,
   videoOnSeek
-} from "../../store/player/playerVideoControl";
-import { onVideoPostion } from "../../store/thunks/onVideoPosition";
+} from "../store/playerVideoControl";
+import { onVideoPostion } from "../thunks/onVideoPosition";
 
 function SlideTransition(props: SlideProps) {
   return <Slide {...props} direction="up" />;
 }
 
-export default function MPlayerUI() {
+export function MPlayerUI() {
   const timeoutRef = React.useRef<any>();
   const videoRef = React.useRef<ReactPlayer | null>(null);
   const dispatch = useAppDispatch();
@@ -80,8 +76,6 @@ export default function MPlayerUI() {
       console.log("seek to ", videoPosition);
     }
   }, [showMobilePlayer]);
-
-  const onEnd = () => {};
 
   React.useEffect(() => {
     if (playingTrack == null) {

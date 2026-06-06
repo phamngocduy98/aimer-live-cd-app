@@ -17,23 +17,23 @@ import styled from "@emotion/styled";
 import Grid from "@mui/material/Unstable_Grid2";
 import React, { useEffect, useState } from "react";
 import ReactPlayer from "react-player";
-import { AppAPI } from "../../api/api";
-import { router } from "../../router";
-import { useAppDispatch, useAppSelector } from "../../store/hook";
-import { hideView, toggleView } from "../../store/player/playerGuiSlice";
-import { nextTrack, reset } from "../../store/player/playerSlice";
+import { AppAPI } from "../../../api/api";
+import { router } from "../../../router";
+import { useAppDispatch, useAppSelector } from "@app/hooks";
+import { hideView, toggleView } from "../store/playerGuiSlice";
+import { nextTrack, reset } from "../store/playerSlice";
 import {
   videoOnBuffer,
   videoOnBufferEnd,
   videoOnError,
   videoOnReady,
   videoOnSeek
-} from "../../store/player/playerVideoControl";
-import { onVideoPostion } from "../../store/thunks/onVideoPosition";
+} from "../store/playerVideoControl";
+import { onVideoPostion } from "../thunks/onVideoPosition";
 import { QueueList } from "./FloatingQueueList";
 import "./player.css";
-import { isVideo } from "../../api/Video";
-import { artistPath, getPrimaryArtist } from "../../utils/artist";
+import { isVideo } from "../../../api/Video";
+import { artistPath, getPrimaryArtist } from "@utils/artist";
 
 const getDominantColor = async (
   imageUrl: string

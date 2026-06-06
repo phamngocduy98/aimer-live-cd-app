@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
-import { Song } from "../../api/Song";
+import { Song } from "../../../api/Song";
 import { Chip, Tooltip, tooltipClasses, TooltipProps } from "@mui/material";
-import { Video } from "../../api/Video";
+import { Video } from "../../../api/Video";
 
 export const SongBitDepth: React.FC<{ song: Song }> = ({ song }) => {
   const bitdepth = [
@@ -112,7 +112,7 @@ export const VideoBitDepth: React.FC<{ video: Video }> = ({ video }) => {
   );
 };
 
-const BitRateChip = styled(Chip)(({ theme }) => ({
+const BitRateChip = styled(Chip)(() => ({
   letterSpacing: ".96px",
   fontSize: "10px",
   fontWeight: 700

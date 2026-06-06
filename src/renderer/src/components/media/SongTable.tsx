@@ -16,10 +16,10 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { Song } from "../../api/Song";
-import { useAppSelector } from "../../store/hook";
-import { artistPath, formatArtists, getPrimaryArtist } from "../../utils/artist";
-import { formatDuration } from "../../utils/formatDuration";
-import { SongBitDepth } from "../../views/player/SongBitDepth";
+import { useAppSelector } from "@app/hooks";
+import { artistPath, formatArtists, getPrimaryArtist } from "@utils/artist";
+import { formatDuration } from "@utils/formatDuration";
+import { SongBitDepth } from "@features/player/components/SongBitDepth";
 
 interface SongTableProps {
   songs: Song[];

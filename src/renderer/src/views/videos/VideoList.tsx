@@ -3,8 +3,8 @@ import { Video } from "../../api/Video";
 import { AppAPI, appAPI } from "../../api/api";
 
 import Grid from "@mui/material/Grid";
-import { useAppDispatch } from "../../store/hook";
-import { reset } from "../../store/player/playerSlice";
+import { useAppDispatch } from "@app/hooks";
+import { reset } from "@features/player/store/playerSlice";
 import { VideoCard } from "../../components/media/VideoCard";
 import VideocamIcon from "@mui/icons-material/Videocam";
 import { MediaHero } from "../../components/view/MediaHero";

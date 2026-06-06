@@ -11,20 +11,18 @@ import {
   ListItemButton
 } from "@mui/material";
 
-import DeleteIcon from "@mui/icons-material/Delete";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import ClearAllIcon from "@mui/icons-material/ClearAll";
 
 import CloseIcon from "@mui/icons-material/Close";
-import { AppAPI } from "../../api/api";
-import { useAppDispatch, useAppSelector } from "../../store/hook";
-import { deleteTrack, nextTrack, prevTrack, reset } from "../../store/player/playerSlice";
-import { hideView } from "../../store/player/playerGuiSlice";
+import { AppAPI } from "../../../api/api";
+import { useAppDispatch, useAppSelector } from "@app/hooks";
+import { deleteTrack, nextTrack, prevTrack, reset } from "../store/playerSlice";
+import { hideView } from "../store/playerGuiSlice";
 import styled from "@emotion/styled";
-import { isVideo, Video } from "../../api/Video";
-import { videoOnSeek } from "../../store/player/playerVideoControl";
-import { useMemo } from "react";
+import { isVideo } from "../../../api/Video";
+import { videoOnSeek } from "../store/playerVideoControl";
 
 export const FloatingQueueList = () => {
   const open = useAppSelector((state) => state.playerGui.playingQueue);
@@ -89,7 +87,6 @@ export const FloatingQueueList = () => {
 export const QueueList: React.FC = () => {
   const dispatch = useAppDispatch();
   const { playingTrack, history, queue } = useAppSelector((state) => state.player);
-  const { videoPosition } = useAppSelector((state) => state.playerVideoControl);
 
   const playingChapter = useAppSelector(
     (state) => state.player.chapters[state.player.currentChapterIdx ?? -1]
@@ -183,7 +180,7 @@ export const QueueList: React.FC = () => {
               </ListSubheader>
             }
           >
-            {playingTrack.chapters.map((chapter, idx) => (
+            {playingTrack.chapters.map((chapter) => (
               <ListItem key={`queue_${chapter.time}`} disablePadding>
                 <MListItemButton onClick={() => dispatch(videoOnSeek({ position: chapter.time }))}>
                   {chapter !== playingChapter ? (

@@ -2,8 +2,8 @@ import { VolumeDownRounded, VolumeUpRounded } from "@mui/icons-material";
 import { Stack, Slider, useTheme, Popover, IconButton } from "@mui/material";
 import { useState } from "react";
 import { useGlobalAudioPlayer } from "react-use-audio-player";
-import { useAppDispatch, useAppSelector } from "../../store/hook";
-import { videoSetVolume } from "../../store/player/playerVideoControl";
+import { useAppDispatch, useAppSelector } from "@app/hooks";
+import { videoSetVolume } from "../store/playerVideoControl";
 
 export const VolumeController: React.FC = () => {
   const dispatch = useAppDispatch();

@@ -1,7 +1,7 @@
 import React from "react";
-import { useAppDispatch } from "../store/hook";
+import { useAppDispatch } from "@app/hooks";
 import { router } from "../router";
-import { reset } from "../store/player/playerSlice";
+import { reset } from "@features/player/store/playerSlice";
 import { SearchResult, AppAPI } from "../api/api";
 import { Song } from "../api/Song";
 import { Album } from "../api/Album";

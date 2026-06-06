@@ -1,9 +1,9 @@
 import { Box, Typography } from "@mui/material";
 import React from "react";
-import { router } from "../../router";
-import { useAppDispatch, useAppSelector } from "../../store/hook";
-import { hideView } from "../../store/player/playerGuiSlice";
-import { artistPath, getPrimaryArtist } from "../../utils/artist";
+import { router } from "../../../router";
+import { useAppDispatch, useAppSelector } from "@app/hooks";
+import { hideView } from "../store/playerGuiSlice";
+import { artistPath, getPrimaryArtist } from "@utils/artist";
 
 export const AlbumImage: React.FC<React.PropsWithChildren> = ({ children }) => {
   const dispatch = useAppDispatch();

@@ -1,6 +1,6 @@
 import Grid from "@mui/material/Unstable_Grid2";
-import { useAppDispatch } from "../../store/hook";
-import { reset } from "../../store/player/playerSlice";
+import { useAppDispatch } from "@app/hooks";
+import { reset } from "@features/player/store/playerSlice";
 import { AlbumDetail } from "../../api/Album";
 import { PlayShuffleActions } from "../../components/view/PlayShuffleActions";
 

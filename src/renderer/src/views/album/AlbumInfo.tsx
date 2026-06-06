@@ -4,12 +4,12 @@ import { AlbumDetail } from "../../api/Album";
 import { Avatar, Box, Typography } from "@mui/material";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import { formatDuration } from "../../utils/formatDuration";
-import { useAppDispatch } from "../../store/hook";
+import { useAppDispatch } from "@app/hooks";
 import styled from "@emotion/styled";
 import { ComponentProps } from "react";
-import { SongBitDepth, VideoBitDepth } from "../player/SongBitDepth";
+import { SongBitDepth, VideoBitDepth } from "@features/player/components/SongBitDepth";
 import { router } from "../../router";
-import { hideView } from "../../store/player/playerGuiSlice";
+import { hideView } from "@features/player/store/playerGuiSlice";
 import { artistPath } from "../../utils/artist";
 
 export const AlbumInfo: React.FC<{ album: AlbumDetail }> = ({ album }) => {
