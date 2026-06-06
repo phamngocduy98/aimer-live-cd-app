@@ -1,5 +1,5 @@
 import React, { Suspense, useState } from "react";
-import { Box } from "@mui/material";
+import { Box, useMediaQuery, useTheme } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material/Select";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Sidebar } from "@components/layout/Sidebar";
@@ -10,9 +10,12 @@ import { Player } from "@features/player";
 import { AddHostDialog, ManageHostsDialog, type NewHostState } from "@features/hosts";
 import { CreatePlaylistDialog } from "@features/playlist";
 
-const drawerWidth = 240;
+const expandedDrawerWidth = 264;
+const collapsedDrawerWidth = 76;
 
 export function AppShell() {
+  const theme = useTheme();
+  const desktopUp = useMediaQuery(theme.breakpoints.up("lg"));
   const location = useLocation();
   const navigate = useNavigate();
   const isHome = location.pathname === "/";
@@ -20,6 +23,7 @@ export function AppShell() {
   const [isHostDialogOpen, setIsHostDialogOpen] = useState(false);
   const [isAddHostDialogOpen, setIsAddHostDialogOpen] = useState(false);
   const [isCreatePlaylistOpen, setIsCreatePlaylistOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => !desktopUp);
   const [newHost, setNewHost] = useState<NewHostState>({
     host: "",
     provider: "infinityfree.net",
@@ -41,9 +45,20 @@ export function AppShell() {
       setNewHost((current) => ({ ...current, [field]: value }));
     };
 
+  React.useEffect(() => {
+    setIsSidebarCollapsed(!desktopUp);
+  }, [desktopUp]);
+
+  const drawerWidth = isSidebarCollapsed ? collapsedDrawerWidth : expandedDrawerWidth;
+
   return (
     <Box sx={{ display: "flex", height: "100dvh", bgcolor: "#000" }}>
-      <Sidebar drawerWidth={drawerWidth} onCreatePlaylist={() => setIsCreatePlaylistOpen(true)} />
+      <Sidebar
+        drawerWidth={drawerWidth}
+        collapsed={isSidebarCollapsed}
+        onToggleCollapsed={() => setIsSidebarCollapsed((collapsed) => !collapsed)}
+        onCreatePlaylist={() => setIsCreatePlaylistOpen(true)}
+      />
       <Box
         component="main"
         sx={{

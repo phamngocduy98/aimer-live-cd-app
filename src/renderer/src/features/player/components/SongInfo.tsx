@@ -16,7 +16,7 @@ export const AlbumImage: React.FC<React.PropsWithChildren> = ({ children }) => {
       {children}
       <Box
         sx={{
-          ml: 1.5,
+          ml: { xs: 1.25, sm: 1.5 },
           minWidth: 0,
           display: "flex",
           flexDirection: "column",
@@ -29,7 +29,8 @@ export const AlbumImage: React.FC<React.PropsWithChildren> = ({ children }) => {
           color="text.primary"
           textOverflow={"ellipsis"}
           maxWidth={"100%"}
-          fontSize={14}
+          fontSize={{ xs: 13, sm: 14 }}
+          lineHeight="20px"
           padding={0}
           sx={{
             "&:hover": {
@@ -50,11 +51,12 @@ export const AlbumImage: React.FC<React.PropsWithChildren> = ({ children }) => {
         <Typography
           component="span"
           fontSize={12}
+          lineHeight="18px"
           textOverflow={"ellipsis"}
           color="text.secondary"
           width={"auto"}
           fontWeight={500}
-          padding={"0 0 3px 0"}
+          padding={0}
           sx={{
             "&:hover": {
               textDecoration: "underline",

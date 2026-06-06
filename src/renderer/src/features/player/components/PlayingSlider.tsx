@@ -36,11 +36,12 @@ export function PlayingSlider() {
         container
         alignItems="center"
         justifyContent="center"
-        spacing={2}
+        spacing={0}
         sx={{
           display: { xs: showMobilePlayer ? "flex" : "none", sm: "flex" },
           order: { xs: showMobilePlayer ? 0 : 1, sm: 1 },
-          margin: "0 4px"
+          mt: "-2px",
+          px: { sm: 0.75 }
         }}
       >
         <Grid
@@ -48,10 +49,7 @@ export function PlayingSlider() {
           xs={showMobilePlayer ? 6 : "auto"}
           sm={"auto"}
           sx={{
-            padding: {
-              xs: undefined,
-              sm: 0
-            },
+            pr: { sm: 1 },
             order: {
               xs: showMobilePlayer ? 1 : 0,
               sm: 0
@@ -68,6 +66,7 @@ export function PlayingSlider() {
           display={"flex"}
           alignItems={"center"}
           sx={{
+            minWidth: 0,
             order: {
               xs: showMobilePlayer ? 0 : 1,
               sm: 1
@@ -123,10 +122,7 @@ export function PlayingSlider() {
           sm={"auto"}
           order={2}
           sx={{
-            padding: {
-              xs: undefined,
-              sm: 0
-            }
+            pl: { sm: 1 }
           }}
         >
           <TinyText align="right">-{formatDuration(_remain)}</TinyText>

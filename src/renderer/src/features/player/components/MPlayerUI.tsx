@@ -123,32 +123,36 @@ export function MPlayerUI() {
       <Grid
         container
         sx={{
-          background: {
-            xs: showMobilePlayer ? "transparent" : "rgb(36, 36, 41)",
-            sm: "rgb(36, 36, 41)"
-          },
-          padding: {
-            xs: "0px 16px 16px 16px",
-            sm: "0px 16px 8px 16px"
-          },
+          background: "transparent",
+          minHeight: { xs: 72, sm: 84 },
+          padding: { xs: "10px 14px 4px", sm: "8px 14px" },
           mx: 0,
-          width: "100%"
+          width: "100%",
+          alignItems: "center",
+          flexWrap: "nowrap",
+          columnGap: { xs: 1, sm: 1.5 }
         }}
-        spacing={"16px"}
       >
         <Grid
           item
           xs
-          sm={4}
           sx={{
             display: { xs: showMobilePlayer ? "none" : "flex", sm: "flex" },
-            alignItems: "center"
+            alignItems: "center",
+            minWidth: 0,
+            flexBasis: { sm: "34%" },
+            maxWidth: { sm: "34%" }
           }}
         >
           <AlbumImage>
             {playingTrack.type === "audio" ? (
               <Avatar
-                sx={{ borderRadius: "8px", height: 54, width: 54 }}
+                sx={{
+                  borderRadius: "7px",
+                  height: { xs: 52, sm: 54 },
+                  width: { xs: 52, sm: 54 },
+                  flexShrink: 0
+                }}
                 src={apiAssetUrl(`/song/${playingTrack?._id}/cover`)}
               >
                 <MusicNoteIcon />
@@ -188,12 +192,15 @@ export function MPlayerUI() {
 
         <Grid
           item
-          xs={showMobilePlayer ? 12 : "auto"}
-          sm={4}
+          xs="auto"
           display="flex"
           flexDirection="column"
           justifyContent="center"
-          sx={{ gap: { xs: showMobilePlayer ? 3 : 0, sm: 0 } }}
+          sx={{
+            flexBasis: { sm: "38%" },
+            maxWidth: { sm: "38%" },
+            minWidth: { xs: 88, sm: 0 }
+          }}
         >
           <ControlButton />
           <PlayingSlider />
@@ -201,12 +208,13 @@ export function MPlayerUI() {
 
         <Grid
           item
-          sm={4}
           display={"flex"}
           justifyContent={"flex-end"}
           alignItems={"center"}
           sx={{
-            display: { xs: "none", sm: "flex" }
+            display: { xs: "none", sm: "flex" },
+            flex: "1 1 28%",
+            minWidth: 0
           }}
         >
           <Box
@@ -214,7 +222,7 @@ export function MPlayerUI() {
             sx={{
               display: "flex",
               alignItems: "center",
-              columnGap: "10px"
+              columnGap: { sm: "2px", md: "8px" }
             }}
           >
             <Box sx={{ display: { xs: "none", md: "flex" } }}>
@@ -226,6 +234,7 @@ export function MPlayerUI() {
             </Box>
             <VolumeController />
             <IconButton
+              aria-label="Open play queue"
               onClick={(e) => {
                 e.stopPropagation();
                 dispatch(toggleView("playingQueue"));
@@ -234,6 +243,7 @@ export function MPlayerUI() {
               <MenuIcon />
             </IconButton>
             <IconButton
+              aria-label={showMobilePlayer ? "Collapse player" : "Expand player"}
               sx={{ backgroundColor: "#ebebff1a" }}
               onClick={(e) => {
                 e.stopPropagation();

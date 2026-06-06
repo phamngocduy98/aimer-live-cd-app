@@ -10,10 +10,7 @@ import {
 import { Box, CircularProgress, IconButton, useTheme } from "@mui/material";
 import { useGlobalAudioPlayer } from "react-use-audio-player";
 import { useAppDispatch, useAppSelector } from "@app/hooks";
-import {
-  toggleRepeat,
-  toggleShuffleQueue
-} from "../store/playerSlice";
+import { toggleRepeat, toggleShuffleQueue } from "../store/playerSlice";
 import { togglePlayPauseVideo } from "../store/playerVideoControl";
 import { onNextTrack } from "../thunks/onNextTrack";
 import { onPrevTrack } from "../thunks/onPrevTrack";
@@ -30,8 +27,9 @@ export const ControlButton = () => {
 
   const { togglePlayPause, isReady, isLoading, playing } = useGlobalAudioPlayer();
 
-  const { videoPlaying, videoIsLoading, videoIsReady } =
-    useAppSelector((state) => state.playerVideoControl);
+  const { videoPlaying, videoIsLoading, videoIsReady } = useAppSelector(
+    (state) => state.playerVideoControl
+  );
 
   const _isLoading = playingTrack?.type === "video" ? videoIsLoading : isLoading;
   const _isReady = playingTrack?.type === "video" ? videoIsReady : isReady;
@@ -50,6 +48,7 @@ export const ControlButton = () => {
           xs: showMobilePlayer ? "space-between" : "center",
           sm: "center"
         },
+        gap: { sm: 0.25, md: 0.75 },
         order: { xs: showMobilePlayer ? 1 : 0, sm: 0 }
       }}
       onClick={(e) => e.stopPropagation()}
@@ -72,8 +71,9 @@ export const ControlButton = () => {
           },
           fontSize: {
             xs: "24px",
-            sm: "16px"
-          }
+            sm: "15px"
+          },
+          p: { sm: 0.75 }
         }}
       >
         <Shuffle fontSize="inherit" />
@@ -93,8 +93,9 @@ export const ControlButton = () => {
           },
           fontSize: {
             xs: "35px",
-            sm: "24px"
-          }
+            sm: "22px"
+          },
+          p: { sm: 0.75 }
         }}
       >
         <SkipPrevious fontSize="inherit" htmlColor={canPrev ? mainIconColor : disabledIconColor} />
@@ -110,12 +111,15 @@ export const ControlButton = () => {
         sx={{
           fontSize: {
             xs: "50px",
-            sm: "40px"
-          }
+            sm: "36px"
+          },
+          width: { xs: showMobilePlayer ? 64 : 44, sm: 44 },
+          height: { xs: showMobilePlayer ? 64 : 44, sm: 44 },
+          p: 0
         }}
       >
         {!_isReady || _isLoading ? (
-          <CircularProgress />
+          <CircularProgress size={showMobilePlayer ? 42 : 32} thickness={4} />
         ) : !_playing ? (
           <PlayArrowRounded fontSize="inherit" htmlColor={mainIconColor} />
         ) : (
@@ -133,8 +137,9 @@ export const ControlButton = () => {
         sx={{
           fontSize: {
             xs: showMobilePlayer ? "35px" : "24px",
-            sm: "24px"
-          }
+            sm: "22px"
+          },
+          p: { sm: 0.75 }
         }}
       >
         <SkipNext fontSize="inherit" htmlColor={canNext ? mainIconColor : disabledIconColor} />
@@ -157,8 +162,9 @@ export const ControlButton = () => {
           },
           fontSize: {
             xs: "24px",
-            sm: "16px"
-          }
+            sm: "15px"
+          },
+          p: { sm: 0.75 }
         }}
       >
         {repeat === 2 ? <RepeatOne fontSize="inherit" /> : <Repeat fontSize="inherit" />}

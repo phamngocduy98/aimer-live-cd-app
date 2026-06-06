@@ -25,7 +25,7 @@ export const PageScaffold: React.FC<PageScaffoldProps> = ({
       backgroundPosition: "center top",
       backgroundRepeat: "no-repeat",
       pt: "64px",
-      pb: { xs: "132px", sm: "120px" },
+      pb: { xs: "190px", sm: "120px" },
       overflow: "hidden",
       ...sx
     }}

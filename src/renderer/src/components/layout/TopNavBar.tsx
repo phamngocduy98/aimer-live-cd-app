@@ -146,7 +146,8 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           width: {
             xs: "100%",
             md: `calc(100% - ${drawerWidth}px)`
-          }
+          },
+          transition: "width 220ms ease"
         }}
       >
         <Grid

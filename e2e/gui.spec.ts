@@ -24,7 +24,7 @@ async function openAlbum(page: Page): Promise<void> {
 }
 
 async function openQueue(page: Page): Promise<void> {
-  await page.locator("button:has(svg[data-testid='MenuIcon'])").click();
+  await page.getByRole("button", { name: "Open play queue" }).click();
   await expect(page.getByText("Play queue")).toBeVisible();
 }
 
@@ -206,14 +206,20 @@ test.describe("GUI expected features", () => {
     await ctx.mainWindow.getByTitle("E2E Video One").click();
     await expect(ctx.mainWindow.getByText("E2E Video One").first()).toBeVisible();
     await openQueue(ctx.mainWindow);
-    await expect(ctx.mainWindow.getByText("PLAYING", { exact: true }).first()).toBeVisible();
-    await expect(ctx.mainWindow.getByText("IN THIS VIDEO", { exact: true }).first()).toBeVisible();
+    await expect(
+      ctx.mainWindow.getByText("Playing from: Mix", { exact: true }).first()
+    ).toBeVisible();
+    await expect(ctx.mainWindow.getByText("In this video", { exact: true }).first()).toBeVisible();
     await expect(ctx.mainWindow.getByText("E2E Intro").first()).toBeVisible();
     await expect(ctx.mainWindow.getByText("E2E Chorus").first()).toBeVisible();
     await ctx.mainWindow
       .getByRole("button", { name: /E2E Chorus/ })
       .last()
       .click();
+    await ctx.mainWindow.getByRole("button", { name: "Close play queue" }).click();
+    await ctx.mainWindow.getByRole("button", { name: "Expand player" }).click();
+    await expect(ctx.mainWindow.getByRole("button", { name: "Video display mode" })).toBeVisible();
+    await expect(ctx.mainWindow.locator("video").last()).toBeVisible();
   });
 
   test("responsive smoke renders screens and player at mobile width", async () => {
@@ -222,14 +228,46 @@ test.describe("GUI expected features", () => {
     await ctx.mainWindow.getByRole("button", { name: "Songs actions" }).click();
     await ctx.mainWindow.getByRole("menuitem", { name: "Play all" }).click();
 
+    await ctx.mainWindow.getByRole("button", { name: "Expand player" }).click();
+    await expect(ctx.mainWindow.getByLabel("Album artwork")).toBeVisible();
+    await ctx.mainWindow.getByLabel("E2E Artist").hover();
+    await expect(ctx.mainWindow.getByRole("button", { name: "Follow" })).toBeVisible();
+    await expect(ctx.mainWindow.getByRole("button", { name: "Read more" })).toBeVisible();
+    await ctx.mainWindow.getByRole("button", { name: "Open play queue" }).click();
+    await expect(ctx.mainWindow.getByRole("button", { name: "Close play queue" })).toBeVisible();
+    await ctx.mainWindow.getByRole("button", { name: "Close play queue" }).click();
+    await ctx.mainWindow.getByRole("button", { name: "Collapse player" }).click();
+
+    await ctx.electronApp
+      .browserWindow(ctx.mainWindow)
+      .then((win) => win.evaluate((browserWindow) => browserWindow.setSize(1024, 760)));
+
+    await expect(ctx.mainWindow.getByRole("button", { name: "Expand navigation" })).toBeVisible();
+    await ctx.mainWindow.getByRole("button", { name: "Expand navigation" }).click();
+    await expect(ctx.mainWindow.getByRole("button", { name: "Collapse navigation" })).toBeVisible();
+
     await ctx.electronApp
       .browserWindow(ctx.mainWindow)
       .then((win) => win.evaluate((browserWindow) => browserWindow.setSize(390, 760)));
 
+    await expect(
+      ctx.mainWindow.getByRole("navigation", { name: "Mobile navigation" })
+    ).toBeVisible();
+    await expect(ctx.mainWindow.getByRole("button", { name: "Home" })).toBeVisible();
+    await expect(ctx.mainWindow.getByRole("button", { name: "Search", exact: true })).toBeVisible();
     await expect(ctx.mainWindow.getByText("E2E Song One").first()).toBeVisible();
     await expect(ctx.mainWindow.getByText("E2E Song One").first()).toBeVisible();
-    await ctx.mainWindow.mouse.click(195, 735);
-    await expect(ctx.mainWindow.getByText("Playing from:", { exact: true })).toBeVisible();
+    await ctx.mainWindow.getByRole("button", { name: "Expand player" }).click();
+    await expect(ctx.mainWindow.getByLabel("E2E Artist")).toBeVisible();
+    await expect(ctx.mainWindow.getByRole("button", { name: "Minimize player" })).toBeVisible();
+    await expect(
+      ctx.mainWindow.getByRole("navigation", { name: "Mobile navigation" })
+    ).not.toBeVisible();
+    await expect(ctx.mainWindow.getByRole("button", { name: /^(play|pause)$/ })).toBeVisible();
+    await ctx.mainWindow.getByRole("button", { name: "Playing queue" }).click();
+    await expect(ctx.mainWindow.getByRole("button", { name: "Suggested tracks" })).toBeVisible();
+    await expect(ctx.mainWindow.getByText("Playing from: Mix", { exact: true })).toBeVisible();
+    await ctx.mainWindow.getByRole("button", { name: "Playing queue" }).click();
   });
 
   test.skip("edits playlists through an edit playlist dialog", async () => {
