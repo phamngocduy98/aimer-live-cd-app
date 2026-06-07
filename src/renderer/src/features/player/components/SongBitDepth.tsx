@@ -106,7 +106,7 @@ export const VideoBitDepth: React.FC<{ video: Video }> = ({ video }) => {
   // Low-res FLAC
   return (
     <LowTooltip title={`Normal quality ${video.audioCodecRaw} ${bitdepth} audio`}>
-      <BitRateChip label={`${bitdepth}`} size="small" />
+      <BitRateChip label={bitdepth ? `${bitdepth}` : `${video.audioCodecRaw}`} size="small" />
     </LowTooltip>
   );
 };

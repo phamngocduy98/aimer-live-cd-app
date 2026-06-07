@@ -21,10 +21,10 @@ interface SidebarProps {
 
 const primaryItems = [
   { label: "Home", path: "/", icon: HomeOutlinedIcon },
-  { label: "Explore", path: "/albums", icon: ExploreOutlinedIcon },
+  { label: "Albums", path: "/albums", icon: ExploreOutlinedIcon },
   { label: "Songs", path: "/songs", icon: MusicNoteOutlinedIcon },
   { label: "Videos", path: "/videos", icon: VideoLibraryOutlinedIcon },
-  { label: "Collection", path: "/playlists", icon: LibraryMusicOutlinedIcon }
+  { label: "Playlists", path: "/playlists", icon: LibraryMusicOutlinedIcon }
 ];
 
 function BrandMark() {
@@ -33,16 +33,20 @@ function BrandMark() {
       aria-label="Aimer live"
       sx={{ display: "grid", gridTemplateColumns: "repeat(3, 7px)", gap: "2px" }}
     >
-      {[0, 1, 2, 3, 4].map((item) => (
+      {[
+        [1, 2],
+        [2, 1],
+        [2, 3]
+      ].map(([row, col], index) => (
         <Box
-          key={item}
+          key={index}
           sx={{
             width: 7,
             height: 7,
             bgcolor: "#fff",
             transform: "rotate(45deg)",
-            gridColumn: item < 3 ? item + 1 : item === 3 ? 1 : 3,
-            mt: item >= 3 ? "-2px" : 0
+            gridColumn: col,
+            mt: row == 2 ? "-2px" : 0
           }}
         />
       ))}
@@ -93,7 +97,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <Box
         sx={{
           height: 82,
-          px: collapsed ? 1 : 2,
+          pl: collapsed ? 1 : 2,
+          pr: 1,
           display: "flex",
           alignItems: "center",
           justifyContent: collapsed ? "center" : "space-between"
