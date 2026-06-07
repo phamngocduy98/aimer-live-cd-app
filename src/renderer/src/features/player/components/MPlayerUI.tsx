@@ -90,7 +90,7 @@ export function MPlayerUI() {
             overflow: "hidden"
           }}
         >
-          <AlbumImage hideArtworkBelow="md">
+          <AlbumImage hideArtworkBelow="responsiveMedia">
             {playingTrack.type === "audio" ? (
               <Avatar
                 sx={{
@@ -107,8 +107,8 @@ export function MPlayerUI() {
               <Box
                 data-video-player-anchor
                 sx={{
-                  width: { xs: 56, sm: 112 },
-                  height: { xs: 52, sm: 64 },
+                  width: { xs: 72, sm: 112 },
+                  height: { xs: 48, sm: 64 },
                   flexShrink: 0,
                   borderRadius: "7px",
                   overflow: "hidden"

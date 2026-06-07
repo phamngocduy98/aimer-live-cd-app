@@ -7,7 +7,7 @@ import { artistPath, getPrimaryArtist } from "@utils/artist";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 
 interface AlbumImageProps extends React.PropsWithChildren {
-  hideArtworkBelow?: "sm" | "md";
+  hideArtworkBelow?: "narrow" | "responsiveMedia" | "sm" | "md";
 }
 
 export const AlbumImage: React.FC<AlbumImageProps> = ({ children, hideArtworkBelow = "sm" }) => {
@@ -33,7 +33,18 @@ export const AlbumImage: React.FC<AlbumImageProps> = ({ children, hideArtworkBel
             : "max-width 190ms ease, opacity 150ms 40ms ease, transform 190ms ease",
           ...(hideArtworkBelow === "md"
             ? { display: { xs: "none", md: "flex" } }
-            : { display: { xs: "none", sm: "flex" } }),
+            : hideArtworkBelow === "sm"
+              ? { display: { xs: "none", sm: "flex" } }
+              : hideArtworkBelow === "responsiveMedia"
+                ? {
+                    display: "flex",
+                    "@media (max-width: 339.95px)": { display: "none" },
+                    "@media (min-width: 600px) and (max-width: 1000px)": { display: "none" }
+                  }
+                : {
+                    display: "flex",
+                    "@media (max-width: 339.95px)": { display: "none" }
+                  }),
           "&:hover .album-expand-icon": {
             opacity: 1,
             transform: "translate(-50%, -50%) scale(1)"

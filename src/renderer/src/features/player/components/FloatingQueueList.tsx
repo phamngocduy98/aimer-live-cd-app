@@ -3,6 +3,7 @@ import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import QueueMusicRoundedIcon from "@mui/icons-material/QueueMusicRounded";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
+import { NOW_PLAYING_BACKGROUND, NOW_PLAYING_COLOR } from "@components/media/nowPlayingStyles";
 import {
   Avatar,
   Box,
@@ -290,7 +291,7 @@ function QueueRow({
             borderRadius: 2,
             px: 1,
             py: 0.75,
-            "&.Mui-selected": { bgcolor: "rgba(255,212,42,.12)" }
+            "&.Mui-selected": { bgcolor: NOW_PLAYING_BACKGROUND }
           }}
         >
           <ListItemAvatar sx={{ minWidth: 66 }}>
@@ -325,7 +326,7 @@ function QueueRow({
               noWrap: true,
               fontSize: 15,
               fontWeight: 750,
-              color: active ? "#ffd42a" : "#fff"
+              color: active ? NOW_PLAYING_COLOR : "#fff"
             }}
             secondaryTypographyProps={{ noWrap: true, fontSize: 14 }}
           />

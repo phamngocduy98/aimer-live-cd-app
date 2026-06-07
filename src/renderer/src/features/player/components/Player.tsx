@@ -11,6 +11,9 @@ import { hideView } from "../store/playerGuiSlice";
 import { PlaybackEngine } from "./PlaybackEngine";
 import { useAlbumBackgroundColor } from "../utils/albumBackground";
 
+const compactPlayerBackground =
+  "linear-gradient(#3c3c3c59 0% 27%,#3d3d3d59 35%,#3e3e3e59 43.5%,#3f3f3f59 53%,#41414159 66%,#43434359 81%,#46464659 100%)";
+
 export function Player() {
   const dispatch = useAppDispatch();
   const showMobilePlayer = useAppSelector((state) => state.playerGui.mobilePlayer);
@@ -85,6 +88,7 @@ export function Player() {
       )}
       <PlaybackEngine />
       <Box
+        data-testid="player-control-shell"
         sx={{
           position: "fixed",
           bottom: { xs: showMobilePlayer ? 16 : 8, sm: 10 },
@@ -98,10 +102,8 @@ export function Player() {
             xs: showMobilePlayer ? "none" : "1px solid rgba(255,255,255,.13)"
           },
           background: {
-            sm: showMobilePlayer
-              ? "#00000040"
-              : "linear-gradient(#3c3c3c59 0% 27%,#3d3d3d59 35%,#3e3e3e59 43.5%,#3f3f3f59 53%,#41414159 66%,#43434359 81%,#46464659 100%)",
-            xs: "transparent"
+            sm: showMobilePlayer ? "#00000040" : compactPlayerBackground,
+            xs: showMobilePlayer ? "transparent" : compactPlayerBackground
           },
           backdropFilter: { xs: showMobilePlayer ? "none" : "blur(26px)", sm: "blur(26px)" },
           WebkitBackdropFilter: {

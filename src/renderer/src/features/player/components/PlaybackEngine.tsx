@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from "@app/hooks";
 import { apiAssetUrl } from "@lib/axios";
 import { isVideo } from "@features/library";
 import { nextTrack } from "../store/playerSlice";
+import { showView } from "../store/playerGuiSlice";
 import {
   loadVideo,
   loopVideo,
@@ -18,11 +19,13 @@ import {
 } from "../store/playerVideoControl";
 import { onVideoPostion } from "../thunks/onVideoPosition";
 import { mediaSourcePath } from "../types";
+import { NaturalVideoSize, resolveVideoSize } from "../videoAspect";
 
 export function PlaybackEngine() {
   const dispatch = useAppDispatch();
   const videoRef = React.useRef<ReactPlayer | null>(null);
   const [compactRect, setCompactRect] = React.useState<DOMRect | null>(null);
+  const [naturalVideoSize, setNaturalVideoSize] = React.useState<NaturalVideoSize | null>(null);
   const playingTrack = useAppSelector((state) => state.player.playingTrack);
   const expanded = useAppSelector((state) => state.playerGui.mobilePlayer);
   const { repeat } = useAppSelector((state) => state.player);
@@ -30,6 +33,32 @@ export function PlaybackEngine() {
     (state) => state.playerVideoControl
   );
   const { load, stop, loop, volume, src, playing } = useGlobalAudioPlayer();
+  const videoSourceKey =
+    playingTrack && isVideo(playingTrack) ? `${playingTrack._id}:${videoUrl ?? ""}` : "";
+
+  const syncNaturalVideoSize = React.useCallback(() => {
+    const internalPlayer = videoRef.current?.getInternalPlayer();
+    if (!(internalPlayer instanceof HTMLVideoElement)) return;
+
+    const width = internalPlayer.videoWidth;
+    const height = internalPlayer.videoHeight;
+    if (width <= 0 || height <= 0) return;
+
+    setNaturalVideoSize((current) => {
+      if (
+        current?.sourceKey === videoSourceKey &&
+        current.width === width &&
+        current.height === height
+      ) {
+        return current;
+      }
+      return { sourceKey: videoSourceKey, width, height };
+    });
+  }, [videoSourceKey]);
+
+  React.useEffect(() => {
+    setNaturalVideoSize(null);
+  }, [videoSourceKey]);
 
   React.useEffect(() => {
     if (!playingTrack) {
@@ -134,8 +163,12 @@ export function PlaybackEngine() {
 
   if (!videoUrl || !isVideo(playingTrack)) return null;
 
-  const width = Math.max(playingTrack.videoWidth || 16, 1);
-  const height = Math.max(playingTrack.videoHeight || 9, 1);
+  const { width, height } = resolveVideoSize(
+    videoSourceKey,
+    naturalVideoSize,
+    playingTrack.videoWidth,
+    playingTrack.videoHeight
+  );
   const landscape = width >= height;
   const compactVisible = Boolean(compactRect && compactRect.width > 0 && compactRect.height > 0);
 
@@ -145,7 +178,7 @@ export function PlaybackEngine() {
       sx={{
         position: "fixed",
         zIndex: expanded ? 1300 : 1203,
-        bgcolor: "#000",
+        bgcolor: expanded ? { xs: "transparent", sm: "#000" } : "#000",
         overflow: "hidden",
         display: "flex",
         alignItems: "center",
@@ -173,7 +206,8 @@ export function PlaybackEngine() {
           width: "100% !important",
           height: "100% !important"
         },
-        "& video": { objectFit: "contain", display: "block" }
+        "& video": { objectFit: "contain", display: "block" },
+        "& iframe": { pointerEvents: "none" }
       }}
     >
       <Box
@@ -189,11 +223,12 @@ export function PlaybackEngine() {
           maxHeight: "100%",
           aspectRatio: `${width} / ${height}`,
           flex: "0 1 auto",
-          bgcolor: "#000",
+          bgcolor: expanded ? { xs: "transparent", sm: "#000" } : "#000",
           "& > div": { width: "100% !important", height: "100% !important" }
         }}
       >
         <ReactPlayer
+          key={videoUrl}
           ref={videoRef}
           width="100%"
           height="100%"
@@ -201,9 +236,25 @@ export function PlaybackEngine() {
           url={videoUrl}
           loop={videoLoop}
           volume={videoVolume}
-          style={{ background: "#000" }}
-          config={{ youtube: { playerVars: { controls: 0 } } }}
-          onReady={() => dispatch(videoOnReady())}
+          config={{
+            youtube: {
+              playerVars: {
+                controls: 0,
+                disablekb: 1,
+                fs: 0,
+                iv_load_policy: 3,
+                modestbranding: 1,
+                playsinline: 1,
+                rel: 0
+              }
+            }
+          }}
+          onReady={() => {
+            syncNaturalVideoSize();
+            dispatch(videoOnReady());
+          }}
+          onStart={syncNaturalVideoSize}
+          onDuration={syncNaturalVideoSize}
           onError={(error) => dispatch(videoOnError({ error: `${error}` }))}
           onBuffer={() => dispatch(videoOnBuffer())}
           onBufferEnd={() => dispatch(videoOnBufferEnd())}
@@ -211,6 +262,23 @@ export function PlaybackEngine() {
           onEnded={() => dispatch(nextTrack())}
         />
       </Box>
+      {!expanded && (
+        <Box
+          component="button"
+          type="button"
+          aria-label="Expand video player"
+          onClick={() => dispatch(showView("mobilePlayer"))}
+          sx={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 2,
+            p: 0,
+            border: 0,
+            bgcolor: "transparent",
+            cursor: "pointer"
+          }}
+        />
+      )}
     </Box>
   );
 }

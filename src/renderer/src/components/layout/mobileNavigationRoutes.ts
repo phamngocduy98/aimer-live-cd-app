@@ -1,0 +1,6 @@
+export function isMobileNavItemActive(pathname: string, path: string): boolean {
+  if (path === "/") return pathname === "/";
+  if (path === "/playlists") return pathname.startsWith("/playlist");
+  if (path === "/albums") return pathname.startsWith("/album");
+  return pathname === path || pathname.startsWith(`${path}/`);
+}

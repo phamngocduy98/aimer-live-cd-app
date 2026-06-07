@@ -5,6 +5,7 @@ import MusicNoteOutlinedIcon from "@mui/icons-material/MusicNoteOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import { Box, IconButton } from "@mui/material";
 import { NavLink, useLocation } from "react-router-dom";
+import { isMobileNavItemActive } from "./mobileNavigationRoutes";
 
 const items = [
   { label: "Home", path: "/", icon: HomeOutlinedIcon },
@@ -14,7 +15,7 @@ const items = [
   { label: "Search", path: "/search", icon: SearchOutlinedIcon }
 ];
 
-export function MobileNavigation() {
+export function MobileNavigation(): React.JSX.Element {
   const location = useLocation();
 
   return (
@@ -27,13 +28,12 @@ export function MobileNavigation() {
         display: "flex",
         alignItems: "center",
         justifyContent: "space-around",
-        px: 1.25,
+        px: 1,
         pb: 0.5
       }}
     >
       {items.map(({ label, path, icon: Icon }) => {
-        const selected =
-          path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
+        const selected = isMobileNavItemActive(location.pathname, path);
         return (
           <IconButton
             key={label}
@@ -42,10 +42,17 @@ export function MobileNavigation() {
             aria-label={label}
             aria-current={selected ? "page" : undefined}
             sx={{
-              width: 44,
-              height: 44,
-              color: selected ? "#fff" : "#868686",
-              "& .MuiSvgIcon-root": { fontSize: 23 }
+              width: 56,
+              height: 40,
+              borderRadius: "999px",
+              color: selected ? "#fff" : "rgba(239,235,220,.62)",
+              bgcolor: selected ? "rgba(255,255,255,.14)" : "transparent",
+              transition: "color 160ms ease, background-color 160ms ease",
+              "&:hover": {
+                color: "#fff",
+                bgcolor: selected ? "rgba(255,255,255,.18)" : "rgba(255,255,255,.07)"
+              },
+              "& .MuiSvgIcon-root": { fontSize: 22 }
             }}
           >
             <Icon />

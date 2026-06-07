@@ -30,6 +30,7 @@ import {
 } from "./MediaActionsMenu";
 import type { PlaySource } from "@features/player/types";
 import { isCurrentSourceItem, sourceItemKey } from "@features/player/types";
+import { NOW_PLAYING_BACKGROUND, NOW_PLAYING_COLOR } from "./nowPlayingStyles";
 
 interface SongTableProps {
   songs: Song[];
@@ -139,7 +140,10 @@ export const SongTable: React.FC<SongTableProps> = ({
                     borderTopRightRadius: "5px",
                     borderBottomRightRadius: "5px"
                   },
-                  "&.Mui-selected": { backgroundColor: "rgba(38,231,223,.11)" }
+                  "&.Mui-selected": {
+                    backgroundColor: NOW_PLAYING_BACKGROUND,
+                    "& .now-playing-accent": { color: NOW_PLAYING_COLOR }
+                  }
                 }}
               >
                 <NoBorderTableCell align="center" component="th" scope="row" width={30}>
@@ -148,7 +152,10 @@ export const SongTable: React.FC<SongTableProps> = ({
                       {getIndexLabel(song, index)}
                     </Typography>
                   ) : (
-                    <VolumeUpIcon style={{ width: 16, height: 16 }} />
+                    <VolumeUpIcon
+                      className="now-playing-accent"
+                      style={{ width: 16, height: 16 }}
+                    />
                   )}
                 </NoBorderTableCell>
                 <NoBorderTableCell>
@@ -170,6 +177,7 @@ export const SongTable: React.FC<SongTableProps> = ({
                     )}
                     <Box sx={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
                       <Typography
+                        className={isPlaying ? "now-playing-accent" : undefined}
                         noWrap
                         textOverflow="ellipsis"
                         sx={{

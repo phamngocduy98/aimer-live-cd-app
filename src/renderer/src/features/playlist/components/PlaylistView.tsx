@@ -109,9 +109,10 @@ export const PlaylistView: React.FC = () => {
     <PageScaffold sx={{ pt: "64px" }}>
       <Box
         component="section"
+        data-testid="playlist-media-hero"
         sx={{
           position: "relative",
-          minHeight: { xs: "min(790px, calc(100dvh - 64px))", md: 470 },
+          minHeight: { xs: 500, sm: 360, md: 470 },
           display: "flex",
           alignItems: "center",
           overflow: "hidden",
@@ -141,16 +142,16 @@ export const PlaylistView: React.FC = () => {
             maxWidth: 1180,
             mx: "auto",
             px: { xs: 2.5, sm: 4, lg: 6 },
-            py: { xs: 4, md: 3.5 }
+            py: { xs: 3, sm: 2.5, md: 3.5 }
           }}
         >
           <Box
             sx={{
               display: "flex",
-              flexDirection: { xs: "column", md: "row" },
+              flexDirection: { xs: "column", sm: "row" },
               alignItems: "center",
-              gap: { xs: 2.5, md: 4 },
-              textAlign: { xs: "center", md: "left" }
+              gap: { xs: 1.75, sm: 3, md: 4 },
+              textAlign: { xs: "center", sm: "left" }
             }}
           >
             {coverUrl ? (
@@ -159,7 +160,7 @@ export const PlaylistView: React.FC = () => {
                 src={coverUrl}
                 alt=""
                 sx={{
-                  width: { xs: 218, sm: 240, md: 250 },
+                  width: { xs: 156, sm: 160, md: 250 },
                   aspectRatio: "1 / 1",
                   borderRadius: 1.5,
                   objectFit: "cover",
@@ -170,7 +171,7 @@ export const PlaylistView: React.FC = () => {
             ) : (
               <Box
                 sx={{
-                  width: { xs: 218, sm: 240, md: 250 },
+                  width: { xs: 156, sm: 160, md: 250 },
                   aspectRatio: "1 / 1",
                   borderRadius: 1.5,
                   display: "grid",
@@ -188,7 +189,7 @@ export const PlaylistView: React.FC = () => {
               <Typography
                 component="h1"
                 sx={{
-                  fontSize: { xs: 31, sm: 42, md: 48 },
+                  fontSize: { xs: 24, sm: 28, md: 48 },
                   fontWeight: 900,
                   lineHeight: 1,
                   letterSpacing: "-.035em",
@@ -199,16 +200,21 @@ export const PlaylistView: React.FC = () => {
               </Typography>
               {playlist.description && (
                 <Typography
-                  sx={{ mt: 2, color: "rgba(255,255,255,.72)", fontSize: 16, fontWeight: 650 }}
+                  sx={{
+                    mt: { xs: 1, md: 2 },
+                    color: "rgba(255,255,255,.72)",
+                    fontSize: { xs: 13, sm: 14, md: 16 },
+                    fontWeight: 650
+                  }}
                 >
                   {playlist.description}
                 </Typography>
               )}
               <Typography
                 sx={{
-                  mt: 2.25,
+                  mt: { xs: 1.25, md: 2.25 },
                   color: "rgba(255,255,255,.78)",
-                  fontSize: 12,
+                  fontSize: { xs: 10, sm: 11, md: 12 },
                   fontWeight: 800,
                   letterSpacing: ".075em",
                   textTransform: "uppercase"
@@ -222,11 +228,11 @@ export const PlaylistView: React.FC = () => {
           <Box
             sx={{
               display: "flex",
-              flexDirection: { xs: "column", md: "row" },
+              flexDirection: { xs: "column", sm: "row" },
               alignItems: "center",
               justifyContent: "space-between",
-              gap: { xs: 3.25, md: 4 },
-              mt: { xs: 3.5, md: 4 }
+              gap: { xs: 2, sm: 2, md: 4 },
+              mt: { xs: 2.25, sm: 2.5, md: 4 }
             }}
           >
             <Box sx={{ display: "flex", gap: 1.5, width: { xs: "100%", sm: "auto" } }}>
@@ -248,8 +254,12 @@ export const PlaylistView: React.FC = () => {
               aria-label="Playlist actions"
               sx={{
                 display: "grid",
-                gridTemplateColumns: "repeat(3, minmax(64px, 1fr))",
-                width: { xs: "100%", sm: 300 },
+                gridTemplateColumns: {
+                  xs: "repeat(3, minmax(64px, 1fr))",
+                  sm: "repeat(2, minmax(56px, 1fr))",
+                  md: "repeat(3, minmax(64px, 1fr))"
+                },
+                width: { xs: "100%", sm: 144, md: 300 },
                 gap: { xs: 1, sm: 2 }
               }}
             >
@@ -262,6 +272,7 @@ export const PlaylistView: React.FC = () => {
                 label="Share"
                 icon={<IosShareOutlinedIcon />}
                 onClick={sharePlaylist}
+                hideOnCompact
               />
               <PlaylistAction
                 label="More"
@@ -361,18 +372,25 @@ const PlaylistPlayButton: React.FC<PlaylistPlayButtonProps> = ({
     onClick={onClick}
     size="large"
     sx={{
-      width: { xs: "50%", sm: 164 },
-      minHeight: 50,
+      width: { xs: "50%", sm: 52, md: 164 },
+      minWidth: { sm: 52, md: 64 },
+      minHeight: { xs: 46, md: 50 },
       bgcolor: primary ? "#fff" : "rgba(255,255,255,.14)",
       color: primary ? "#000" : "#fff",
       border: primary ? 0 : "1px solid rgba(255,255,255,.08)",
       borderRadius: "999px",
-      fontSize: 16,
+      fontSize: { xs: 15, md: 16 },
       fontWeight: 850,
+      "& .MuiButton-startIcon": {
+        ml: { sm: 0, md: -0.5 },
+        mr: { sm: 0, md: 1 }
+      },
       "&:hover": { bgcolor: primary ? "#e9e9e9" : "rgba(255,255,255,.22)" }
     }}
   >
-    {label}
+    <Box component="span" sx={{ display: { xs: "inline", sm: "none", md: "inline" } }}>
+      {label}
+    </Box>
   </Button>
 );
 
@@ -380,16 +398,22 @@ interface PlaylistActionProps {
   icon: React.ReactNode;
   label: string;
   onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  hideOnCompact?: boolean;
 }
 
-const PlaylistAction: React.FC<PlaylistActionProps> = ({ icon, label, onClick }) => (
+const PlaylistAction: React.FC<PlaylistActionProps> = ({
+  icon,
+  label,
+  onClick,
+  hideOnCompact = false
+}) => (
   <Button
     aria-label={label}
     onClick={onClick}
     sx={{
       minWidth: 0,
+      display: hideOnCompact ? { xs: "flex", sm: "none", md: "flex" } : "flex",
       color: "#fff",
-      display: "flex",
       flexDirection: "column",
       gap: 0.65,
       fontSize: { xs: 11, sm: 12 },

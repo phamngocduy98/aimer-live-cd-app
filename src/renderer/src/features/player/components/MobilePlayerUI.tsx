@@ -301,10 +301,11 @@ function AudioPlayerContent({ queueOpen }: { queueOpen: boolean }) {
 
   return (
     <Box
+      data-testid="expanded-mobile-artwork-stage"
       sx={{
         position: "absolute",
-        top: { xs: 100, sm: 92 },
-        bottom: { xs: 310, sm: 120 },
+        top: { xs: 96, sm: 92 },
+        bottom: { xs: 330, sm: 120 },
         left: 0,
         right: { xs: 0, sm: queueOpen ? "436px" : 0 },
         display: "grid",
@@ -328,17 +329,19 @@ function MobileTrackDetails() {
 
   return (
     <Box
+      data-testid="expanded-mobile-track-details"
       sx={{
         position: "absolute",
         left: 20,
         right: 20,
-        bottom: 220,
+        bottom: "clamp(238px, 33.5dvh, 270px)",
         display: "flex",
-        alignItems: "center"
+        alignItems: "center",
+        gap: 2
       }}
     >
       <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography noWrap sx={{ fontSize: 18, fontWeight: 800 }}>
+        <Typography noWrap sx={{ fontSize: 20, fontWeight: 800, lineHeight: 1.25 }}>
           {currentChapter
             ? [currentChapter.title, currentChapter.subTitle].filter(Boolean).join(" - ")
             : playingTrack?.title}
@@ -346,13 +349,13 @@ function MobileTrackDetails() {
         <Typography
           noWrap
           color="text.secondary"
-          sx={{ mt: 0.5, cursor: "pointer" }}
+          sx={{ mt: 0.25, fontSize: 16, lineHeight: 1.35, cursor: "pointer" }}
           onClick={() => router.navigate(artistPath(getPrimaryArtist(playingTrack?.artist)))}
         >
           {playingTrack?.artist.join(", ")}
         </Typography>
       </Box>
-      <FavoriteButton size={34} />
+      <FavoriteButton size={38} />
     </Box>
   );
 }
@@ -384,11 +387,11 @@ function InteractiveAlbumArtwork({ src, queueOpen }: { src: string; queueOpen: b
       sx={{
         position: "relative",
         width: {
-          xs: "min(calc(100vw - 80px), 46vh)",
+          xs: "min(calc(100vw - 128px), calc(100dvh - 440px), 42vh)",
           sm: queueOpen ? "min(58vh, calc(100vw - 520px))" : "min(66vh, 58vw)"
         },
         height: {
-          xs: "min(calc(100vw - 80px), 46vh)",
+          xs: "min(calc(100vw - 128px), calc(100dvh - 440px), 42vh)",
           sm: queueOpen ? "min(58vh, calc(100vw - 520px))" : "min(66vh, 58vw)"
         },
         transform: {

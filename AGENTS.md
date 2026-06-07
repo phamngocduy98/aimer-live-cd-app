@@ -18,8 +18,15 @@
 
 ## Docs (read these first — key to understanding the app)
 
+- **Renderer decision index:** `DESIGN.md` — core renderer invariants, UI ownership, state boundaries, and links
+- **Feature decisions:** `src/renderer/src/features/DESIGN.md` — feature ownership, server state, routing, and workflow decisions
+- **Player decisions:** `src/renderer/src/features/player/DESIGN.md` — playback, queue, runtime, chapter, and responsive invariants
+- **Shared component decisions:** `src/renderer/src/components/DESIGN.md` — reuse boundaries, layout, alignment, and accessibility contracts
 - **GUI expected features (test plan):** `docs/gui_expected_features.md` — current source for GUI E2E scenarios
-- **Implementation & design:** `docs/implement_design.md`
+- **System implementation overview:** `docs/implement_design.md`
+
+Read the relevant renderer design guides before changing behavior. They explain
+intent and invariants; code and tests remain the source of truth for mechanics.
 
 ## Project Structure
 

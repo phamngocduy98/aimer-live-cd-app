@@ -68,7 +68,7 @@ export function ExpandedMobileControls() {
   };
 
   return (
-    <Box sx={{ px: 1.5, pb: 0.5 }}>
+    <Box data-testid="expanded-mobile-controls" sx={{ px: 2, pb: 0.5 }}>
       <Slider
         aria-label="Playback position"
         size="small"
