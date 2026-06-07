@@ -24,6 +24,7 @@ import {
   handleGetVideos,
   handleGetSong,
   handleGetSongCover,
+  handleGetArtistImage,
   handleGetArtistTopTracks,
   handleSearch
 } from "./routes/metadata.js";
@@ -44,10 +45,32 @@ import {
   handleFileUpload,
   handleAlbumUpload,
   handleVideoChapters,
+  handleUploadProgress,
   handleGetPart,
   handleAlbumBackup,
   handleAlbumBackup2
 } from "./routes/upload.js";
+import {
+  handleAdminCreateHost,
+  handleAdminDeleteAlbum,
+  handleAdminDeleteHost,
+  handleAdminDeleteSong,
+  handleAdminDeleteVideo,
+  handleAdminGetAlbums,
+  handleAdminGetArtistImage,
+  handleAdminGetArtists,
+  handleAdminGetHosts,
+  handleAdminGetSongs,
+  handleAdminGetUploads,
+  handleAdminGetVideos,
+  handleAdminRenameArtist,
+  handleAdminUpdateAlbum,
+  handleAdminUpdateAlbumCover,
+  handleAdminUpdateArtistImage,
+  handleAdminUpdateHost,
+  handleAdminUpdateSong,
+  handleAdminUpdateVideo
+} from "./routes/admin.js";
 
 const rootDir = path.resolve();
 const webdavServer = new WebdavServer();
@@ -77,10 +100,31 @@ const upload = multer();
 app.post("/api/videos/youtube/:albumId?", handleYoutubeVideoUpload);
 
 app.post("/api/upload/:hostId?", upload.single("audio"), handleFileUpload);
+app.get("/api/upload-progress/:id", handleUploadProgress);
 
 app.post("/api/upload-album/:hostId?", upload.array("audios"), handleAlbumUpload);
 
 app.post("/api/videos/:videoId/chapters", bodyParser.text({ type: "*/*" }), handleVideoChapters);
+
+app.get("/api/admin/uploads", handleAdminGetUploads);
+app.get("/api/admin/songs", handleAdminGetSongs);
+app.get("/api/admin/videos", handleAdminGetVideos);
+app.get("/api/admin/albums", handleAdminGetAlbums);
+app.get("/api/admin/artists", handleAdminGetArtists);
+app.get("/api/admin/artists/:name/image", handleAdminGetArtistImage);
+app.get("/api/admin/hosts", handleAdminGetHosts);
+app.post("/api/admin/hosts", handleAdminCreateHost);
+app.put("/api/admin/songs/:id", handleAdminUpdateSong);
+app.put("/api/admin/videos/:id", handleAdminUpdateVideo);
+app.put("/api/admin/albums/:id", handleAdminUpdateAlbum);
+app.put("/api/admin/albums/:id/cover", upload.single("cover"), handleAdminUpdateAlbumCover);
+app.put("/api/admin/hosts/:id", handleAdminUpdateHost);
+app.put("/api/admin/artists/:name", handleAdminRenameArtist);
+app.put("/api/admin/artists/:name/image", upload.single("image"), handleAdminUpdateArtistImage);
+app.delete("/api/admin/songs/:id", handleAdminDeleteSong);
+app.delete("/api/admin/videos/:id", handleAdminDeleteVideo);
+app.delete("/api/admin/albums/:id", handleAdminDeleteAlbum);
+app.delete("/api/admin/hosts/:id", handleAdminDeleteHost);
 
 app.get("/api/hosts", handleGetHosts);
 
@@ -117,6 +161,8 @@ app.get("/api/stream/audio/:id", handleStreamAudio);
 app.get("/api/stream/video/:id", handleStreamVideo);
 
 app.get("/api/song/:id/cover", handleGetSongCover);
+
+app.get("/api/artist/:name/image", handleGetArtistImage);
 
 app.get("/api/artist/:name/top-tracks", handleGetArtistTopTracks);
 

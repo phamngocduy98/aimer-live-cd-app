@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Debouncer } from "@tanstack/pacer";
-import { Box, Grid, IconButton, Menu, MenuItem, Avatar } from "@mui/material";
+import { Box, Grid, IconButton, Menu, MenuItem } from "@mui/material";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import SearchIcon from "@mui/icons-material/Search";
 import PersonIcon from "@mui/icons-material/Person";
@@ -54,7 +54,7 @@ interface TopNavBarProps {
   anchorEl: HTMLElement | null;
   onMenuOpen: (event: React.MouseEvent<HTMLElement>) => void;
   onMenuClose: () => void;
-  onManageHostsClick: () => void;
+  onAdminClick: () => void;
   onBackClick: () => void;
   onSearch: (query: string) => void;
 }
@@ -66,7 +66,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
   anchorEl,
   onMenuOpen,
   onMenuClose,
-  onManageHostsClick,
+  onAdminClick,
   onBackClick,
   onSearch
 }) => {
@@ -209,7 +209,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             </Box>
           </Grid>
           <Grid item xs="auto" sx={{ marginLeft: 2 }}>
-            <IconButton onClick={onMenuOpen} size="small">
+            <IconButton aria-label="User menu" onClick={onMenuOpen} size="small">
               <PersonIcon />
             </IconButton>
           </Grid>
@@ -219,10 +219,10 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
         <MenuItem
           onClick={() => {
             onMenuClose();
-            onManageHostsClick();
+            onAdminClick();
           }}
         >
-          Manage Hosts
+          Admin
         </MenuItem>
       </Menu>
     </>

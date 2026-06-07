@@ -21,7 +21,8 @@ export abstract class MediaUploader {
     ext: string,
     iv: Buffer,
     skipPart?: number,
-    limitPart?: number
+    limitPart?: number,
+    onProgress?: (progress: { part: number; total: number; fileName?: string }) => void
   ): Promise<{ fileCount: number }> {
     return this.upload(
       buffer,
@@ -29,7 +30,8 @@ export abstract class MediaUploader {
       ext,
       (buff) => getAesStream().createEncryptStream(Readable.from(buff), iv),
       skipPart,
-      limitPart
+      limitPart,
+      onProgress
     );
   }
 
@@ -55,7 +57,8 @@ export abstract class MediaUploader {
     ext: string,
     encryption: (buff: Buffer) => Readable | Buffer = (buff) => buff,
     skipPart: number = 0,
-    limitPart: number = Number.MAX_VALUE
+    limitPart: number = Number.MAX_VALUE,
+    onProgress?: (progress: { part: number; total: number; fileName?: string }) => void
   ): Promise<{ fileCount: number }> {
     const partSize = Math.min(PARTSIZE, this.uploadLimit);
     const maxFileCount = Math.ceil(buffer.length / partSize);
@@ -81,6 +84,7 @@ export abstract class MediaUploader {
             );
 
             log.info(`Part ${partNo}/${maxFileCount} ${fileName}`);
+            onProgress?.({ part: partNo + 1, total: maxFileCount, fileName });
             break;
           } catch (e) {
             if (++retry > 3) throw Error("Max try exceeded");
@@ -102,6 +106,8 @@ export abstract class MediaUploader {
     getFileName: () => string,
     uploadPath?: string
   ): Promise<string>;
+
+  abstract deleteFiles(fileNames: string[], uploadPath?: string): Promise<void>;
 
   async end() {}
 }

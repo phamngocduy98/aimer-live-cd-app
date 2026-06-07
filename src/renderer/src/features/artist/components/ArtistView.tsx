@@ -13,6 +13,7 @@ import { SectionHeader } from "@components/view/SectionHeader";
 import { useAppDispatch } from "@app/hooks";
 import { playContext } from "@features/player/store/playerSlice";
 import { apiAssetUrl } from "@lib/axios";
+import { artistImageUrl } from "@utils/artist";
 import { useArtist } from "../hooks/useArtist";
 
 const FEATURED_TRACK_COUNT = 4;
@@ -30,6 +31,11 @@ export const ArtistView: React.FC = () => {
   const [shareMessage, setShareMessage] = useState("");
 
   const heroAlbum = albums[0] ?? songs.find((song) => song.album)?.album;
+  const fallbackHeroImage = heroAlbum ? apiAssetUrl(`/album/${heroAlbum._id}/cover`) : "";
+  const [heroImage, setHeroImage] = useState("");
+  React.useEffect(() => {
+    setHeroImage(artistName ? artistImageUrl(artistName) : fallbackHeroImage);
+  }, [artistName, fallbackHeroImage]);
   const visibleSongs = showAllTracks ? songs : songs.slice(0, FEATURED_TRACK_COUNT);
   const playSource = {
     type: "artist" as const,
@@ -81,10 +87,10 @@ export const ArtistView: React.FC = () => {
           alignItems: "flex-end",
           overflow: "hidden",
           backgroundColor: "#101212",
-          backgroundImage: heroAlbum
+          backgroundImage: heroImage
             ? {
-                xs: `linear-gradient(180deg, rgba(0,0,0,.18) 5%, rgba(0,0,0,.42) 46%, #000 96%), url("${apiAssetUrl(`/album/${heroAlbum._id}/cover`)}")`,
-                md: `linear-gradient(90deg, #101212 0%, rgba(8,10,10,.78) 35%, rgba(0,0,0,.08) 69%, rgba(0,0,0,.76) 100%), linear-gradient(180deg, transparent 44%, #000 100%), url("${apiAssetUrl(`/album/${heroAlbum._id}/cover`)}")`
+                xs: `linear-gradient(180deg, rgba(0,0,0,.18) 5%, rgba(0,0,0,.42) 46%, #000 96%), url("${heroImage}")`,
+                md: `linear-gradient(90deg, #101212 0%, rgba(8,10,10,.78) 35%, rgba(0,0,0,.08) 69%, rgba(0,0,0,.76) 100%), linear-gradient(180deg, transparent 44%, #000 100%), url("${heroImage}")`
               }
             : "linear-gradient(135deg, #1d2424 0%, #050505 70%)",
           backgroundSize: { xs: "cover", md: "auto, auto, min(72vw, 1120px) auto" },
@@ -92,6 +98,15 @@ export const ArtistView: React.FC = () => {
           backgroundRepeat: "no-repeat"
         }}
       >
+        {artistName && heroImage === artistImageUrl(artistName) ? (
+          <Box
+            component="img"
+            src={heroImage}
+            alt=""
+            onError={() => setHeroImage(fallbackHeroImage)}
+            sx={{ display: "none" }}
+          />
+        ) : null}
         <Box
           sx={{
             position: "relative",

@@ -379,7 +379,7 @@ Each step is a separate commit. The app must build, type-check, and pass relevan
 5. **Hosts feature**
    - Move dialogs, types, `useHosts`/`useDeleteHost`/`useCreateHost`/`useHostFiles` hooks into `features/hosts/`
    - Remove host state from `App.tsx`; `App.tsx` shrinks to ~100 lines
-   - E2E test for Manage Hosts dialog passes
+   - E2E test for Admin dialog passes
 6. **Playlist feature**
    - Move playlists, dialogs, types, hooks into `features/playlist/`
    - Delete `contexts/PlaylistRefreshContext.tsx`

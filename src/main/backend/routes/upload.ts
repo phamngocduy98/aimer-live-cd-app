@@ -1,4 +1,5 @@
 import { Writable } from "node:stream";
+import { EventEmitter } from "node:events";
 import axios from "axios";
 import { PARTSIZE } from "../config/const.js";
 import { Album } from "../models/Album.js";
@@ -16,6 +17,28 @@ import { DbDocument, WithDocument } from "../types/type.js";
 import { createLogger } from "../utils/log.js";
 
 const log = createLogger("Upload");
+const uploadProgressEvents = new EventEmitter();
+uploadProgressEvents.setMaxListeners(100);
+
+function emitUploadProgress(progressId: string | undefined, payload: Record<string, unknown>) {
+  if (!progressId) return;
+  uploadProgressEvents.emit(progressId, payload);
+}
+
+export async function handleUploadProgress(req, res) {
+  const progressId = req.params.id;
+  res.writeHead(200, {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache",
+    Connection: "keep-alive"
+  });
+  const send = (payload: Record<string, unknown>) => {
+    res.write(`data: ${JSON.stringify(payload)}\n\n`);
+  };
+  uploadProgressEvents.on(progressId, send);
+  send({ status: "connected" });
+  req.on("close", () => uploadProgressEvents.off(progressId, send));
+}
 
 // POST /api/videos/youtube/:albumId?
 export async function handleYoutubeVideoUpload(req, res) {
@@ -91,17 +114,22 @@ export async function handleFileUpload(req, res) {
   }
   const skipPart = parseInt((req.query["skipPart"] as string) ?? "0");
   const limitPart = parseInt((req.query["limitPart"] as string) ?? "-1");
+  const progressId = req.query["progressId"] as string | undefined;
   const fileExt = file.originalname.split(".").at(-1)!;
   try {
-    await uploadSongAPI(
+    emitUploadProgress(progressId, { status: "started", fileName: file.originalname });
+    const uploaded = await uploadSongAPI(
       file.buffer,
       fileExt,
       skipPart,
       limitPart === -1 ? undefined : limitPart,
-      req.params.hostId
+      req.params.hostId,
+      (progress) => emitUploadProgress(progressId, { status: "uploading", ...progress })
     );
-    ok(res);
+    emitUploadProgress(progressId, { status: "done", ...uploaded });
+    res.json(uploaded);
   } catch (e) {
+    emitUploadProgress(progressId, { status: "error", message: `${e}` });
     log.error({ err: e }, "File upload failed");
     fail(res, `${e}`);
   }

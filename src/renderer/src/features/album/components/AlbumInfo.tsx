@@ -3,7 +3,7 @@ import { useAppDispatch } from "@app/hooks";
 import { hideView } from "@features/player/store/playerGuiSlice";
 import { SongBitDepth, VideoBitDepth } from "@features/player/components/SongBitDepth";
 import { router } from "@app/router";
-import { artistPath } from "@utils/artist";
+import { artistImageUrl, artistPath } from "@utils/artist";
 import { formatDuration } from "@utils/formatDuration";
 import { apiAssetUrl } from "@lib/axios";
 import type { AlbumDetail } from "../types";
@@ -79,8 +79,13 @@ export const AlbumInfo: React.FC<{ album: AlbumDetail }> = ({ album }) => {
         >
           <Box
             component="img"
-            src={apiAssetUrl(`/album/${album._id}/cover`)}
+            src={artistImageUrl(album.artist)}
             alt=""
+            onError={(event: React.SyntheticEvent<HTMLImageElement>) => {
+              if (event.currentTarget.src !== apiAssetUrl(`/album/${album._id}/cover`)) {
+                event.currentTarget.src = apiAssetUrl(`/album/${album._id}/cover`);
+              }
+            }}
             sx={{
               width: 28,
               height: 28,

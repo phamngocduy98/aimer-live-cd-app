@@ -21,7 +21,7 @@ import { hideView } from "../store/playerGuiSlice";
 import { reset } from "../store/playerSlice";
 import { QueuePanel } from "./FloatingQueueList";
 import { isVideo } from "@features/library";
-import { artistPath, getPrimaryArtist } from "@utils/artist";
+import { artistImageUrl, artistPath, getPrimaryArtist } from "@utils/artist";
 import { useArtist } from "@features/artist/hooks/useArtist";
 import { FavoriteButton } from "./FavoriteButton";
 import { useAlbumBackgroundColor } from "../utils/albumBackground";
@@ -231,7 +231,13 @@ function ArtistIdentity() {
         <Avatar
           className="artist-avatar"
           aria-label={artist}
-          src={apiAssetUrl(`/album/${playingTrack?.album?._id}/cover`)}
+          src={artistImageUrl(artist)}
+          onError={(event: React.SyntheticEvent<HTMLImageElement>) => {
+            const fallback = apiAssetUrl(`/album/${playingTrack?.album?._id}/cover`);
+            if (event.currentTarget.src !== fallback) {
+              event.currentTarget.src = fallback;
+            }
+          }}
           sx={{
             width: 46,
             height: 46,

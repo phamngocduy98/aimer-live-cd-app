@@ -5,7 +5,7 @@ import { Box, Grid, IconButton, Typography } from "@mui/material";
 import { AlbumCard } from "@components/media/AlbumCard";
 import { PageScaffold } from "@components/view/PageScaffold";
 import { SectionHeader } from "@components/view/SectionHeader";
-import { artistPath } from "@utils/artist";
+import { artistImageUrl, artistPath } from "@utils/artist";
 import { apiAssetUrl } from "@lib/axios";
 import { useAlbums, useSongs } from "../hooks/useLibrary";
 
@@ -93,37 +93,45 @@ export const Home: React.FC = () => {
                     boxShadow: "0 16px 36px rgba(0,0,0,.32)"
                   }}
                 >
-                  {coverAlbumId ? (
-                    <Box
-                      className="artist-image"
-                      component="img"
-                      src={apiAssetUrl(`/album/${coverAlbumId}/cover`)}
-                      alt={name}
-                      sx={{
-                        width: "100%",
-                        height: "100%",
-                        display: "block",
-                        objectFit: "cover",
-                        transition: "transform .25s ease"
-                      }}
-                    />
-                  ) : (
-                    <Box
-                      className="artist-image"
-                      sx={{
-                        width: "100%",
-                        height: "100%",
-                        display: "grid",
-                        placeItems: "center",
-                        background: "linear-gradient(145deg, #353535, #111)",
-                        fontSize: { xs: 42, sm: 54 },
-                        fontWeight: 850,
-                        transition: "transform .25s ease"
-                      }}
-                    >
-                      {name.slice(0, 1).toUpperCase()}
-                    </Box>
-                  )}
+                  <Box
+                    className="artist-image"
+                    component="img"
+                    src={artistImageUrl(name)}
+                    alt={name}
+                    onError={(event: React.SyntheticEvent<HTMLImageElement>) => {
+                      if (coverAlbumId && event.currentTarget.src !== apiAssetUrl(`/album/${coverAlbumId}/cover`)) {
+                        event.currentTarget.src = apiAssetUrl(`/album/${coverAlbumId}/cover`);
+                        return;
+                      }
+                      event.currentTarget.style.display = "none";
+                      const fallback = event.currentTarget.nextElementSibling;
+                      if (fallback instanceof HTMLElement) fallback.style.display = "grid";
+                    }}
+                    sx={{
+                      width: "100%",
+                      height: "100%",
+                      display: "block",
+                      objectFit: "cover",
+                      transition: "transform .25s ease"
+                    }}
+                  />
+                  <Box
+                    className="artist-image"
+                    sx={{
+                      position: "absolute",
+                      inset: 0,
+                      width: "100%",
+                      height: "100%",
+                      display: "none",
+                      placeItems: "center",
+                      background: "linear-gradient(145deg, #353535, #111)",
+                      fontSize: { xs: 42, sm: 54 },
+                      fontWeight: 850,
+                      transition: "transform .25s ease"
+                    }}
+                  >
+                    {name.slice(0, 1).toUpperCase()}
+                  </Box>
                   <IconButton
                     className="artist-play"
                     aria-label={`View ${name}`}

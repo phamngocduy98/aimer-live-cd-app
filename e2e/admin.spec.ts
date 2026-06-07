@@ -5,7 +5,7 @@ import { seedE2eDatabase } from "./utils/test-data.js";
 
 let testUserDataDir: string;
 
-test.describe("Admin - Manage Hosts", () => {
+test.describe("Admin dialog", () => {
   let ctx: ElectronTestContext;
 
   test.beforeAll(() => {
@@ -22,29 +22,43 @@ test.describe("Admin - Manage Hosts", () => {
     await ctx?.electronApp.close();
   });
 
-  test("manage hosts dialog opens from avatar menu", async () => {
-    await ctx.mainWindow.getByRole("button", { name: "U", exact: true }).click();
-    await ctx.mainWindow.getByRole("menuitem", { name: "Manage Hosts" }).click();
-    const dialog = ctx.mainWindow.getByRole("dialog", { name: "Manage Hosts" });
+  test("admin dialog opens from avatar menu", async () => {
+    await ctx.mainWindow.getByRole("button", { name: "User menu" }).click();
+    await ctx.mainWindow.getByRole("menuitem", { name: "Admin" }).click();
+    const dialog = ctx.mainWindow.getByRole("dialog", { name: "Admin" });
     await expect(dialog).toBeVisible();
   });
 
-  test("manage hosts dialog shows host list", async () => {
-    await ctx.mainWindow.getByRole("button", { name: "U", exact: true }).click();
-    await ctx.mainWindow.getByRole("menuitem", { name: "Manage Hosts" }).click();
-    const dialog = ctx.mainWindow.getByRole("dialog", { name: "Manage Hosts" });
+  test("admin dialog shows sections and hosting provider table", async () => {
+    await ctx.mainWindow.getByRole("button", { name: "User menu" }).click();
+    await ctx.mainWindow.getByRole("menuitem", { name: "Admin" }).click();
+    const dialog = ctx.mainWindow.getByRole("dialog", { name: "Admin" });
     await expect(dialog).toBeVisible();
-    const hostItems = dialog.getByRole("listitem");
-    await expect(hostItems).not.toHaveCount(0);
+    await expect(dialog.getByRole("navigation", { name: "Admin sections" })).toBeVisible();
+    for (const section of ["Uploads", "Songs", "Videos", "Albums", "Artists", "Hosting Provider"]) {
+      await expect(dialog.getByRole("button", { name: section })).toBeVisible();
+    }
+
+    await dialog.getByRole("button", { name: "Hosting Provider" }).click();
+    await expect(dialog.getByRole("table", { name: "Admin hosting providers table" })).toBeVisible();
     await expect(dialog.getByText("E2E Fixture Host")).toBeVisible();
   });
 
-  test("manage hosts dialog can be closed", async () => {
-    await ctx.mainWindow.getByRole("button", { name: "U", exact: true }).click();
-    await ctx.mainWindow.getByRole("menuitem", { name: "Manage Hosts" }).click();
-    const dialog = ctx.mainWindow.getByRole("dialog", { name: "Manage Hosts" });
+  test("admin dialog can be closed", async () => {
+    await ctx.mainWindow.getByRole("button", { name: "User menu" }).click();
+    await ctx.mainWindow.getByRole("menuitem", { name: "Admin" }).click();
+    const dialog = ctx.mainWindow.getByRole("dialog", { name: "Admin" });
     await expect(dialog).toBeVisible();
     await ctx.mainWindow.getByRole("button", { name: "Close" }).click();
     await expect(dialog).not.toBeVisible();
+  });
+
+  test("admin uploads table is available without old manage-host list", async () => {
+    await ctx.mainWindow.getByRole("button", { name: "User menu" }).click();
+    await ctx.mainWindow.getByRole("menuitem", { name: "Admin" }).click();
+    const dialog = ctx.mainWindow.getByRole("dialog", { name: "Admin" });
+    await expect(dialog.getByRole("table", { name: "Admin uploads table" })).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "Upload media" })).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "List Files" })).toHaveCount(0);
   });
 });

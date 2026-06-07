@@ -55,11 +55,11 @@
 
 ## 4. Admin Features
 
-- **Manage Hosts dialog** — click user avatar → select _Admin_
+- **Admin dialog** — click user avatar → select _Admin_
 - **Admin dialog tabs:**
-  - Manage Hosts
+  - Admin
   - Upload Song
-- **Manage Hosts:** list hosting providers, browse files, delete files per host
+- **Admin:** list hosting providers, browse files, delete files per host
 
 ## 5. Responsive Design
 

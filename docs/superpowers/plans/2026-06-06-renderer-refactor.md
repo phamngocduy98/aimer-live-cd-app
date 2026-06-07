@@ -837,7 +837,7 @@ Expected: no errors.
 Run: `pnpm test -- features/hosts/hooks/useHosts.test.ts`
 Expected: PASS.
 
-Run: `pnpm dev:web`, open `http://localhost:5173`. Open the user menu and select Admin. Confirm the Manage Hosts dialog opens and the list of hosts is empty (or shows seeded E2E data). Stop the server.
+Run: `pnpm dev:web`, open `http://localhost:5173`. Open the user menu and select Admin. Confirm the Admin dialog opens and the list of hosts is empty (or shows seeded E2E data). Stop the server.
 
 - [ ] **Step 11: Commit**
 
@@ -1192,7 +1192,7 @@ Expected: no errors.
 Run: `pnpm test -- features/hosts`
 Expected: all hosts tests pass.
 
-Run: `pnpm dev:web`. Open Admin > Manage Hosts. Confirm:
+Run: `pnpm dev:web`. Open Admin > Hosting Provider. Confirm:
 - Hosts load
 - Delete host works
 - List files works

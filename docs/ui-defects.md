@@ -82,7 +82,7 @@ widths, rather than normal responsive simplification.
 ### UI-005: Host administration has no mobile entry point
 
 - **Affected:** Mobile, below 600 px
-- **Observed:** Manage Hosts is opened only from the avatar menu. The avatar is
+- **Observed:** Admin is opened only from the avatar menu. The avatar is
   hidden below `sm`, and mobile navigation has no settings/admin destination.
 - **Expected:** Global administration must remain reachable from mobile through
   a mobile account/settings action or another shell-owned menu.
@@ -187,7 +187,7 @@ touch-oriented E2E scenarios for:
 3. Creating the first playlist on mobile.
 4. Playing Search, Artist, Songs, Album, and Playlist rows with one tap/click.
 5. Opening media actions without right-click.
-6. Opening Manage Hosts on mobile.
+6. Opening Admin on mobile.
 7. Creating a playlist from and clearing the expanded mobile queue.
 8. Navigating to an artist from expanded mobile track details.
 9. Adjusting volume at tablet width without hover.

@@ -27,11 +27,13 @@ export async function uploadSongAPI(
   fileExtension: string,
   skipPart?: number,
   limitPart?: number,
-  hostId?: string
-) {
+  hostId?: string,
+  onProgress?: (progress: { part: number; total: number; fileName?: string }) => void
+): Promise<{ id: string; type: "song" | "video" }> {
   const meta = await parseBuffer(buffer);
 
-  const songBuilder = isVideo(meta) ? new VideoBuilder() : new SongBuilder();
+  const type = isVideo(meta) ? "video" : "song";
+  const songBuilder = type === "video" ? new VideoBuilder() : new SongBuilder();
   await songBuilder.init(meta, buffer.length, fileExtension);
 
   const hostings = await dbClient.listHosting();
@@ -61,7 +63,8 @@ export async function uploadSongAPI(
     fileExtension,
     songBuilder.iv,
     skipPart,
-    limitPart
+    limitPart,
+    onProgress
   );
   await uploader.end();
 
@@ -70,4 +73,5 @@ export async function uploadSongAPI(
   log.info(`Upload- Uploaded ${buffer.length} bytes in ${uploadDuration} seconds (${speed} kB/s)`);
   songBuilder.fileCount(fileCount);
   await songBuilder.save();
+  return { id: String(songBuilder._id), type };
 }

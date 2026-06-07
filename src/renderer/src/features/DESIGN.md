@@ -151,8 +151,8 @@ dialog opens.
 components. Preserve explicit loading and unavailable states for remote file
 listing.
 
-**References:** [`ManageHostsDialog.tsx`](hosts/components/ManageHostsDialog.tsx),
-[`useHosts.ts`](hosts/hooks/useHosts.ts),
+**References:** [`AdminDialog.tsx`](admin/components/AdminDialog.tsx),
+[`useAdmin.ts`](admin/hooks/useAdmin.ts),
 [`admin.spec.ts`](../../../../e2e/admin.spec.ts)
 
 ## Current Non-Decisions

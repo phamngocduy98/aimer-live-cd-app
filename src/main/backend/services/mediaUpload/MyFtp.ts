@@ -37,6 +37,15 @@ export class MyFtp {
     });
   }
 
+  delete(path: string) {
+    return new Promise<void>((rs, rj) => {
+      this.ftpClient.delete(path, (err) => {
+        if (err) return rj(err);
+        rs();
+      });
+    });
+  }
+
   end() {
     this.ftpClient.end();
   }

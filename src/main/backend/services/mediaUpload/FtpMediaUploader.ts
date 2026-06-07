@@ -47,6 +47,20 @@ export class FtpMediaUploader extends MediaUploader {
     }
   }
 
+  async deleteFiles(fileNames: string[], uploadPath?: string): Promise<void> {
+    if (this.ftpClient == null) throw Error("FTP client not init");
+    const pathToUse = uploadPath ?? this.path;
+    for (const fileName of fileNames) {
+      try {
+        await this.ftpClient.delete(`${this.ftpRoot}${pathToUse}/${fileName}`);
+      } catch (error) {
+        const err = error as { code?: number; message?: string };
+        if (err.code === 550 || err.message?.includes("No such file")) continue;
+        throw error;
+      }
+    }
+  }
+
   async end(): Promise<void> {
     this.ftpClient?.end();
   }

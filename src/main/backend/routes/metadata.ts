@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import { PARTSIZE } from "../config/const.js";
 import { Aes } from "../utils/crypto/aes.js";
 import { Album } from "../models/Album.js";
+import { ArtistProfile } from "../models/ArtistProfile.js";
 import { Hosting, IHosting, UploadStrategy, StreamStrategy } from "../models/Hosting.js";
 import { dbClient } from "../db/Mongo.js";
 import { Song } from "../models/Song.js";
@@ -483,6 +484,17 @@ export async function handleGetArtistTopTracks(req, res) {
     .exec();
   res.send(songs);
   res.end();
+}
+
+// GET /api/artist/:name/image
+export async function handleGetArtistImage(req, res) {
+  const name = decodeURIComponent(req.params.name ?? "").trim();
+  if (!name) return fail(res, "Artist name is required");
+  const profile = await ArtistProfile.findOne({ name }, { image: 1, imageMimeType: 1 });
+  if (!profile?.image) return fail(res, "No artist image", 404);
+  res.setHeader("Content-Type", profile.imageMimeType ?? "application/octet-stream");
+  res.setHeader("Cache-Control", "public, max-age=86400");
+  Readable.from(profile.image).pipe(res);
 }
 
 // GET /api/search?q=...
