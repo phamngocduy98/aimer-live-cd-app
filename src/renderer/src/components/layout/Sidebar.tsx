@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -9,7 +8,7 @@ import MusicNoteOutlinedIcon from "@mui/icons-material/MusicNoteOutlined";
 import QueueMusicOutlinedIcon from "@mui/icons-material/QueueMusicOutlined";
 import VideoLibraryOutlinedIcon from "@mui/icons-material/VideoLibraryOutlined";
 import { Box, Drawer, IconButton, List, ListItemButton, Tooltip, Typography } from "@mui/material";
-import { router } from "@app/router";
+import { NavLink, useLocation } from "react-router-dom";
 import { usePlaylists } from "@features/playlist";
 
 interface SidebarProps {
@@ -61,11 +60,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCreatePlaylist
 }) => {
   const { data: playlists = [] } = usePlaylists();
-  const [location, setLocation] = useState(() => router.state.location);
-
-  useEffect(() => router.subscribe((state) => setLocation(state.location)), []);
-
-  const pathname = location.pathname;
+  const { pathname } = useLocation();
   const isActive = (path: string) => {
     if (path === "/") return pathname === "/";
     if (path === "/playlists") return pathname.startsWith("/playlist");
@@ -132,9 +127,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           const item = (
             <ListItemButton
               key={label}
+              component={NavLink}
+              to={path}
               aria-label={collapsed ? label : undefined}
               selected={isActive(path)}
-              onClick={() => router.navigate(path)}
               sx={{
                 minHeight: 46,
                 borderRadius: 2,
@@ -189,9 +185,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
             const item = (
               <ListItemButton
                 key={playlist._id}
+                component={NavLink}
+                to={`/playlist/${playlist._id}`}
                 aria-label={collapsed ? playlist.name : undefined}
                 selected={pathname === `/playlist/${playlist._id}`}
-                onClick={() => router.navigate(`/playlist/${playlist._id}`)}
                 sx={{
                   borderRadius: 2,
                   px: collapsed ? 0 : 1,

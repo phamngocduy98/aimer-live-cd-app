@@ -11,7 +11,7 @@ export const VideoList: React.FC<{ album: AlbumDetail }> = ({ album }) => {
   if (album.videoList.length === 0) return null;
 
   return (
-    <Box sx={{ maxWidth: 1440, mx: "auto", px: { xs: 2.5, sm: 4, lg: 6 }, py: 5 }}>
+    <Box sx={{ maxWidth: 1180, mx: "auto", px: { xs: 2.5, sm: 4, lg: 6 }, py: 5 }}>
       <SectionHeader title="Videos" />
       <Grid container spacing={2.5}>
         {album.videoList.map((vid, idx) => (

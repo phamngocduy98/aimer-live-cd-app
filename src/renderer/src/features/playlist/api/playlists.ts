@@ -1,37 +1,40 @@
-import { apiClient } from "@lib/axios"
-import type { Playlist, PlaylistDetail } from "../types"
+import { apiClient } from "@lib/axios";
+import type { Playlist, PlaylistDetail } from "../types";
+
+interface ApiSuccess<T> {
+  status: "success";
+  message: T;
+}
 
 export const listPlaylists = async (): Promise<Playlist[]> =>
-  (await apiClient.get<Playlist[]>("/playlists")).data
+  (await apiClient.get<Playlist[]>("/playlists")).data;
 
 export const getPlaylist = async (id: string): Promise<PlaylistDetail> =>
-  (await apiClient.get<PlaylistDetail>(`/playlist/${id}`)).data
+  (await apiClient.get<PlaylistDetail>(`/playlist/${id}`)).data;
 
 export const createPlaylist = async (data: {
-  name: string
-  description?: string
-}): Promise<string> => (await apiClient.post<string>("/playlists", data)).data
+  name: string;
+  description?: string;
+}): Promise<string> => (await apiClient.post<ApiSuccess<string>>("/playlists", data)).data.message;
 
 export const updatePlaylist = async (
   id: string,
   data: { name?: string; description?: string }
 ): Promise<void> => {
-  await apiClient.put(`/playlist/${id}`, data)
-}
+  await apiClient.put(`/playlist/${id}`, data);
+};
 
 export const deletePlaylist = async (id: string): Promise<void> => {
-  await apiClient.delete(`/playlist/${id}`)
-}
+  await apiClient.delete(`/playlist/${id}`);
+};
 
-export const addSongsToPlaylist = async (
-  playlistId: string,
-  songIds: string[]
-): Promise<string> =>
-  (await apiClient.post<string>(`/playlist/${playlistId}/songs`, { songIds })).data
+export const addSongsToPlaylist = async (playlistId: string, songIds: string[]): Promise<string> =>
+  (
+    await apiClient.post<ApiSuccess<string>>(`/playlist/${playlistId}/songs`, {
+      songIds
+    })
+  ).data.message;
 
-export const removeSongFromPlaylist = async (
-  playlistId: string,
-  songId: string
-): Promise<void> => {
-  await apiClient.delete(`/playlist/${playlistId}/songs/${songId}`)
-}
+export const removeSongFromPlaylist = async (playlistId: string, songId: string): Promise<void> => {
+  await apiClient.delete(`/playlist/${playlistId}/songs/${songId}`);
+};

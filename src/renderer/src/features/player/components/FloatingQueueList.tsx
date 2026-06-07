@@ -19,12 +19,13 @@ import {
 import React from "react";
 import { apiAssetUrl } from "@lib/axios";
 import { useAppDispatch, useAppSelector } from "@app/hooks";
-import { deleteTrack, nextTrack, prevTrack, reset } from "../store/playerSlice";
+import { deleteTrack, nextTrack, prevTrack, reset, setCurrentChapter } from "../store/playerSlice";
 import { hideView } from "../store/playerGuiSlice";
 import { isVideo } from "@features/library";
 import type { Song, Video } from "@features/library";
 import { videoOnSeek } from "../store/playerVideoControl";
 import { SongActionsMenu } from "@components/media/MediaActionsMenu";
+import { CreatePlaylistDialog } from "@features/playlist";
 
 export const FloatingQueueList = () => {
   const { playingQueue, mobilePlayer } = useAppSelector((state) => state.playerGui);
@@ -74,46 +75,65 @@ interface QueuePanelProps {
 
 export function QueuePanel({ onClose, onClear, mobile = false }: QueuePanelProps) {
   const [tab, setTab] = React.useState<"queue" | "suggested">("queue");
+  const [createPlaylistOpen, setCreatePlaylistOpen] = React.useState(false);
+  const { playingTrack, queue } = useAppSelector((state) => state.player);
+  const songIds = React.useMemo(
+    () =>
+      [playingTrack, ...queue]
+        .filter((track): track is Song => Boolean(track && !isVideo(track)))
+        .map((track) => track._id),
+    [playingTrack, queue]
+  );
 
   return (
-    <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
-      {mobile ? (
-        <Box sx={{ display: "flex", justifyContent: "center", gap: 1, py: 2 }}>
-          <Button onClick={() => setTab("queue")} sx={queueTabStyles(tab === "queue")}>
-            Play queue
-          </Button>
-          <Button onClick={() => setTab("suggested")} sx={queueTabStyles(tab === "suggested")}>
-            Suggested tracks
-          </Button>
-        </Box>
-      ) : (
-        <Box sx={{ display: "flex", alignItems: "center", px: 2.5, pt: 2, pb: 1 }}>
-          <Typography component="h2" sx={{ flex: 1, fontSize: 24, fontWeight: 850 }}>
-            Play queue
-          </Typography>
-          <IconButton aria-label="Add to queue" size="small">
-            <QueueMusicRoundedIcon />
-          </IconButton>
-          {onClose && (
-            <IconButton aria-label="Close play queue" size="small" onClick={onClose}>
-              <CloseIcon />
+    <>
+      <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+        {mobile ? (
+          <Box sx={{ display: "flex", justifyContent: "center", gap: 1, py: 2 }}>
+            <Button onClick={() => setTab("queue")} sx={queueTabStyles(tab === "queue")}>
+              Play queue
+            </Button>
+            <Button onClick={() => setTab("suggested")} sx={queueTabStyles(tab === "suggested")}>
+              Suggested tracks
+            </Button>
+          </Box>
+        ) : (
+          <Box sx={{ display: "flex", alignItems: "center", px: 2.5, pt: 2, pb: 1 }}>
+            <Typography component="h2" sx={{ flex: 1, fontSize: 24, fontWeight: 850 }}>
+              Play queue
+            </Typography>
+            <IconButton
+              aria-label="Create playlist from queue"
+              size="small"
+              disabled={songIds.length === 0}
+              onClick={() => setCreatePlaylistOpen(true)}
+            >
+              <QueueMusicRoundedIcon />
             </IconButton>
-          )}
+            {onClose && (
+              <IconButton aria-label="Close play queue" size="small" onClick={onClose}>
+                <CloseIcon />
+              </IconButton>
+            )}
+          </Box>
+        )}
+        <Box sx={{ flex: 1, minHeight: 0, overflowY: "auto", px: mobile ? 1 : 1.5 }}>
+          {tab === "queue" ? <QueueList onClear={onClear} /> : <SuggestedTracks />}
         </Box>
-      )}
-      <Box sx={{ flex: 1, minHeight: 0, overflowY: "auto", px: mobile ? 1 : 1.5 }}>
-        {tab === "queue" ? <QueueList onClear={onClear} /> : <SuggestedTracks />}
       </Box>
-    </Box>
+      <CreatePlaylistDialog
+        open={createPlaylistOpen}
+        onClose={() => setCreatePlaylistOpen(false)}
+        songIds={songIds}
+      />
+    </>
   );
 }
 
 export const QueueList: React.FC<{ onClear?: () => void }> = ({ onClear }) => {
   const dispatch = useAppDispatch();
   const { playingTrack, history, queue } = useAppSelector((state) => state.player);
-  const playingChapter = useAppSelector(
-    (state) => state.player.chapters[state.player.currentChapterIdx ?? -1]
-  );
+  const currentChapterIdx = useAppSelector((state) => state.player.currentChapterIdx);
 
   return (
     <Box sx={{ pb: 3 }}>
@@ -149,15 +169,25 @@ export const QueueList: React.FC<{ onClear?: () => void }> = ({ onClear }) => {
 
       {playingTrack && isVideo(playingTrack) && playingTrack.chapters?.length > 0 && (
         <QueueSection title="In this video">
-          {playingTrack.chapters.map((chapter) => (
+          {playingTrack.chapters.map((chapter, index) => (
             <QueueRow
               key={`chapter_${chapter.time}`}
               track={playingTrack}
-              active={chapter === playingChapter}
+              active={index === currentChapterIdx}
               title={chapter.title}
               artist={chapter.subTitle}
               cover={playingTrack.album?._id}
-              onClick={() => dispatch(videoOnSeek({ position: chapter.time }))}
+              onClick={() => {
+                const nextChapterTime =
+                  playingTrack.chapters[index + 1]?.time ?? playingTrack.duration;
+                dispatch(
+                  setCurrentChapter({
+                    chapterIdx: index,
+                    duration: nextChapterTime - chapter.time
+                  })
+                );
+                dispatch(videoOnSeek({ position: chapter.time }));
+              }}
             />
           ))}
         </QueueSection>
@@ -223,7 +253,17 @@ function QueueRow({ track, title, artist, cover, active, action, onClick }: Queu
   return (
     <>
       <ListItem disablePadding secondaryAction={action}>
-        <ListItemButton onClick={onClick} sx={{ borderRadius: 2, px: 1, py: 0.75 }}>
+        <ListItemButton
+          onClick={onClick}
+          selected={active}
+          aria-current={active ? "true" : undefined}
+          sx={{
+            borderRadius: 2,
+            px: 1,
+            py: 0.75,
+            "&.Mui-selected": { bgcolor: "rgba(255,212,42,.12)" }
+          }}
+        >
           <ListItemAvatar sx={{ minWidth: 66 }}>
             <Avatar
               variant="rounded"

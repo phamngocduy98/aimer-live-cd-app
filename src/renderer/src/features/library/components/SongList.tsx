@@ -53,6 +53,7 @@ export const Songs: React.FC = () => {
           songs={visibleSongs}
           ariaLabel="songs table"
           showQuality={false}
+          showArtwork
           showActions
           showAddToPlaylist
           onPlayFromIndex={(idx) =>

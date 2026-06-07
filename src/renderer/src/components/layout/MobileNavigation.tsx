@@ -4,7 +4,7 @@ import LibraryMusicOutlinedIcon from "@mui/icons-material/LibraryMusicOutlined";
 import MusicNoteOutlinedIcon from "@mui/icons-material/MusicNoteOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import { Box, IconButton } from "@mui/material";
-import { useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 
 const items = [
   { label: "Home", path: "/", icon: HomeOutlinedIcon },
@@ -16,7 +16,6 @@ const items = [
 
 export function MobileNavigation() {
   const location = useLocation();
-  const navigate = useNavigate();
 
   return (
     <Box
@@ -38,9 +37,10 @@ export function MobileNavigation() {
         return (
           <IconButton
             key={label}
+            component={NavLink}
+            to={path}
             aria-label={label}
             aria-current={selected ? "page" : undefined}
-            onClick={() => navigate(path)}
             sx={{
               width: 44,
               height: 44,

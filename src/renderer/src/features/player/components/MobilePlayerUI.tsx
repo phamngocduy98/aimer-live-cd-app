@@ -45,6 +45,7 @@ export const MobilePlayer: React.FC<MobilePlayerProps> = ({ desktopChromeVisible
   const desktop = useMediaQuery(theme.breakpoints.up("sm"));
   const playingTrack = useAppSelector((state) => state.player.playingTrack);
   const queueOpen = useAppSelector((state) => state.playerGui.playingQueue);
+  const showMobilePlayer = useAppSelector((state) => state.playerGui.mobilePlayer);
   const [backgroundColor, setBackgroundColor] = React.useState("#633126");
 
   React.useEffect(() => {
@@ -79,7 +80,7 @@ export const MobilePlayer: React.FC<MobilePlayerProps> = ({ desktopChromeVisible
         <MobileTrackDetails />
       </Box>
 
-      {queueOpen && (
+      {showMobilePlayer && queueOpen && (
         <>
           {!desktop && (
             <Box
@@ -94,7 +95,7 @@ export const MobilePlayer: React.FC<MobilePlayerProps> = ({ desktopChromeVisible
               <QueuePanel mobile />
             </Box>
           )}
-          {desktop && !desktopVideo && (
+          {desktop && (
             <Paper
               sx={{
                 position: "absolute",
@@ -391,6 +392,10 @@ function DesktopVideo() {
 
   if (!videoUrl || !isVideo(playingTrack)) return null;
 
+  const videoWidth = Math.max(playingTrack.videoWidth || 16, 1);
+  const videoHeight = Math.max(playingTrack.videoHeight || 9, 1);
+  const landscape = videoWidth >= videoHeight;
+
   return desktop ? (
     <Box sx={{ position: "absolute", inset: 0 }}>
       <ReactPlayer
@@ -414,17 +419,22 @@ function DesktopVideo() {
   ) : (
     <Box
       sx={{
-        display: "grid",
+        display: "flex",
         position: "absolute",
         top: 86,
         left: 20,
         right: 20,
         bottom: 310,
-        placeItems: "center",
+        alignItems: "center",
+        justifyContent: "center",
         overflow: "hidden",
         "& > div": {
+          width: landscape ? "100% !important" : "auto !important",
+          height: landscape ? "auto !important" : "100% !important",
+          aspectRatio: `${videoWidth} / ${videoHeight}`,
           maxWidth: "100%",
-          maxHeight: "100%"
+          maxHeight: "100%",
+          flex: "0 1 auto"
         },
         "& video, & iframe": {
           width: "100% !important",
@@ -437,13 +447,13 @@ function DesktopVideo() {
     >
       <ReactPlayer
         ref={videoRef}
-        width="100%"
-        height="100%"
+        width={landscape ? "100%" : "auto"}
+        height={landscape ? "auto" : "100%"}
         playing={videoPlaying && showMobilePlayer}
         url={videoUrl}
         loop={videoLoop}
         volume={videoVolume}
-        style={{ maxHeight: "100%", background: "#000" }}
+        style={{ aspectRatio: `${videoWidth} / ${videoHeight}`, background: "#000" }}
         onReady={() => dispatch(videoOnReady())}
         onError={(error) => dispatch(videoOnError({ error: `${error}` }))}
         onBuffer={() => dispatch(videoOnBuffer())}

@@ -7,41 +7,56 @@ import {
   DialogTitle,
   TextField
 } from "@mui/material";
-import { useCreatePlaylist } from "../hooks/usePlaylists";
+import { useAddSongsToPlaylist, useCreatePlaylist } from "../hooks/usePlaylists";
 
 interface CreatePlaylistDialogProps {
   open: boolean;
   onClose: () => void;
+  songIds?: string[];
 }
 
-export const CreatePlaylistDialog: React.FC<CreatePlaylistDialogProps> = ({ open, onClose }) => {
+export const CreatePlaylistDialog: React.FC<CreatePlaylistDialogProps> = ({
+  open,
+  onClose,
+  songIds = []
+}) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const createPlaylist = useCreatePlaylist();
+  const addSongs = useAddSongsToPlaylist();
+  const isPending = createPlaylist.isPending || addSongs.isPending;
 
-  const handleSubmit = () => {
+  const finish = (): void => {
+    setName("");
+    setDescription("");
+    onClose();
+  };
+
+  const handleSubmit = (): void => {
     if (!name.trim()) return;
     createPlaylist.mutate(
       { name: name.trim(), description: description.trim() },
       {
-        onSuccess: () => {
-          setName("");
-          setDescription("");
-          onClose();
+        onSuccess: (playlistId) => {
+          if (songIds.length === 0) {
+            finish();
+            return;
+          }
+          addSongs.mutate({ playlistId, songIds }, { onSuccess: finish });
         }
       }
     );
   };
 
-  const handleClose = () => {
-    if (createPlaylist.isPending) return;
+  const handleClose = (): void => {
+    if (isPending) return;
     setName("");
     setDescription("");
     onClose();
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth sx={{ zIndex: 1800 }}>
       <DialogTitle>Create Playlist</DialogTitle>
       <DialogContent>
         <TextField
@@ -64,14 +79,10 @@ export const CreatePlaylistDialog: React.FC<CreatePlaylistDialogProps> = ({ open
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} disabled={createPlaylist.isPending}>
+        <Button onClick={handleClose} disabled={isPending}>
           Cancel
         </Button>
-        <Button
-          onClick={handleSubmit}
-          variant="contained"
-          disabled={!name.trim() || createPlaylist.isPending}
-        >
+        <Button onClick={handleSubmit} variant="contained" disabled={!name.trim() || isPending}>
           Create
         </Button>
       </DialogActions>
