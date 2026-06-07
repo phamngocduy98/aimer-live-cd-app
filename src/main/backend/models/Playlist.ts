@@ -1,10 +1,15 @@
-import { model, mongo, Schema } from "mongoose";
-import { ISong } from "./Song.js";
+import { model, mongo, Schema, Types } from "mongoose";
+export interface IPlaylistItem {
+  _id?: Types.ObjectId;
+  mediaType: "audio" | "video";
+  mediaId: Types.ObjectId;
+}
 
 export interface IPlaylist {
   name: string;
   description?: string;
-  songs: ISong[];
+  songs: Types.ObjectId[];
+  items: IPlaylistItem[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -21,7 +26,20 @@ export const playlistSchema = new Schema<IPlaylist>(
     songs: {
       type: [mongo.ObjectId],
       ref: "Song"
-    }
+    },
+    items: [
+      {
+        mediaType: {
+          type: String,
+          enum: ["audio", "video"],
+          required: true
+        },
+        mediaId: {
+          type: mongo.ObjectId,
+          required: true
+        }
+      }
+    ]
   },
   { timestamps: true }
 );

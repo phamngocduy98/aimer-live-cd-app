@@ -53,17 +53,13 @@ export function SongActionsMenu({
     ? [
         { label: "Play next" },
         ...extraActions,
-        ...(!isVideo(track)
-          ? [
-              {
-                label: "Add to Playlist",
-                onClick: () => {
-                  onClose();
-                  setAddToPlaylistOpen(true);
-                }
-              }
-            ]
-          : []),
+        {
+          label: "Add to Playlist",
+          onClick: () => {
+            onClose();
+            setAddToPlaylistOpen(true);
+          }
+        },
         { label: "Add to My Collection" },
         { label: isVideo(track) ? "Go to video radio" : "Go to track radio" },
         track.album?._id
@@ -96,7 +92,7 @@ export function SongActionsMenu({
       <AddToPlaylistDialog
         open={addToPlaylistOpen}
         onClose={() => setAddToPlaylistOpen(false)}
-        songIds={track && !isVideo(track) ? [track._id] : []}
+        items={track ? [{ mediaType: isVideo(track) ? "video" : "audio", mediaId: track._id }] : []}
       />
     </>
   );

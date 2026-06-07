@@ -1,5 +1,5 @@
 import { apiClient } from "@lib/axios";
-import type { Playlist, PlaylistDetail } from "../types";
+import type { Playlist, PlaylistDetail, PlaylistItemInput } from "../types";
 
 interface ApiSuccess<T> {
   status: "success";
@@ -37,4 +37,20 @@ export const addSongsToPlaylist = async (playlistId: string, songIds: string[]):
 
 export const removeSongFromPlaylist = async (playlistId: string, songId: string): Promise<void> => {
   await apiClient.delete(`/playlist/${playlistId}/songs/${songId}`);
+};
+
+export const addItemsToPlaylist = async (
+  playlistId: string,
+  items: PlaylistItemInput[],
+  allowDuplicates = false
+): Promise<string> =>
+  (
+    await apiClient.post<ApiSuccess<string>>(`/playlist/${playlistId}/items`, {
+      items,
+      allowDuplicates
+    })
+  ).data.message;
+
+export const removeItemFromPlaylist = async (playlistId: string, itemId: string): Promise<void> => {
+  await apiClient.delete(`/playlist/${playlistId}/items/${itemId}`);
 };

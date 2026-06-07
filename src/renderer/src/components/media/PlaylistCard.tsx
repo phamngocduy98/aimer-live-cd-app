@@ -40,7 +40,7 @@ export const PlaylistCard: React.FC<PlaylistCardProps> = ({ playlist }) => {
         {playlist.name}
       </Typography>
       <Typography fontSize={13} color="#a7a7a7">
-        {playlist.songCount} songs
+        {playlist.itemCount} items
       </Typography>
       {playlist.description && (
         <Typography noWrap textOverflow="ellipsis" fontSize={12} color="#858585" sx={{ mt: 0.25 }}>

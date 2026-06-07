@@ -15,19 +15,7 @@ import { VolumeController } from "./VolumeController";
 import { nextTrack } from "../store/playerSlice";
 import type { Song, Video } from "@features/library";
 import { SongBitDepth, VideoBitDepth } from "./SongBitDepth";
-import ReactPlayer from "react-player";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
-import {
-  loadVideo,
-  loopVideo,
-  stopVideo,
-  videoOnBuffer,
-  videoOnBufferEnd,
-  videoOnError,
-  videoOnReady,
-  videoOnSeek
-} from "../store/playerVideoControl";
-import { onVideoPostion } from "../thunks/onVideoPosition";
 import { FavoriteButton } from "./FavoriteButton";
 import { SongActionsMenu } from "@components/media/MediaActionsMenu";
 
@@ -37,13 +25,11 @@ function SlideTransition(props: SlideProps) {
 
 export function MPlayerUI() {
   const timeoutRef = React.useRef<any>();
-  const videoRef = React.useRef<ReactPlayer | null>(null);
   const dispatch = useAppDispatch();
-  const { playingTrack, repeat } = useAppSelector((state) => state.player);
-  const { videoVolume, videoUrl, videoPlaying, videoLoop, videoSeekPosition, videoPosition } =
-    useAppSelector((state) => state.playerVideoControl);
+  const { playingTrack } = useAppSelector((state) => state.player);
+  const { videoUrl } = useAppSelector((state) => state.playerVideoControl);
   const showMobilePlayer = useAppSelector((state) => state.playerGui.mobilePlayer);
-  const { load, stop, loop, volume, src, error, playing } = useGlobalAudioPlayer();
+  const { error } = useGlobalAudioPlayer();
   const [actionsAnchor, setActionsAnchor] = React.useState<HTMLElement | null>(null);
 
   React.useEffect(() => {
@@ -55,59 +41,6 @@ export function MPlayerUI() {
       }, 5000);
     }
   }, [error]);
-
-  React.useEffect(() => {
-    if (videoSeekPosition != null) {
-      console.log("User seek to", videoSeekPosition);
-      videoRef.current?.seekTo(videoSeekPosition, "seconds");
-      dispatch(videoOnSeek({ position: null }));
-    }
-  }, [videoSeekPosition]);
-
-  React.useEffect(() => {
-    if (!showMobilePlayer) {
-      videoRef.current?.seekTo(videoPosition);
-      console.log("seek to ", videoPosition);
-    }
-  }, [showMobilePlayer]);
-
-  React.useEffect(() => {
-    if (playingTrack == null) {
-      if (playing) stop();
-      if (videoPlaying) dispatch(stopVideo());
-      return;
-    }
-
-    let newSrc = apiAssetUrl(`/stream/${playingTrack.type}/${playingTrack._id}`);
-    // support youtubeUrl
-    if ((playingTrack as Video).youtubeUrl != null) {
-      newSrc = (playingTrack as Video).youtubeUrl!;
-    }
-
-    if (newSrc === src || newSrc === videoUrl) {
-      if (playingTrack.type == "audio") {
-        loop(repeat === 2);
-      } else {
-        dispatch(loopVideo({ loopOnOff: repeat === 2 }));
-      }
-      return;
-    }
-
-    if (playingTrack.type == "audio") {
-      load(newSrc, {
-        autoplay: true,
-        html5: true, // playingTrack.size > 3 * 1024 * 1024
-        initialVolume: volume,
-        format: playingTrack.fileExtension,
-        loop: repeat === 2,
-        onend: () => {
-          dispatch(nextTrack());
-        }
-      });
-    } else {
-      dispatch(loadVideo({ url: newSrc }));
-    }
-  }, [playingTrack, volume, repeat, videoUrl]);
 
   if (playingTrack == null) return null;
   return (
@@ -152,11 +85,12 @@ export function MPlayerUI() {
             display: { xs: showMobilePlayer ? "none" : "flex", sm: "flex" },
             alignItems: "center",
             minWidth: 0,
-            flexBasis: { sm: "34%" },
-            maxWidth: { sm: "34%" }
+            flex: { xs: "1 1 auto", sm: "1 1 34%" },
+            maxWidth: { sm: "34%" },
+            overflow: "hidden"
           }}
         >
-          <AlbumImage>
+          <AlbumImage hideArtworkBelow="md">
             {playingTrack.type === "audio" ? (
               <Avatar
                 sx={{
@@ -170,46 +104,32 @@ export function MPlayerUI() {
                 <MusicNoteIcon />
               </Avatar>
             ) : videoUrl ? (
-              <ReactPlayer
-                ref={videoRef}
-                height={"64px"}
-                width={"112px"}
-                config={{
-                  youtube: {
-                    embedOptions: {
-                      width: "100%",
-                      height: "100%"
-                    },
-                    playerVars: {
-                      autoplay: 1
-                    }
-                  }
+              <Box
+                data-video-player-anchor
+                sx={{
+                  width: { xs: 56, sm: 112 },
+                  height: { xs: 52, sm: 64 },
+                  flexShrink: 0,
+                  borderRadius: "7px",
+                  overflow: "hidden"
                 }}
-                playing={videoPlaying && !showMobilePlayer}
-                url={videoUrl}
-                loop={videoLoop}
-                volume={videoVolume}
-                onReady={() => dispatch(videoOnReady())}
-                onError={(e) => dispatch(videoOnError({ error: `${e}` }))}
-                onBuffer={() => dispatch(videoOnBuffer())}
-                onBufferEnd={() => dispatch(videoOnBufferEnd())}
-                onProgress={(state) => dispatch(onVideoPostion(state.playedSeconds))}
-                onEnded={() => dispatch(nextTrack())}
               />
             ) : (
               <div>No video</div>
             )}
           </AlbumImage>
-          <FavoriteButton size={22} />
-          <IconButton
-            aria-label="Player track actions"
-            onClick={(event) => {
-              event.stopPropagation();
-              setActionsAnchor(event.currentTarget);
-            }}
-          >
-            <MoreHorizIcon />
-          </IconButton>
+          <Box sx={{ display: { xs: "none", sm: "flex" }, flexShrink: 0 }}>
+            <FavoriteButton size={22} />
+            <IconButton
+              aria-label="Player track actions"
+              onClick={(event) => {
+                event.stopPropagation();
+                setActionsAnchor(event.currentTarget);
+              }}
+            >
+              <MoreHorizIcon />
+            </IconButton>
+          </Box>
         </Grid>
 
         <Grid
@@ -219,9 +139,9 @@ export function MPlayerUI() {
           flexDirection="column"
           justifyContent="center"
           sx={{
-            flexBasis: { sm: "38%" },
+            flex: { xs: "0 0 auto", sm: "1 1 38%" },
             maxWidth: { sm: "38%" },
-            minWidth: { xs: 88, sm: 0 }
+            minWidth: { xs: 88, sm: 150 }
           }}
         >
           <ControlButton />

@@ -71,7 +71,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <Drawer
       sx={{
-        display: { xs: "none", md: "block" },
+        display: { xs: "none", sm: "block" },
         width: drawerWidth,
         flexShrink: 0,
         "& .MuiDrawer-paper": {
@@ -216,7 +216,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       {playlist.name}
                     </Typography>
                     <Typography color="text.secondary" fontSize={11}>
-                      {playlist.songCount} items
+                      {playlist.itemCount} items
                     </Typography>
                   </Box>
                 )}

@@ -8,26 +8,40 @@ import {
   List,
   ListItemButton,
   ListItemText,
-  Typography
+  Typography,
+  DialogContentText
 } from "@mui/material";
-import { useAddSongsToPlaylist, usePlaylists } from "../hooks/usePlaylists";
+import { useAddItemsToPlaylist, usePlaylists } from "../hooks/usePlaylists";
+import type { PlaylistItemInput } from "../types";
 
 interface AddToPlaylistDialogProps {
   open: boolean;
   onClose: () => void;
-  songIds: string[];
+  songIds?: string[];
+  items?: PlaylistItemInput[];
 }
 
 export const AddToPlaylistDialog: React.FC<AddToPlaylistDialogProps> = ({
   open,
   onClose,
-  songIds
+  songIds = [],
+  items
 }) => {
   const { data: playlists = [], isLoading } = usePlaylists();
-  const addSongs = useAddSongsToPlaylist();
+  const addItems = useAddItemsToPlaylist();
+  const [duplicatePlaylistId, setDuplicatePlaylistId] = React.useState<string | null>(null);
+  const mediaItems = items ?? songIds.map((mediaId) => ({ mediaType: "audio" as const, mediaId }));
 
-  const handleAdd = (playlistId: string) => {
-    addSongs.mutate({ playlistId, songIds }, { onSuccess: onClose });
+  const handleAdd = (playlistId: string, allowDuplicates = false) => {
+    addItems.mutate(
+      { playlistId, items: mediaItems, allowDuplicates },
+      {
+        onSuccess: onClose,
+        onError: (error: any) => {
+          if (error?.response?.status === 409) setDuplicatePlaylistId(playlistId);
+        }
+      }
+    );
   };
 
   return (
@@ -42,7 +56,7 @@ export const AddToPlaylistDialog: React.FC<AddToPlaylistDialogProps> = ({
           <List dense>
             {playlists.map((pl) => (
               <ListItemButton key={pl._id} onClick={() => handleAdd(pl._id)}>
-                <ListItemText primary={pl.name} secondary={`${pl.songCount} songs`} />
+                <ListItemText primary={pl.name} secondary={`${pl.itemCount} items`} />
               </ListItemButton>
             ))}
           </List>
@@ -51,6 +65,26 @@ export const AddToPlaylistDialog: React.FC<AddToPlaylistDialogProps> = ({
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
       </DialogActions>
+      <Dialog open={Boolean(duplicatePlaylistId)} onClose={() => setDuplicatePlaylistId(null)}>
+        <DialogTitle>Add duplicate items?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            One or more selected items already exist in this playlist. Add another occurrence?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDuplicatePlaylistId(null)}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={() => {
+              if (duplicatePlaylistId) handleAdd(duplicatePlaylistId, true);
+              setDuplicatePlaylistId(null);
+            }}
+          >
+            Add duplicates
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Dialog>
   );
 };

@@ -16,6 +16,7 @@ const collapsedDrawerWidth = 76;
 export function AppShell() {
   const theme = useTheme();
   const desktopUp = useMediaQuery(theme.breakpoints.up("lg"));
+  const mediumUp = useMediaQuery(theme.breakpoints.up("md"));
   const location = useLocation();
   const navigate = useNavigate();
   const isHome = location.pathname === "/";
@@ -46,8 +47,8 @@ export function AppShell() {
     };
 
   React.useEffect(() => {
-    setIsSidebarCollapsed(!desktopUp);
-  }, [desktopUp]);
+    setIsSidebarCollapsed(!desktopUp || !mediumUp);
+  }, [desktopUp, mediumUp]);
 
   const drawerWidth = isSidebarCollapsed ? collapsedDrawerWidth : expandedDrawerWidth;
 

@@ -28,6 +28,8 @@ import {
   type ExtraMediaAction,
   SongActionsMenu
 } from "./MediaActionsMenu";
+import type { PlaySource } from "@features/player/types";
+import { isCurrentSourceItem, sourceItemKey } from "@features/player/types";
 
 interface SongTableProps {
   songs: Song[];
@@ -43,6 +45,7 @@ interface SongTableProps {
   mobileEmphasis?: boolean;
   mobileSubtitle?: "artist" | "album";
   getExtraActions?: (song: Song) => ExtraMediaAction[];
+  playSource?: PlaySource;
 }
 
 export const SongTable: React.FC<SongTableProps> = ({
@@ -58,10 +61,11 @@ export const SongTable: React.FC<SongTableProps> = ({
   showArtwork = false,
   mobileEmphasis = false,
   mobileSubtitle = "artist",
-  getExtraActions
+  getExtraActions,
+  playSource
 }) => {
   const navigate = useNavigate();
-  const { playingTrack } = useAppSelector((state) => state.player);
+  const { playingTrack, currentEntry } = useAppSelector((state) => state.player);
   const [contextSong, setContextSong] = React.useState<Song | null>(null);
   const [playlistSong, setPlaylistSong] = React.useState<Song | null>(null);
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
@@ -101,7 +105,10 @@ export const SongTable: React.FC<SongTableProps> = ({
         </TableHead>
         <TableBody>
           {songs.map((song, index) => {
-            const isPlaying = song._id === playingTrack?._id;
+            const itemKey = playSource ? sourceItemKey(playSource, song, index) : undefined;
+            const isPlaying = playSource
+              ? isCurrentSourceItem(currentEntry, playSource, song, itemKey)
+              : song._id === playingTrack?._id;
             const mobileText =
               mobileSubtitle === "album"
                 ? (song.album?.title ?? "Unknown")

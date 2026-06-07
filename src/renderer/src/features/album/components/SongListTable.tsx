@@ -1,12 +1,18 @@
 import { Fragment } from "react";
 
-import { reset } from "@features/player/store/playerSlice";
+import { playContext } from "@features/player/store/playerSlice";
 import type { AlbumDetail } from "../types";
 import { useAppDispatch } from "@app/hooks";
 import { SongTable } from "@components/media/SongTable";
 
 export const SongListTable: React.FC<{ album: AlbumDetail }> = ({ album }) => {
   const dispatch = useAppDispatch();
+  const playSource = {
+    type: "album" as const,
+    id: album._id,
+    label: album.title,
+    route: `/album/${album._id}`
+  };
 
   return (
     <Fragment>
@@ -18,14 +24,9 @@ export const SongListTable: React.FC<{ album: AlbumDetail }> = ({ album }) => {
         showQuality={false}
         showActions
         mobileEmphasis
+        playSource={playSource}
         onPlayFromIndex={(idx) =>
-          dispatch(
-            reset({
-              songs: album.trackList.slice(idx),
-              history: album.trackList.slice(0, idx),
-              type: "audio"
-            })
-          )
+          dispatch(playContext({ items: album.trackList, playFrom: playSource, startIndex: idx }))
         }
       />
     </Fragment>

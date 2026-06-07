@@ -145,7 +145,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           backdropFilter: "blur(18px)",
           width: {
             xs: "100%",
-            md: `calc(100% - ${drawerWidth}px)`
+            sm: `calc(100% - ${drawerWidth}px)`
           },
           transition: "width 220ms ease"
         }}
@@ -162,7 +162,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             {isHome ? (
               <Typography
                 sx={{
-                  display: { xs: "block", md: "none" },
+                  display: { xs: "block", sm: "none" },
                   fontWeight: 900,
                   letterSpacing: "-.03em"
                 }}

@@ -12,7 +12,7 @@ import { VideoCard } from "@components/media/VideoCard";
 import { SectionHeader } from "@components/view/SectionHeader";
 import { PageScaffold } from "@components/view/PageScaffold";
 import { useAppDispatch } from "@app/hooks";
-import { reset } from "@features/player/store/playerSlice";
+import { playContext } from "@features/player/store/playerSlice";
 import { useSearch } from "../hooks/useSearch";
 
 export const SearchResults: React.FC = () => {
@@ -20,6 +20,12 @@ export const SearchResults: React.FC = () => {
   const dispatch = useAppDispatch();
   const q = searchParams.get("q") ?? "";
   const { data: result, isLoading: loading } = useSearch(q);
+  const playSource = {
+    type: "search" as const,
+    id: q,
+    label: `Search: ${q}`,
+    route: `/search?q=${encodeURIComponent(q)}`
+  };
 
   return (
     <PageScaffold background="linear-gradient(180deg, #171b1b 0%, #000 430px)">
@@ -68,8 +74,9 @@ export const SearchResults: React.FC = () => {
           <SongTable
             songs={result.songs}
             ariaLabel="search songs table"
+            playSource={playSource}
             onPlayFromIndex={(idx) =>
-              dispatch(reset({ songs: [result.songs[idx]], history: [], type: "audio" }))
+              dispatch(playContext({ items: result.songs, playFrom: playSource, startIndex: idx }))
             }
           />
         </ResultSection>
@@ -94,7 +101,11 @@ export const SearchResults: React.FC = () => {
               <Grid key={video._id} item xs={6} sm={4} md={3} lg={2}>
                 <VideoCard
                   video={video}
-                  onClick={() => dispatch(reset({ songs: [result.videos[idx]], type: "video" }))}
+                  onClick={() =>
+                    dispatch(
+                      playContext({ items: result.videos, playFrom: playSource, startIndex: idx })
+                    )
+                  }
                 />
               </Grid>
             ))}

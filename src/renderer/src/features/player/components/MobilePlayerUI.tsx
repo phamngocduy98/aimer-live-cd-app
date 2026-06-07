@@ -14,26 +14,17 @@ import {
   useTheme
 } from "@mui/material";
 import React from "react";
-import ReactPlayer from "react-player";
 import { apiAssetUrl } from "@lib/axios";
 import { router } from "@app/router";
 import { useAppDispatch, useAppSelector } from "@app/hooks";
 import { hideView } from "../store/playerGuiSlice";
-import { nextTrack } from "../store/playerSlice";
 import { reset } from "../store/playerSlice";
-import {
-  videoOnBuffer,
-  videoOnBufferEnd,
-  videoOnError,
-  videoOnReady,
-  videoOnSeek
-} from "../store/playerVideoControl";
-import { onVideoPostion } from "../thunks/onVideoPosition";
 import { QueuePanel } from "./FloatingQueueList";
 import { isVideo } from "@features/library";
 import { artistPath, getPrimaryArtist } from "@utils/artist";
 import { useArtist } from "@features/artist/hooks/useArtist";
 import { FavoriteButton } from "./FavoriteButton";
+import { useAlbumBackgroundColor } from "../utils/albumBackground";
 
 interface MobilePlayerProps {
   desktopChromeVisible?: boolean;
@@ -46,16 +37,7 @@ export const MobilePlayer: React.FC<MobilePlayerProps> = ({ desktopChromeVisible
   const playingTrack = useAppSelector((state) => state.player.playingTrack);
   const queueOpen = useAppSelector((state) => state.playerGui.playingQueue);
   const showMobilePlayer = useAppSelector((state) => state.playerGui.mobilePlayer);
-  const [backgroundColor, setBackgroundColor] = React.useState("#633126");
-
-  React.useEffect(() => {
-    const albumId = playingTrack?.album?._id;
-    if (!albumId) {
-      setBackgroundColor("#633126");
-      return;
-    }
-    getAlbumBackgroundColor(apiAssetUrl(`/album/${albumId}/cover`)).then(setBackgroundColor);
-  }, [playingTrack?.album?._id]);
+  const backgroundColor = useAlbumBackgroundColor(playingTrack?.album?._id);
 
   const desktopVideo = isVideo(playingTrack);
 
@@ -66,7 +48,7 @@ export const MobilePlayer: React.FC<MobilePlayerProps> = ({ desktopChromeVisible
         position: "relative",
         width: "100dvw",
         height: "100dvh",
-        bgcolor: { xs: backgroundColor, sm: desktopVideo ? "#000" : backgroundColor },
+        bgcolor: desktopVideo ? "transparent" : backgroundColor,
         color: "#fff",
         overflow: "hidden",
         userSelect: "none"
@@ -203,6 +185,8 @@ function PlayerHeader({
 
 function ArtistIdentity() {
   const dispatch = useAppDispatch();
+  const theme = useTheme();
+  const desktop = useMediaQuery(theme.breakpoints.up("sm"));
   const playingTrack = useAppSelector((state) => state.player.playingTrack);
   const artist = getPrimaryArtist(playingTrack?.artist);
   const { data } = useArtist(artist);
@@ -211,10 +195,12 @@ function ArtistIdentity() {
   const closeTimer = React.useRef<ReturnType<typeof setTimeout>>();
 
   const open = (target: HTMLElement) => {
+    if (!desktop) return;
     if (closeTimer.current) clearTimeout(closeTimer.current);
     setAnchor(target);
   };
   const scheduleClose = () => {
+    if (!desktop) return;
     closeTimer.current = setTimeout(() => setAnchor(null), 120);
   };
   const openArtist = () => {
@@ -259,51 +245,53 @@ function ArtistIdentity() {
           {artist}
         </Typography>
       </Box>
-      <Popper
-        open={Boolean(anchor)}
-        anchorEl={anchor}
-        placement="bottom-start"
-        sx={{ zIndex: 1600 }}
-      >
-        <Paper
-          onMouseEnter={() => anchor && open(anchor)}
-          onMouseLeave={scheduleClose}
-          sx={{
-            mt: 1,
-            width: 420,
-            maxWidth: "calc(100dvw - 32px)",
-            p: 3,
-            borderRadius: "20px",
-            bgcolor: "#151515",
-            backgroundImage: "none",
-            boxShadow: "0 24px 70px rgba(0,0,0,.5)"
-          }}
+      {desktop && (
+        <Popper
+          open={Boolean(anchor)}
+          anchorEl={anchor}
+          placement="bottom-start"
+          sx={{ zIndex: 1600 }}
         >
-          <Typography sx={{ fontSize: 20, fontWeight: 850 }}>{artist}</Typography>
-          <Typography sx={{ mt: 0.75, color: "text.secondary", lineHeight: 1.55 }}>
-            Explore {artist} through {data?.songs.length ?? 0} tracks and {data?.albums.length ?? 0}{" "}
-            releases saved in your library.
-          </Typography>
-          <Box sx={{ display: "flex", gap: 1.25, mt: 2.25 }}>
-            <Button
-              variant="contained"
-              onClick={(event) => {
-                event.stopPropagation();
-                setFollowing((value) => !value);
-              }}
-              sx={{ borderRadius: "999px", bgcolor: "#2b2b2b", color: "#fff" }}
-            >
-              {following ? "Following" : "Follow"}
-            </Button>
-            <Button
-              onClick={openArtist}
-              sx={{ borderRadius: "999px", bgcolor: "#2b2b2b", color: "#fff" }}
-            >
-              Read more
-            </Button>
-          </Box>
-        </Paper>
-      </Popper>
+          <Paper
+            onMouseEnter={() => anchor && open(anchor)}
+            onMouseLeave={scheduleClose}
+            sx={{
+              mt: 1,
+              width: 420,
+              maxWidth: "calc(100dvw - 32px)",
+              p: 3,
+              borderRadius: "20px",
+              bgcolor: "#151515",
+              backgroundImage: "none",
+              boxShadow: "0 24px 70px rgba(0,0,0,.5)"
+            }}
+          >
+            <Typography sx={{ fontSize: 20, fontWeight: 850 }}>{artist}</Typography>
+            <Typography sx={{ mt: 0.75, color: "text.secondary", lineHeight: 1.55 }}>
+              Explore {artist} through {data?.songs.length ?? 0} tracks and{" "}
+              {data?.albums.length ?? 0} releases saved in your library.
+            </Typography>
+            <Box sx={{ display: "flex", gap: 1.25, mt: 2.25 }}>
+              <Button
+                variant="contained"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setFollowing((value) => !value);
+                }}
+                sx={{ borderRadius: "999px", bgcolor: "#2b2b2b", color: "#fff" }}
+              >
+                {following ? "Following" : "Follow"}
+              </Button>
+              <Button
+                onClick={openArtist}
+                sx={{ borderRadius: "999px", bgcolor: "#2b2b2b", color: "#fff" }}
+              >
+                Read more
+              </Button>
+            </Box>
+          </Paper>
+        </Popper>
+      )}
     </>
   );
 }
@@ -370,99 +358,9 @@ function MobileTrackDetails() {
 }
 
 function DesktopVideo() {
-  const theme = useTheme();
-  const desktop = useMediaQuery(theme.breakpoints.up("sm"));
-  const videoRef = React.useRef<ReactPlayer | null>(null);
-  const dispatch = useAppDispatch();
-  const showMobilePlayer = useAppSelector((state) => state.playerGui.mobilePlayer);
   const playingTrack = useAppSelector((state) => state.player.playingTrack);
-  const { videoVolume, videoUrl, videoPlaying, videoLoop, videoSeekPosition, videoPosition } =
-    useAppSelector((state) => state.playerVideoControl);
-
-  React.useEffect(() => {
-    if (showMobilePlayer) videoRef.current?.seekTo(videoPosition);
-  }, [showMobilePlayer]);
-
-  React.useEffect(() => {
-    if (videoSeekPosition != null) {
-      videoRef.current?.seekTo(videoSeekPosition, "seconds");
-      dispatch(videoOnSeek({ position: null }));
-    }
-  }, [videoSeekPosition]);
-
-  if (!videoUrl || !isVideo(playingTrack)) return null;
-
-  const videoWidth = Math.max(playingTrack.videoWidth || 16, 1);
-  const videoHeight = Math.max(playingTrack.videoHeight || 9, 1);
-  const landscape = videoWidth >= videoHeight;
-
-  return desktop ? (
-    <Box sx={{ position: "absolute", inset: 0 }}>
-      <ReactPlayer
-        ref={videoRef}
-        width="100%"
-        height="100%"
-        playing={videoPlaying && showMobilePlayer}
-        url={videoUrl}
-        loop={videoLoop}
-        volume={videoVolume}
-        style={{ background: "#000" }}
-        config={{ youtube: { playerVars: { controls: 0 } } }}
-        onReady={() => dispatch(videoOnReady())}
-        onError={(error) => dispatch(videoOnError({ error: `${error}` }))}
-        onBuffer={() => dispatch(videoOnBuffer())}
-        onBufferEnd={() => dispatch(videoOnBufferEnd())}
-        onProgress={(state) => dispatch(onVideoPostion(state.playedSeconds))}
-        onEnded={() => dispatch(nextTrack())}
-      />
-    </Box>
-  ) : (
-    <Box
-      sx={{
-        display: "flex",
-        position: "absolute",
-        top: 86,
-        left: 20,
-        right: 20,
-        bottom: 310,
-        alignItems: "center",
-        justifyContent: "center",
-        overflow: "hidden",
-        "& > div": {
-          width: landscape ? "100% !important" : "auto !important",
-          height: landscape ? "auto !important" : "100% !important",
-          aspectRatio: `${videoWidth} / ${videoHeight}`,
-          maxWidth: "100%",
-          maxHeight: "100%",
-          flex: "0 1 auto"
-        },
-        "& video, & iframe": {
-          width: "100% !important",
-          height: "100% !important",
-          maxWidth: "100%",
-          maxHeight: "100%",
-          objectFit: "contain"
-        }
-      }}
-    >
-      <ReactPlayer
-        ref={videoRef}
-        width={landscape ? "100%" : "auto"}
-        height={landscape ? "auto" : "100%"}
-        playing={videoPlaying && showMobilePlayer}
-        url={videoUrl}
-        loop={videoLoop}
-        volume={videoVolume}
-        style={{ aspectRatio: `${videoWidth} / ${videoHeight}`, background: "#000" }}
-        onReady={() => dispatch(videoOnReady())}
-        onError={(error) => dispatch(videoOnError({ error: `${error}` }))}
-        onBuffer={() => dispatch(videoOnBuffer())}
-        onBufferEnd={() => dispatch(videoOnBufferEnd())}
-        onProgress={(state) => dispatch(onVideoPostion(state.playedSeconds))}
-        onEnded={() => dispatch(nextTrack())}
-      />
-    </Box>
-  );
+  if (!isVideo(playingTrack)) return null;
+  return <Box aria-label="Video playback surface" sx={{ position: "absolute", inset: 0 }} />;
 }
 
 function InteractiveAlbumArtwork({ src, queueOpen }: { src: string; queueOpen: boolean }) {
@@ -552,71 +450,4 @@ function HeaderPill({ children }: React.PropsWithChildren) {
       {children}
     </Box>
   );
-}
-
-const PLAYER_BACKGROUND_PALETTE = [
-  "#96391f",
-  "#7f292d",
-  "#71375f",
-  "#4d3f78",
-  "#315a72",
-  "#24605d",
-  "#3f6438",
-  "#75502d"
-] as const;
-
-async function getAlbumBackgroundColor(imageUrl: string): Promise<string> {
-  return new Promise((resolve) => {
-    const image = new Image();
-    image.crossOrigin = "anonymous";
-    image.src = imageUrl;
-    image.onload = () => {
-      try {
-        const canvas = document.createElement("canvas");
-        const context = canvas.getContext("2d");
-        if (!context) return resolve(PLAYER_BACKGROUND_PALETTE[0]);
-        canvas.width = 24;
-        canvas.height = 24;
-        context.drawImage(image, 0, 0, 24, 24);
-        const pixels = context.getImageData(0, 0, 24, 24).data;
-        let best = { r: 150, g: 57, b: 31, score: -1 };
-
-        for (let index = 0; index < pixels.length; index += 4) {
-          const r = pixels[index];
-          const g = pixels[index + 1];
-          const b = pixels[index + 2];
-          const max = Math.max(r, g, b);
-          const min = Math.min(r, g, b);
-          const saturation = max === 0 ? 0 : (max - min) / max;
-          const brightness = max / 255;
-          const score = saturation * 1.6 + brightness * 0.35;
-          if (saturation > 0.28 && brightness > 0.18 && score > best.score) {
-            best = { r, g, b, score };
-          }
-        }
-
-        resolve(
-          PLAYER_BACKGROUND_PALETTE.reduce(
-            (closest, color) => {
-              const [r, g, b] = hexToRgb(color);
-              const distance = Math.hypot(best.r - r, best.g - g, best.b - b);
-              return distance < closest.distance ? { color, distance } : closest;
-            },
-            { color: PLAYER_BACKGROUND_PALETTE[0] as string, distance: Number.POSITIVE_INFINITY }
-          ).color
-        );
-      } catch {
-        resolve(PLAYER_BACKGROUND_PALETTE[0]);
-      }
-    };
-    image.onerror = () => resolve(PLAYER_BACKGROUND_PALETTE[0]);
-  });
-}
-
-function hexToRgb(color: string): [number, number, number] {
-  return [
-    Number.parseInt(color.slice(1, 3), 16),
-    Number.parseInt(color.slice(3, 5), 16),
-    Number.parseInt(color.slice(5, 7), 16)
-  ];
 }

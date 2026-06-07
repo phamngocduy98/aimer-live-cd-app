@@ -1,7 +1,7 @@
 import { Box, Grid } from "@mui/material";
 import type { AlbumDetail } from "../types";
 import { useAppDispatch } from "@app/hooks";
-import { reset } from "@features/player/store/playerSlice";
+import { playContext } from "@features/player/store/playerSlice";
 import { VideoCard } from "@components/media/VideoCard";
 import { SectionHeader } from "@components/view/SectionHeader";
 
@@ -9,6 +9,12 @@ export const VideoList: React.FC<{ album: AlbumDetail }> = ({ album }) => {
   const dispatch = useAppDispatch();
 
   if (album.videoList.length === 0) return null;
+  const playSource = {
+    type: "album" as const,
+    id: album._id,
+    label: album.title,
+    route: `/album/${album._id}`
+  };
 
   return (
     <Box sx={{ maxWidth: 1180, mx: "auto", px: { xs: 2.5, sm: 4, lg: 6 }, py: 5 }}>
@@ -20,10 +26,10 @@ export const VideoList: React.FC<{ album: AlbumDetail }> = ({ album }) => {
               video={vid}
               onClick={() =>
                 dispatch(
-                  reset({
-                    songs: album.videoList.slice(idx),
-                    history: album.videoList.slice(0, idx),
-                    type: "video"
+                  playContext({
+                    items: album.videoList,
+                    playFrom: playSource,
+                    startIndex: idx
                   })
                 )
               }

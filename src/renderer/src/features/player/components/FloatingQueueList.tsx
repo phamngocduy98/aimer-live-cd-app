@@ -26,6 +26,7 @@ import type { Song, Video } from "@features/library";
 import { videoOnSeek } from "../store/playerVideoControl";
 import { SongActionsMenu } from "@components/media/MediaActionsMenu";
 import { CreatePlaylistDialog } from "@features/playlist";
+import { router } from "@app/router";
 
 export const FloatingQueueList = () => {
   const { playingQueue, mobilePlayer } = useAppSelector((state) => state.playerGui);
@@ -77,11 +78,21 @@ export function QueuePanel({ onClose, onClear, mobile = false }: QueuePanelProps
   const [tab, setTab] = React.useState<"queue" | "suggested">("queue");
   const [createPlaylistOpen, setCreatePlaylistOpen] = React.useState(false);
   const { playingTrack, queue } = useAppSelector((state) => state.player);
-  const songIds = React.useMemo(
-    () =>
-      [playingTrack, ...queue]
-        .filter((track): track is Song => Boolean(track && !isVideo(track)))
-        .map((track) => track._id),
+  const playlistItems = React.useMemo(
+    () => [
+      ...(playingTrack
+        ? [
+            {
+              mediaType: isVideo(playingTrack) ? ("video" as const) : ("audio" as const),
+              mediaId: playingTrack._id
+            }
+          ]
+        : []),
+      ...queue.map((entry) => ({
+        mediaType: isVideo(entry.media) ? ("video" as const) : ("audio" as const),
+        mediaId: entry.media._id
+      }))
+    ],
     [playingTrack, queue]
   );
 
@@ -105,7 +116,7 @@ export function QueuePanel({ onClose, onClear, mobile = false }: QueuePanelProps
             <IconButton
               aria-label="Create playlist from queue"
               size="small"
-              disabled={songIds.length === 0}
+              disabled={playlistItems.length === 0}
               onClick={() => setCreatePlaylistOpen(true)}
             >
               <QueueMusicRoundedIcon />
@@ -124,7 +135,7 @@ export function QueuePanel({ onClose, onClear, mobile = false }: QueuePanelProps
       <CreatePlaylistDialog
         open={createPlaylistOpen}
         onClose={() => setCreatePlaylistOpen(false)}
-        songIds={songIds}
+        items={playlistItems}
       />
     </>
   );
@@ -132,20 +143,22 @@ export function QueuePanel({ onClose, onClear, mobile = false }: QueuePanelProps
 
 export const QueueList: React.FC<{ onClear?: () => void }> = ({ onClear }) => {
   const dispatch = useAppDispatch();
-  const { playingTrack, history, queue } = useAppSelector((state) => state.player);
+  const { playingTrack, currentEntry, history, queue } = useAppSelector((state) => state.player);
   const currentChapterIdx = useAppSelector((state) => state.player.currentChapterIdx);
 
   return (
     <Box sx={{ pb: 3 }}>
       {history.length > 0 && (
         <QueueSection title="History">
-          {history.map((song, idx) => (
+          {history.map((entry, idx) => (
             <QueueRow
-              key={`history_${song._id}_${idx}`}
-              track={song}
-              title={song.title}
-              artist={song.artist.join(", ")}
-              cover={song.album?._id}
+              key={entry.queueEntryId}
+              track={entry.media}
+              title={entry.media.title}
+              artist={entry.media.artist.join(", ")}
+              cover={entry.media.album?._id}
+              playFromLabel={entry.playFrom.label}
+              onPlayFrom={() => router.navigate(entry.playFrom.route)}
               onClick={() => dispatch(prevTrack({ skip: history.length - idx - 1 }))}
             />
           ))}
@@ -163,6 +176,8 @@ export const QueueList: React.FC<{ onClear?: () => void }> = ({ onClear }) => {
             title={playingTrack.title}
             artist={playingTrack.artist.join(", ")}
             cover={playingTrack.album?._id}
+            playFromLabel={currentEntry?.playFrom.label}
+            onPlayFrom={() => currentEntry && router.navigate(currentEntry.playFrom.route)}
           />
         </QueueSection>
       )}
@@ -195,20 +210,22 @@ export const QueueList: React.FC<{ onClear?: () => void }> = ({ onClear }) => {
 
       {queue.length > 0 && (
         <QueueSection title="Next Up from: Mix">
-          {queue.map((song, idx) => (
+          {queue.map((entry, idx) => (
             <QueueRow
-              key={`queue_${song._id}_${idx}`}
-              track={song}
-              title={song.title}
-              artist={song.artist.join(", ")}
-              cover={song.album?._id}
+              key={entry.queueEntryId}
+              track={entry.media}
+              title={entry.media.title}
+              artist={entry.media.artist.join(", ")}
+              cover={entry.media.album?._id}
+              playFromLabel={entry.playFrom.label}
+              onPlayFrom={() => router.navigate(entry.playFrom.route)}
               onClick={() => dispatch(nextTrack({ skip: idx }))}
               action={
                 <IconButton
-                  aria-label={`Remove ${song.title} from queue`}
+                  aria-label={`Remove ${entry.media.title} from queue`}
                   onClick={(event) => {
                     event.stopPropagation();
-                    dispatch(deleteTrack({ songId: song._id }));
+                    dispatch(deleteTrack({ queueEntryId: entry.queueEntryId }));
                   }}
                 >
                   <CloseIcon />
@@ -246,9 +263,21 @@ interface QueueRowProps {
   active?: boolean;
   action?: React.ReactNode;
   onClick?: () => void;
+  playFromLabel?: string;
+  onPlayFrom?: () => void;
 }
 
-function QueueRow({ track, title, artist, cover, active, action, onClick }: QueueRowProps) {
+function QueueRow({
+  track,
+  title,
+  artist,
+  cover,
+  active,
+  action,
+  onClick,
+  playFromLabel,
+  onPlayFrom
+}: QueueRowProps) {
   const [actionsAnchor, setActionsAnchor] = React.useState<HTMLElement | null>(null);
   return (
     <>
@@ -275,7 +304,23 @@ function QueueRow({ track, title, artist, cover, active, action, onClick }: Queu
           </ListItemAvatar>
           <ListItemText
             primary={title}
-            secondary={artist}
+            secondary={
+              <>
+                {artist}
+                {playFromLabel && (
+                  <Typography
+                    component="span"
+                    sx={{ ml: 0.75, fontSize: "inherit", color: "text.secondary" }}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onPlayFrom?.();
+                    }}
+                  >
+                    · {playFromLabel}
+                  </Typography>
+                )}
+              </>
+            }
             primaryTypographyProps={{
               noWrap: true,
               fontSize: 15,

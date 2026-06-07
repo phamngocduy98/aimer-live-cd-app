@@ -35,7 +35,9 @@ import {
   handleUpdatePlaylist,
   handleDeletePlaylist,
   handleAddSongsToPlaylist,
-  handleRemoveSongFromPlaylist
+  handleRemoveSongFromPlaylist,
+  handleAddItemsToPlaylist,
+  handleRemoveItemFromPlaylist
 } from "./routes/playlist.js";
 import {
   handleYoutubeVideoUpload,
@@ -128,6 +130,8 @@ app.put("/api/playlist/:id", handleUpdatePlaylist);
 app.delete("/api/playlist/:id", handleDeletePlaylist);
 app.post("/api/playlist/:id/songs", handleAddSongsToPlaylist);
 app.delete("/api/playlist/:id/songs/:songId", handleRemoveSongFromPlaylist);
+app.post("/api/playlist/:id/items", handleAddItemsToPlaylist);
+app.delete("/api/playlist/:id/items/:itemId", handleRemoveItemFromPlaylist);
 
 function handleCatchAll(_req, res) {
   res.sendFile(path.join(staticPath, "index.html"));

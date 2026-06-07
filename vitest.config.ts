@@ -10,12 +10,17 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: ["src/main/backend/**"]
-    },
-    setupFiles: [path.resolve(__dirname, "src/main/backend/__tests__/setup.ts")]
+    }
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src/main/backend")
+      "@": path.resolve(__dirname, "src/main/backend"),
+      "@app": path.resolve(__dirname, "src/renderer/src/app"),
+      "@components": path.resolve(__dirname, "src/renderer/src/components"),
+      "@features": path.resolve(__dirname, "src/renderer/src/features"),
+      "@lib": path.resolve(__dirname, "src/renderer/src/lib"),
+      "@renderer": path.resolve(__dirname, "src/renderer/src"),
+      "@utils": path.resolve(__dirname, "src/renderer/src/utils")
     }
   }
 });

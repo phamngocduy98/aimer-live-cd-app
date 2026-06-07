@@ -2,7 +2,7 @@ import { useAppDispatch } from "@app/hooks";
 import { VideoCard } from "@components/media/VideoCard";
 import { CollectionHeader } from "@components/view/CollectionHeader";
 import { PageScaffold } from "@components/view/PageScaffold";
-import { reset } from "@features/player/store/playerSlice";
+import { playContext } from "@features/player/store/playerSlice";
 import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
@@ -27,12 +27,12 @@ export const Videos: React.FC = () => {
 
   const onPlayAll = () => {
     if (videos.length === 0) return;
-    dispatch(reset({ songs: videos, type: "video" }));
+    dispatch(playContext({ items: videos, playFrom: playSource }));
   };
 
   const onPlayShuffleAll = () => {
     if (videos.length === 0) return;
-    dispatch(reset({ songs: videos, shuffle: true, type: "video" }));
+    dispatch(playContext({ items: videos, playFrom: playSource, shuffle: true }));
   };
 
   return (
@@ -57,11 +57,7 @@ export const Videos: React.FC = () => {
                 video={video}
                 onClick={() =>
                   dispatch(
-                    reset({
-                      songs: visibleVideos.slice(idx),
-                      history: visibleVideos.slice(0, idx),
-                      type: "video"
-                    })
+                    playContext({ items: visibleVideos, playFrom: playSource, startIndex: idx })
                   )
                 }
               />
@@ -81,3 +77,4 @@ export const Videos: React.FC = () => {
     </PageScaffold>
   );
 };
+const playSource = { type: "videos" as const, label: "Videos", route: "/videos" };

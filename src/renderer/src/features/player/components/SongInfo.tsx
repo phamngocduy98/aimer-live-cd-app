@@ -6,7 +6,11 @@ import { hideView } from "../store/playerGuiSlice";
 import { artistPath, getPrimaryArtist } from "@utils/artist";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 
-export const AlbumImage: React.FC<React.PropsWithChildren> = ({ children }) => {
+interface AlbumImageProps extends React.PropsWithChildren {
+  hideArtworkBelow?: "sm" | "md";
+}
+
+export const AlbumImage: React.FC<AlbumImageProps> = ({ children, hideArtworkBelow = "sm" }) => {
   const dispatch = useAppDispatch();
   const playingTrack = useAppSelector((state) => state.player.playingTrack);
   const showMobilePlayer = useAppSelector((state) => state.playerGui.mobilePlayer);
@@ -16,9 +20,9 @@ export const AlbumImage: React.FC<React.PropsWithChildren> = ({ children }) => {
   return (
     <>
       <Box
+        data-player-artwork
         sx={{
           position: "relative",
-          display: "flex",
           flexShrink: 0,
           maxWidth: showMobilePlayer ? 0 : 112,
           opacity: showMobilePlayer ? 0 : 1,
@@ -27,6 +31,9 @@ export const AlbumImage: React.FC<React.PropsWithChildren> = ({ children }) => {
           transition: showMobilePlayer
             ? "max-width 170ms ease, opacity 110ms ease, transform 170ms ease"
             : "max-width 190ms ease, opacity 150ms 40ms ease, transform 190ms ease",
+          ...(hideArtworkBelow === "md"
+            ? { display: { xs: "none", md: "flex" } }
+            : { display: { xs: "none", sm: "flex" } }),
           "&:hover .album-expand-icon": {
             opacity: 1,
             transform: "translate(-50%, -50%) scale(1)"
@@ -59,6 +66,7 @@ export const AlbumImage: React.FC<React.PropsWithChildren> = ({ children }) => {
         />
       </Box>
       <Box
+        data-player-track-info
         sx={{
           ml: showMobilePlayer ? 0 : { xs: 1.25, sm: 1.5 },
           minWidth: 0,

@@ -19,14 +19,14 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 
 import { useAppDispatch } from "@app/hooks";
-import { SongTable } from "@components/media/SongTable";
 import { PageScaffold } from "@components/view/PageScaffold";
-import { reset } from "@features/player/store/playerSlice";
+import { playContext } from "@features/player/store/playerSlice";
 import { apiAssetUrl } from "@lib/axios";
 import { formatArtists } from "@utils/artist";
 import { formatDuration } from "@utils/formatDuration";
 import { EditPlaylistDialog } from "./EditPlaylistDialog";
-import { useDeletePlaylist, usePlaylist, useRemoveSongFromPlaylist } from "../hooks/usePlaylists";
+import { useDeletePlaylist, usePlaylist, useRemoveItemFromPlaylist } from "../hooks/usePlaylists";
+import { PlaylistItemsTable } from "./PlaylistItemsTable";
 
 export const PlaylistView: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -34,19 +34,19 @@ export const PlaylistView: React.FC = () => {
   const { id = "" } = useParams();
   const { data: playlist } = usePlaylist(id);
   const deletePlaylist = useDeletePlaylist();
-  const removeSong = useRemoveSongFromPlaylist();
+  const removeItem = useRemoveItemFromPlaylist();
   const [filter, setFilter] = useState("");
   const [editOpen, setEditOpen] = useState(false);
   const [moreAnchor, setMoreAnchor] = useState<HTMLElement | null>(null);
   const [message, setMessage] = useState("");
 
-  const visibleSongs = useMemo(() => {
+  const visibleItems = useMemo(() => {
     if (!playlist) return [];
     const query = filter.trim().toLocaleLowerCase();
-    if (!query) return playlist.songs;
+    if (!query) return playlist.items;
 
-    return playlist.songs.filter((song) =>
-      [song.title, formatArtists(song.artist), song.album?.title]
+    return playlist.items.filter((item) =>
+      [item.media.title, formatArtists(item.media.artist), item.media.album?.title]
         .filter(Boolean)
         .some((value) => value?.toLocaleLowerCase().includes(query))
     );
@@ -56,13 +56,26 @@ export const PlaylistView: React.FC = () => {
     return <PageScaffold>{null}</PageScaffold>;
   }
 
-  const coverAlbumId = playlist.songs.find((song) => song.album?._id)?.album?._id;
+  const playSource = {
+    type: "playlist" as const,
+    id: playlist._id,
+    label: playlist.name,
+    route: `/playlist/${playlist._id}`
+  };
+  const coverAlbumId = playlist.items.find((item) => item.media.album?._id)?.media.album?._id;
   const coverUrl = coverAlbumId ? apiAssetUrl(`/album/${coverAlbumId}/cover`) : "";
-  const totalDuration = playlist.songs.reduce((total, song) => total + song.duration, 0);
+  const totalDuration = playlist.items.reduce((total, item) => total + item.media.duration, 0);
 
   const play = (shuffle = false): void => {
-    if (visibleSongs.length === 0) return;
-    dispatch(reset({ songs: visibleSongs, shuffle, type: "audio" }));
+    if (visibleItems.length === 0) return;
+    dispatch(
+      playContext({
+        items: visibleItems.map((item) => item.media),
+        sourceItemKeys: visibleItems.map((item) => item._id),
+        playFrom: playSource,
+        shuffle
+      })
+    );
   };
 
   const sharePlaylist = async (): Promise<void> => {
@@ -88,8 +101,8 @@ export const PlaylistView: React.FC = () => {
     deletePlaylist.mutate(playlist._id, { onSuccess: () => navigate("/playlists") });
   };
 
-  const handleRemoveSong = (songId: string): void => {
-    removeSong.mutate({ playlistId: playlist._id, songId });
+  const handleRemoveItem = (itemId: string): void => {
+    removeItem.mutate({ playlistId: playlist._id, itemId });
   };
 
   return (
@@ -201,7 +214,7 @@ export const PlaylistView: React.FC = () => {
                   textTransform: "uppercase"
                 }}
               >
-                {playlist.songs.length} tracks · {formatDuration(totalDuration)}
+                {playlist.items.length} items · {formatDuration(totalDuration)}
               </Typography>
             </Box>
           </Box>
@@ -287,30 +300,25 @@ export const PlaylistView: React.FC = () => {
           }}
         />
 
-        {visibleSongs.length > 0 ? (
-          <SongTable
-            songs={visibleSongs}
-            ariaLabel="playlist songs table"
-            showActions
-            showArtwork
-            showQuality={false}
-            mobileEmphasis
-            onPlayFromIndex={(index) =>
+        {visibleItems.length > 0 ? (
+          <PlaylistItemsTable
+            items={visibleItems}
+            playSource={playSource}
+            onPlay={(index) =>
               dispatch(
-                reset({
-                  songs: visibleSongs.slice(index),
-                  history: visibleSongs.slice(0, index),
-                  type: "audio"
+                playContext({
+                  items: visibleItems.map((item) => item.media),
+                  sourceItemKeys: visibleItems.map((item) => item._id),
+                  playFrom: playSource,
+                  startIndex: index
                 })
               )
             }
-            getExtraActions={(song) => [
-              { label: "Remove from playlist", onClick: () => handleRemoveSong(song._id) }
-            ]}
+            onRemove={handleRemoveItem}
           />
         ) : (
           <Typography color="#a7a7a7" sx={{ py: 5, textAlign: "center" }}>
-            {playlist.songs.length === 0 ? "This playlist is empty." : `No songs match “${filter}”`}
+            {playlist.items.length === 0 ? "This playlist is empty." : `No items match “${filter}”`}
           </Typography>
         )}
       </Box>

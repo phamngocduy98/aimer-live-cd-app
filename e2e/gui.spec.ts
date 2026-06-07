@@ -132,14 +132,15 @@ test.describe("GUI expected features", () => {
     expect(Math.abs((videosHeadingBox?.x ?? 0) - (firstVideoBox?.x ?? 0))).toBeLessThanOrEqual(1);
   });
 
-  test("shows bottom navigation at tablet width before a song is playing", async () => {
+  test("shows collapsed left navigation at tablet width before a song is playing", async () => {
     await waitForHome(ctx.mainWindow);
     await ctx.electronApp
       .browserWindow(ctx.mainWindow)
       .then((win) => win.evaluate((browserWindow) => browserWindow.setSize(800, 760)));
+    await expect(ctx.mainWindow.getByRole("button", { name: "Expand navigation" })).toBeVisible();
     await expect(
       ctx.mainWindow.getByRole("navigation", { name: "Mobile navigation" })
-    ).toBeVisible();
+    ).not.toBeVisible();
   });
 
   test("search dropdown and full search results navigate to media", async () => {
@@ -196,6 +197,21 @@ test.describe("GUI expected features", () => {
       .getByRole("dialog", { name: "Add to Playlist" })
       .getByText("E2E Created Playlist")
       .click();
+    await ctx.mainWindow
+      .getByRole("row", { name: /E2E Search Ballad/ })
+      .getByRole("button", { name: "Add E2E Search Ballad to playlist" })
+      .click();
+    await ctx.mainWindow
+      .getByRole("dialog", { name: "Add to Playlist" })
+      .getByText("E2E Created Playlist")
+      .click();
+    const duplicateDialog = ctx.mainWindow.getByRole("dialog", { name: "Add duplicate items?" });
+    await expect(duplicateDialog).toBeVisible();
+    await duplicateDialog.getByRole("button", { name: "Cancel" }).click();
+    await ctx.mainWindow
+      .getByRole("dialog", { name: "Add to Playlist" })
+      .getByRole("button", { name: "Cancel" })
+      .click();
 
     await openSidebarPage(ctx.mainWindow, "Playlists");
     await ctx.mainWindow.getByRole("main").getByText("E2E Created Playlist").click();
@@ -214,17 +230,17 @@ test.describe("GUI expected features", () => {
     ).toBeVisible();
 
     await ctx.mainWindow.getByLabel("Filter playlist").fill("missing song");
-    await expect(ctx.mainWindow.getByText("No songs match “missing song”")).toBeVisible();
+    await expect(ctx.mainWindow.getByText("No items match “missing song”")).toBeVisible();
     await ctx.mainWindow.getByLabel("Filter playlist").fill("");
 
     await ctx.mainWindow
       .getByRole("row", { name: /E2E Search Ballad/ })
-      .getByRole("button", { name: "More actions" })
+      .getByRole("button", { name: "E2E Search Ballad actions" })
       .click();
     await ctx.mainWindow.getByRole("menuitem", { name: "Remove from playlist" }).click();
     await expect(
       ctx.mainWindow
-        .getByRole("table", { name: "playlist songs table" })
+        .getByRole("table", { name: "playlist items table" })
         .getByText("E2E Search Ballad")
     ).not.toBeVisible();
 
@@ -260,7 +276,7 @@ test.describe("GUI expected features", () => {
     await openSidebarPage(ctx.mainWindow, "Playlists");
     await ctx.mainWindow.getByRole("main").getByText("E2E Queue Playlist").click();
     await expect(
-      ctx.mainWindow.getByRole("table", { name: "playlist songs table" }).getByText("E2E Song One")
+      ctx.mainWindow.getByRole("table", { name: "playlist items table" }).getByText("E2E Song One")
     ).toBeVisible();
   });
 
@@ -354,8 +370,60 @@ test.describe("GUI expected features", () => {
     await ctx.electronApp
       .browserWindow(ctx.mainWindow)
       .then((win) => win.evaluate((browserWindow) => browserWindow.setSize(390, 760)));
-    const mobileVideoBox = await ctx.mainWindow.locator("video").last().boundingBox();
+    const mobileRuntimeBox = await ctx.mainWindow
+      .getByTestId("persistent-video-runtime")
+      .boundingBox();
+    const mobileVideoBox = await ctx.mainWindow.locator("[data-video-aspect-frame]").boundingBox();
     expect((mobileVideoBox?.width ?? 0) / (mobileVideoBox?.height ?? 1)).toBeCloseTo(16 / 9, 1);
+    expect(
+      (mobileVideoBox?.x ?? 0) +
+        (mobileVideoBox?.width ?? 0) / 2 -
+        ((mobileRuntimeBox?.x ?? 0) + (mobileRuntimeBox?.width ?? 0) / 2)
+    ).toBeCloseTo(0, 0);
+    expect(
+      (mobileVideoBox?.y ?? 0) +
+        (mobileVideoBox?.height ?? 0) / 2 -
+        ((mobileRuntimeBox?.y ?? 0) + (mobileRuntimeBox?.height ?? 0) / 2)
+    ).toBeCloseTo(0, 0);
+  });
+
+  test("adds video to a mixed playlist and keeps one video runtime while resizing", async () => {
+    await openAlbum(ctx.mainWindow);
+    await ctx.mainWindow.getByTitle("E2E Video One").click();
+    await ctx.mainWindow.getByRole("button", { name: "Player track actions" }).click();
+    await ctx.mainWindow.getByRole("menuitem", { name: "Add to Playlist" }).click();
+    await ctx.mainWindow
+      .getByRole("dialog", { name: "Add to Playlist" })
+      .getByText("E2E Playlist Seed")
+      .click();
+
+    await openSidebarPage(ctx.mainWindow, "Playlists");
+    await ctx.mainWindow.getByRole("main").getByText("E2E Playlist Seed").click();
+    const videoRow = ctx.mainWindow.getByRole("row", { name: /E2E Video One/ });
+    await expect(videoRow).toBeVisible();
+    await videoRow.dispatchEvent("dblclick");
+    await expect(videoRow).toHaveClass(/Mui-selected/);
+    const runtime = ctx.mainWindow.getByTestId("persistent-video-runtime");
+    const compactAnchor = ctx.mainWindow.locator("[data-video-player-anchor]");
+    await expect(runtime).toHaveCount(1);
+    const compactRuntimeBox = await runtime.boundingBox();
+    const compactAnchorBox = await compactAnchor.boundingBox();
+    expect(compactRuntimeBox?.height).toBeCloseTo(compactAnchorBox?.height ?? 0, 0);
+    expect(compactRuntimeBox?.width).toBeCloseTo(compactAnchorBox?.width ?? 0, 0);
+
+    await toggleFullScreenPlayer(ctx.mainWindow);
+    await expect(runtime).toHaveCount(1);
+    const backdrop = ctx.mainWindow.getByTestId("expanded-video-backdrop");
+    await expect(backdrop).toBeVisible();
+    await expect(backdrop).not.toHaveCSS("background-color", "rgb(0, 0, 0)");
+    await ctx.mainWindow.getByRole("button", { name: "Minimize player" }).click();
+    await expect(runtime).toHaveCount(1);
+    await expect(backdrop).not.toBeVisible();
+    await ctx.mainWindow.waitForTimeout(500);
+    const collapsedRuntimeBox = await runtime.boundingBox();
+    const collapsedAnchorBox = await compactAnchor.boundingBox();
+    expect(collapsedRuntimeBox?.height).toBeCloseTo(collapsedAnchorBox?.height ?? 0, 0);
+    expect(collapsedRuntimeBox?.width).toBeCloseTo(collapsedAnchorBox?.width ?? 0, 0);
   });
 
   test("responsive smoke renders screens and player at mobile width", async () => {
@@ -405,9 +473,10 @@ test.describe("GUI expected features", () => {
     await ctx.electronApp
       .browserWindow(ctx.mainWindow)
       .then((win) => win.evaluate((browserWindow) => browserWindow.setSize(800, 760)));
+    await expect(ctx.mainWindow.getByRole("button", { name: "Expand navigation" })).toBeVisible();
     await expect(
       ctx.mainWindow.getByRole("navigation", { name: "Mobile navigation" })
-    ).toBeVisible();
+    ).not.toBeVisible();
     await toggleFullScreenPlayer(ctx.mainWindow);
     await expect(ctx.mainWindow.getByText("Similar tracks", { exact: true })).toBeVisible();
     await toggleFullScreenPlayer(ctx.mainWindow);
@@ -419,12 +488,24 @@ test.describe("GUI expected features", () => {
     await expect(
       ctx.mainWindow.getByRole("navigation", { name: "Mobile navigation" })
     ).toBeVisible();
+    await expect(ctx.mainWindow.locator("[data-player-artwork]")).not.toBeVisible();
+    await expect(ctx.mainWindow.locator("[data-player-track-info]")).toBeVisible();
+    await expect(
+      ctx.mainWindow.getByRole("button", { name: "Remove from favorites" })
+    ).not.toBeVisible();
+    await expect(
+      ctx.mainWindow.getByRole("button", { name: "Player track actions" })
+    ).not.toBeVisible();
     await expect(ctx.mainWindow.getByRole("link", { name: "Home" })).toBeVisible();
     await expect(ctx.mainWindow.getByRole("link", { name: "Search", exact: true })).toBeVisible();
     await expect(ctx.mainWindow.getByText("E2E Song One").first()).toBeVisible();
     await expect(ctx.mainWindow.getByText("E2E Song One").first()).toBeVisible();
     await toggleFullScreenPlayer(ctx.mainWindow);
     await expect(ctx.mainWindow.getByLabel("E2E Artist")).toBeVisible();
+    await ctx.mainWindow.getByLabel("E2E Artist").hover();
+    await expect(
+      ctx.mainWindow.getByRole("button", { name: "Follow", exact: true })
+    ).not.toBeVisible();
     await expect(ctx.mainWindow.getByRole("button", { name: "Minimize player" })).toBeVisible();
     await expect(
       ctx.mainWindow.getByRole("navigation", { name: "Mobile navigation" })

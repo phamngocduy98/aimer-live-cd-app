@@ -7,24 +7,29 @@ import {
   DialogTitle,
   TextField
 } from "@mui/material";
-import { useAddSongsToPlaylist, useCreatePlaylist } from "../hooks/usePlaylists";
+import { useAddItemsToPlaylist, useCreatePlaylist } from "../hooks/usePlaylists";
+import type { PlaylistItemInput } from "../types";
 
 interface CreatePlaylistDialogProps {
   open: boolean;
   onClose: () => void;
   songIds?: string[];
+  items?: PlaylistItemInput[];
 }
 
 export const CreatePlaylistDialog: React.FC<CreatePlaylistDialogProps> = ({
   open,
   onClose,
-  songIds = []
+  songIds = [],
+  items
 }) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const createPlaylist = useCreatePlaylist();
-  const addSongs = useAddSongsToPlaylist();
-  const isPending = createPlaylist.isPending || addSongs.isPending;
+  const addItems = useAddItemsToPlaylist();
+  const isPending = createPlaylist.isPending || addItems.isPending;
+  const playlistItems =
+    items ?? songIds.map((mediaId) => ({ mediaType: "audio" as const, mediaId }));
 
   const finish = (): void => {
     setName("");
@@ -38,11 +43,14 @@ export const CreatePlaylistDialog: React.FC<CreatePlaylistDialogProps> = ({
       { name: name.trim(), description: description.trim() },
       {
         onSuccess: (playlistId) => {
-          if (songIds.length === 0) {
+          if (playlistItems.length === 0) {
             finish();
             return;
           }
-          addSongs.mutate({ playlistId, songIds }, { onSuccess: finish });
+          addItems.mutate(
+            { playlistId, items: playlistItems, allowDuplicates: true },
+            { onSuccess: finish }
+          );
         }
       }
     );

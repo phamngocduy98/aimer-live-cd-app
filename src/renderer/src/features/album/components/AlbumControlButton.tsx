@@ -7,7 +7,7 @@ import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
 import ShuffleRoundedIcon from "@mui/icons-material/ShuffleRounded";
 import { Box, Button, Menu, Snackbar, Typography } from "@mui/material";
 import { useAppDispatch } from "@app/hooks";
-import { reset } from "@features/player/store/playerSlice";
+import { playContext } from "@features/player/store/playerSlice";
 import { AddToPlaylistDialog } from "@features/playlist";
 import type { AlbumDetail } from "../types";
 import { AlbumActionsMenu } from "@components/media/MediaActionsMenu";
@@ -19,12 +19,17 @@ export const AlbumControlButton: React.FC<{ album: AlbumDetail }> = ({ album }) 
   const [moreAnchor, setMoreAnchor] = useState<HTMLElement | null>(null);
   const [message, setMessage] = useState("");
 
-  const playableItems = album.trackList.length > 0 ? album.trackList : album.videoList;
-  const mediaType = album.trackList.length > 0 ? "audio" : "video";
+  const playableItems = album.trackList;
+  const playSource = {
+    type: "album" as const,
+    id: album._id,
+    label: album.title,
+    route: `/album/${album._id}`
+  };
 
   const play = (shuffle = false) => {
     if (playableItems.length === 0) return;
-    dispatch(reset({ songs: playableItems, shuffle, type: mediaType }));
+    dispatch(playContext({ items: playableItems, playFrom: playSource, shuffle }));
   };
 
   const copyAlbumLink = async () => {

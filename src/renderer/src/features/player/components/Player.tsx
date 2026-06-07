@@ -8,12 +8,15 @@ import { MobileNavigation } from "@components/layout/MobileNavigation";
 import { isVideo } from "@features/library";
 import React from "react";
 import { hideView } from "../store/playerGuiSlice";
+import { PlaybackEngine } from "./PlaybackEngine";
+import { useAlbumBackgroundColor } from "../utils/albumBackground";
 
 export function Player() {
   const dispatch = useAppDispatch();
   const showMobilePlayer = useAppSelector((state) => state.playerGui.mobilePlayer);
   const playingTrack = useAppSelector((state) => state.player.playingTrack);
   const desktopVideoOpen = showMobilePlayer && isVideo(playingTrack);
+  const albumBackgroundColor = useAlbumBackgroundColor(playingTrack?.album?._id);
   const [desktopChromeVisible, setDesktopChromeVisible] = React.useState(true);
 
   React.useEffect(() => {
@@ -47,7 +50,7 @@ export function Player() {
     return (
       <Box
         sx={{
-          display: { xs: "block", md: "none" },
+          display: { xs: "block", sm: "none" },
           position: "fixed",
           bottom: 8,
           left: 8,
@@ -69,6 +72,18 @@ export function Player() {
 
   return (
     <>
+      {desktopVideoOpen && (
+        <Box
+          data-testid="expanded-video-backdrop"
+          sx={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1299,
+            bgcolor: albumBackgroundColor
+          }}
+        />
+      )}
+      <PlaybackEngine />
       <Box
         sx={{
           position: "fixed",
@@ -121,7 +136,7 @@ export function Player() {
           </Box>
         )}
         {!showMobilePlayer && (
-          <Box sx={{ display: { xs: "block", md: "none" } }}>
+          <Box sx={{ display: { xs: "block", sm: "none" } }}>
             <MobileNavigation />
           </Box>
         )}

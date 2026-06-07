@@ -11,7 +11,7 @@ import { PageScaffold } from "@components/view/PageScaffold";
 import { PlayShuffleActions } from "@components/view/PlayShuffleActions";
 import { SectionHeader } from "@components/view/SectionHeader";
 import { useAppDispatch } from "@app/hooks";
-import { reset } from "@features/player/store/playerSlice";
+import { playContext } from "@features/player/store/playerSlice";
 import { apiAssetUrl } from "@lib/axios";
 import { useArtist } from "../hooks/useArtist";
 
@@ -31,15 +31,21 @@ export const ArtistView: React.FC = () => {
 
   const heroAlbum = albums[0] ?? songs.find((song) => song.album)?.album;
   const visibleSongs = showAllTracks ? songs : songs.slice(0, FEATURED_TRACK_COUNT);
+  const playSource = {
+    type: "artist" as const,
+    id: artistName,
+    label: artistName,
+    route: `/artist/${encodeURIComponent(artistName)}`
+  };
 
   const playAll = () => {
     if (songs.length === 0) return;
-    dispatch(reset({ songs, type: "audio" }));
+    dispatch(playContext({ items: songs, playFrom: playSource }));
   };
 
   const shuffleAll = () => {
     if (songs.length === 0) return;
-    dispatch(reset({ songs, shuffle: true, type: "audio" }));
+    dispatch(playContext({ items: songs, playFrom: playSource, shuffle: true }));
   };
 
   const copyArtistLink = async () => {
@@ -204,14 +210,9 @@ export const ArtistView: React.FC = () => {
           showArtwork
           showQuality={false}
           mobileSubtitle="album"
+          playSource={playSource}
           onPlayFromIndex={(idx) =>
-            dispatch(
-              reset({
-                songs: visibleSongs.slice(idx),
-                history: visibleSongs.slice(0, idx),
-                type: "audio"
-              })
-            )
+            dispatch(playContext({ items: visibleSongs, playFrom: playSource, startIndex: idx }))
           }
         />
       </Box>

@@ -1,7 +1,7 @@
 import React from "react";
 import { useAppDispatch } from "@app/hooks";
 import { router } from "@app/router";
-import { reset } from "@features/player/store/playerSlice";
+import { playContext } from "@features/player/store/playerSlice";
 import type { SearchResult } from "@renderer/types/shared";
 import type { Album, Song, Video } from "@features/library";
 import { apiAssetUrl } from "@lib/axios";
@@ -30,12 +30,18 @@ export const SearchDropdown: React.FC<SearchDropdownProps> = ({
   onNavigate
 }) => {
   const dispatch = useAppDispatch();
+  const playSource = {
+    type: "search" as const,
+    id: query,
+    label: `Search: ${query}`,
+    route: `/search?q=${encodeURIComponent(query)}`
+  };
 
   if (!open || !query) return null;
 
   const handleSongClick = (song: Song): void => {
     onClose();
-    dispatch(reset({ songs: [song], history: [], type: "audio" }));
+    dispatch(playContext({ items: [song], playFrom: playSource }));
   };
 
   const handleAlbumClick = (album: Album): void => {
@@ -45,7 +51,7 @@ export const SearchDropdown: React.FC<SearchDropdownProps> = ({
 
   const handleVideoClick = (video: Video): void => {
     onClose();
-    dispatch(reset({ songs: [video], type: "video" }));
+    dispatch(playContext({ items: [video], playFrom: playSource }));
   };
 
   const handleViewAll = (): void => {

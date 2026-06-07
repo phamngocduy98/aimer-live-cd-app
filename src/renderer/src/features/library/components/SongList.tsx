@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { Box } from "@mui/material";
-import { reset } from "@features/player/store/playerSlice";
+import { playContext } from "@features/player/store/playerSlice";
 import { useAppDispatch } from "@app/hooks";
 import { SongTable } from "@components/media/SongTable";
 import { CollectionHeader } from "@components/view/CollectionHeader";
@@ -26,12 +26,12 @@ export const Songs: React.FC = () => {
 
   const onPlayAll = () => {
     if (songs.length === 0) return;
-    dispatch(reset({ songs, type: "audio" }));
+    dispatch(playContext({ items: songs, playFrom: playSource }));
   };
 
   const onPlayShuffleAll = () => {
     if (songs.length === 0) return;
-    dispatch(reset({ songs, shuffle: true, type: "audio" }));
+    dispatch(playContext({ items: songs, playFrom: playSource, shuffle: true }));
   };
 
   return (
@@ -56,17 +56,13 @@ export const Songs: React.FC = () => {
           showArtwork
           showActions
           showAddToPlaylist
+          playSource={playSource}
           onPlayFromIndex={(idx) =>
-            dispatch(
-              reset({
-                songs: visibleSongs.slice(idx),
-                history: visibleSongs.slice(0, idx),
-                type: "audio"
-              })
-            )
+            dispatch(playContext({ items: visibleSongs, playFrom: playSource, startIndex: idx }))
           }
         />
       </Box>
     </PageScaffold>
   );
 };
+const playSource = { type: "songs" as const, label: "Songs", route: "/songs" };
