@@ -39,6 +39,7 @@ intent and invariants; code and tests remain the source of truth for mechanics.
   - `lib/` — Axios and TanStack Query clients
 - `src/main/backend/` — layered backend (`config/`, `models/`, `db/`, `routes/`, `services/`, `utils/`, `types/`, `scripts/`, `webdav/`)
 - Client API calls: `src/renderer/src/core/api.ts`
+- `docs` — where all markdown documents are placed.
 
 ## Config & Env
 
@@ -76,17 +77,3 @@ intent and invariants; code and tests remain the source of truth for mechanics.
 - Write tests for every new feature
 - Unit tests: `*.test.ts` co-located with source; E2E: `e2e/`
 - Run only related test files (e.g. `pnpm test -- songs.mongo metadata.test`) to save time; run full suite when user asks
-
-## Frontend Design Skill
-
-- Installed at `~/.claude/skills/frontend-design/` — Anthropic's official frontend design skill
-- Produces distinctive, non-generic UI with strong aesthetic direction
-- Auto-discovered by opencode; invoke via `use frontend-design skill` in prompts
-
-## Superpowers
-
-- Installed as plugin in `opencode.jsonc` — https://github.com/obra/superpowers
-- Agentic software development methodology with composable skills
-- Skills include: brainstorming, writing-plans, executing-plans, test-driven-development, systematic-debugging, subagent-driven-development, requesting-code-review, and more
-- To use: skills auto-trigger based on context; also `skill tool load superpowers/<name>`
-- Restart opencode after install for plugin to load
