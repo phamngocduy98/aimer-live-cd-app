@@ -1,13 +1,15 @@
 import { useState, useRef, useEffect } from "react";
 import { Debouncer } from "@tanstack/pacer";
-import { Box, Grid, IconButton, Menu, MenuItem, Avatar, Typography } from "@mui/material";
+import { Box, Grid, IconButton, Menu, MenuItem, Avatar } from "@mui/material";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import SearchIcon from "@mui/icons-material/Search";
+import PersonIcon from "@mui/icons-material/Person";
 import styled from "@emotion/styled";
 import { InputAdornment, InputBase } from "@mui/material";
 import { SearchDropdown } from "@components/search/SearchDropdown";
 import type { SearchResult } from "@renderer/types/shared";
 import { search } from "@features/search";
+import { BrandMark } from "./BrandMark";
 
 const BootstrapInput = styled(InputBase)({
   "& .MuiInputAdornment-positionStart": {
@@ -160,15 +162,9 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
         >
           <Grid item xs>
             {isHome ? (
-              <Typography
-                sx={{
-                  display: { xs: "block", sm: "none" },
-                  fontWeight: 900,
-                  letterSpacing: "-.03em"
-                }}
-              >
-                Aimer live
-              </Typography>
+              <Box sx={{ display: { xs: "block", sm: "none" } }}>
+                <BrandMark size={7} />
+              </Box>
             ) : (
               <IconButton
                 aria-label="Back"
@@ -212,13 +208,9 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
               />
             </Box>
           </Grid>
-          <Grid item xs="auto" sx={{ marginLeft: 2, display: { xs: "none", sm: "unset" } }}>
+          <Grid item xs="auto" sx={{ marginLeft: 2 }}>
             <IconButton onClick={onMenuOpen} size="small">
-              <Avatar
-                sx={{ width: 34, height: 34, bgcolor: "#f4f4f4", color: "#111", fontWeight: 800 }}
-              >
-                U
-              </Avatar>
+              <PersonIcon />
             </IconButton>
           </Grid>
         </Grid>

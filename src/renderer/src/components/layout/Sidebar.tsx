@@ -10,6 +10,7 @@ import VideoLibraryOutlinedIcon from "@mui/icons-material/VideoLibraryOutlined";
 import { Box, Drawer, IconButton, List, ListItemButton, Tooltip, Typography } from "@mui/material";
 import { NavLink, useLocation } from "react-router-dom";
 import { usePlaylists } from "@features/playlist";
+import { BrandMark } from "./BrandMark";
 
 interface SidebarProps {
   drawerWidth: number;
@@ -25,33 +26,6 @@ const primaryItems = [
   { label: "Videos", path: "/videos", icon: VideoLibraryOutlinedIcon },
   { label: "Playlists", path: "/playlists", icon: LibraryMusicOutlinedIcon }
 ];
-
-function BrandMark() {
-  return (
-    <Box
-      aria-label="Aimer live"
-      sx={{ display: "grid", gridTemplateColumns: "repeat(3, 7px)", gap: "2px" }}
-    >
-      {[
-        [1, 2],
-        [2, 1],
-        [2, 3]
-      ].map(([row, col], index) => (
-        <Box
-          key={index}
-          sx={{
-            width: 7,
-            height: 7,
-            bgcolor: "#fff",
-            transform: "rotate(45deg)",
-            gridColumn: col,
-            mt: row == 2 ? "-2px" : 0
-          }}
-        />
-      ))}
-    </Box>
-  );
-}
 
 export const Sidebar: React.FC<SidebarProps> = ({
   drawerWidth,
