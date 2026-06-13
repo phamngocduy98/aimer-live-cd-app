@@ -11,6 +11,9 @@ test planning.
 - **Standalone mode:** supports `.env` through `src/main/backend/standalone.ts`.
 - **E2E mode:** uses `E2E_TEST_MODE=true` and a database name ending in `_e2e` or `_test`.
 - **Request logging:** emits request logs with request IDs and structured backend module logs.
+- **Optional lyrics services:** `MYMEMORY_EMAIL` raises the free MyMemory quota;
+  `LIBRETRANSLATE_URL` enables LibreTranslate and
+  `LIBRETRANSLATE_API_KEY` supplies its optional key.
 
 ## 2. Library Metadata APIs
 
@@ -59,6 +62,10 @@ test planning.
 - **Artist rename:** `/api/admin/artists/:name` renames an artist string across songs, videos, and albums.
 - **Artist image:** `/api/admin/artists/:name/image` stores and serves an artist profile image.
 - **Song/video delete:** deletes remote media files first; database rows are deleted only after remote cleanup succeeds or files are confirmed absent.
+- **Synchronized lyrics:** searches LRCLIB from the backend with retry and
+  timeout handling, imports Japanese timed results, previews Japanese SRT,
+  generates Hepburn romaji locally, translates rows through an enabled
+  provider, and atomically saves one multilingual row set with provenance.
 
 ## 7. Playlist APIs
 
@@ -87,3 +94,5 @@ test planning.
 - Album cover and artist image upload/serve.
 - Playlist create/update/delete and mixed item resolution.
 - Stream failover across multiple hosting providers.
+- LRC parsing, LRCLIB normalization, duration matching, romaji generation,
+  translation timestamp preservation, and atomic lyric-track updates.

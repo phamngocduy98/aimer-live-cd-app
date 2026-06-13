@@ -23,7 +23,10 @@ export function Player() {
   const [desktopChromeVisible, setDesktopChromeVisible] = React.useState(true);
 
   React.useEffect(() => {
-    if (!playingTrack) dispatch(hideView("mobilePlayer"));
+    if (!playingTrack) {
+      dispatch(hideView("mobilePlayer"));
+      dispatch(hideView("lyrics"));
+    }
   }, [dispatch, playingTrack]);
 
   React.useEffect(() => {

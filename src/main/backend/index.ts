@@ -30,6 +30,16 @@ import {
 } from "./routes/metadata.js";
 import { handleDeprecatedStream, handleStreamAudio, handleStreamVideo } from "./routes/stream.js";
 import {
+  handleAdminGetLyricsProviders,
+  handleAdminImportLyrics,
+  handleAdminPreviewSrt,
+  handleAdminRomanizeLyrics,
+  handleAdminSaveLyrics,
+  handleAdminSearchLyrics,
+  handleAdminTranslateLyrics,
+  handleGetLyrics
+} from "./routes/lyrics.js";
+import {
   handleListPlaylists,
   handleCreatePlaylist,
   handleGetPlaylist,
@@ -116,6 +126,13 @@ app.get("/api/admin/hosts", handleAdminGetHosts);
 app.post("/api/admin/hosts", handleAdminCreateHost);
 app.put("/api/admin/songs/:id", handleAdminUpdateSong);
 app.put("/api/admin/videos/:id", handleAdminUpdateVideo);
+app.put("/api/admin/lyrics/:mediaType/:mediaId/tracks", handleAdminSaveLyrics);
+app.get("/api/admin/lyrics/providers", handleAdminGetLyricsProviders);
+app.post("/api/admin/lyrics/preview-srt", upload.single("subtitle"), handleAdminPreviewSrt);
+app.post("/api/admin/lyrics/:mediaType/:mediaId/search", handleAdminSearchLyrics);
+app.post("/api/admin/lyrics/:mediaType/:mediaId/import", handleAdminImportLyrics);
+app.post("/api/admin/lyrics/romanize", handleAdminRomanizeLyrics);
+app.post("/api/admin/lyrics/translate", handleAdminTranslateLyrics);
 app.put("/api/admin/albums/:id", handleAdminUpdateAlbum);
 app.put("/api/admin/albums/:id/cover", upload.single("cover"), handleAdminUpdateAlbumCover);
 app.put("/api/admin/hosts/:id", handleAdminUpdateHost);
@@ -149,6 +166,7 @@ app.get("/api/album/:id/cover", handleGetAlbumCover);
 app.get("/api/songs", handleGetSongs);
 
 app.get("/api/videos", handleGetVideos);
+app.get("/api/lyrics/:mediaType/:mediaId", handleGetLyrics);
 
 app.get("/api/song/:id", handleGetSong);
 

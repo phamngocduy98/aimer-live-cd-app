@@ -21,10 +21,13 @@ import { hideView } from "../store/playerGuiSlice";
 import { reset } from "../store/playerSlice";
 import { QueuePanel } from "./FloatingQueueList";
 import { isVideo } from "@features/library";
+import { useLyrics } from "@features/lyrics";
 import { artistImageUrl, artistPath, getPrimaryArtist } from "@utils/artist";
 import { useArtist } from "@features/artist/hooks/useArtist";
 import { FavoriteButton } from "./FavoriteButton";
 import { useAlbumBackgroundColor } from "../utils/albumBackground";
+import { LyricsExperience } from "@features/lyrics";
+import { toggleView } from "../store/playerGuiSlice";
 
 interface MobilePlayerProps {
   desktopChromeVisible?: boolean;
@@ -37,9 +40,12 @@ export const MobilePlayer: React.FC<MobilePlayerProps> = ({ desktopChromeVisible
   const playingTrack = useAppSelector((state) => state.player.playingTrack);
   const queueOpen = useAppSelector((state) => state.playerGui.playingQueue);
   const showMobilePlayer = useAppSelector((state) => state.playerGui.mobilePlayer);
+  const lyricsOpen = useAppSelector((state) => state.playerGui.lyrics);
   const backgroundColor = useAlbumBackgroundColor(playingTrack?.album?._id);
-
   const desktopVideo = isVideo(playingTrack);
+  const mediaType = isVideo(playingTrack) ? "video" : "audio";
+  const { data: lyricsData } = useLyrics(mediaType, playingTrack?._id, Boolean(playingTrack));
+  const noLyrics = lyricsData === null || Boolean(lyricsData && lyricsData.rows.length === 0);
 
   return (
     <Box
@@ -54,9 +60,22 @@ export const MobilePlayer: React.FC<MobilePlayerProps> = ({ desktopChromeVisible
         userSelect: "none"
       }}
     >
-      <PlayerHeader desktopChromeVisible={desktopChromeVisible} video={desktopVideo} />
+      <PlayerHeader
+        desktopChromeVisible={desktopChromeVisible}
+        video={desktopVideo}
+        noLyrics={noLyrics}
+      />
 
-      {desktopVideo ? <DesktopVideo /> : <AudioPlayerContent queueOpen={queueOpen} />}
+      {desktopVideo ? (
+        <>
+          <DesktopVideo />
+          {lyricsOpen && <LyricsExperience videoOverlay />}
+        </>
+      ) : lyricsOpen ? (
+        <AudioLyricsContent queueOpen={queueOpen} />
+      ) : (
+        <AudioPlayerContent queueOpen={queueOpen} />
+      )}
 
       <Box sx={{ display: { xs: "block", sm: "none" } }}>
         <MobileTrackDetails />
@@ -107,12 +126,15 @@ export const MobilePlayer: React.FC<MobilePlayerProps> = ({ desktopChromeVisible
 
 function PlayerHeader({
   desktopChromeVisible,
-  video
+  video,
+  noLyrics
 }: {
   desktopChromeVisible: boolean;
   video: boolean;
+  noLyrics: boolean;
 }) {
   const dispatch = useAppDispatch();
+  const lyricsOpen = useAppSelector((state) => state.playerGui.lyrics);
   const [fullscreen, setFullscreen] = React.useState(Boolean(document.fullscreenElement));
 
   React.useEffect(() => {
@@ -158,10 +180,34 @@ function PlayerHeader({
     >
       <ArtistIdentity />
       <Box sx={{ display: "flex", alignItems: "center", gap: { xs: 0.25, sm: 1 } }}>
+        <Button
+          aria-label="Lyrics"
+          aria-pressed={lyricsOpen}
+          disabled={noLyrics}
+          onClick={() => dispatch(toggleView("lyrics"))}
+          sx={{
+            display: { xs: "inline-flex", sm: "none" },
+            opacity: noLyrics ? 0.34 : 1,
+            mr: 0.5,
+            borderRadius: "999px",
+            bgcolor: lyricsOpen ? "rgba(255,255,255,.9)" : "rgba(255,255,255,.12)",
+            color: lyricsOpen ? "#171717" : "#fff",
+            textTransform: "none",
+            fontWeight: 800
+          }}
+        >
+          Lyrics
+        </Button>
         <Box sx={{ display: { xs: "none", sm: "flex" }, gap: 1 }}>
           <HeaderPill>{video ? "Similar videos" : "Similar tracks"}</HeaderPill>
           <HeaderPill>Credits</HeaderPill>
-          {!video && <HeaderPill>Lyrics</HeaderPill>}
+          <HeaderPill
+            active={lyricsOpen}
+            disabled={noLyrics}
+            onClick={() => dispatch(toggleView("lyrics"))}
+          >
+            Lyrics
+          </HeaderPill>
         </Box>
         {video && (
           <IconButton aria-label="Video display mode">
@@ -327,6 +373,41 @@ function AudioPlayerContent({ queueOpen }: { queueOpen: boolean }) {
   );
 }
 
+function AudioLyricsContent({ queueOpen }: { queueOpen: boolean }) {
+  const playingTrack = useAppSelector((state) => state.player.playingTrack);
+  return (
+    <Box
+      data-testid="expanded-lyrics-stage"
+      sx={{
+        position: "absolute",
+        top: { xs: 0, sm: 88 },
+        bottom: { xs: 330, sm: 120 },
+        left: 0,
+        right: { xs: 0, sm: queueOpen ? "436px" : 0 },
+        display: { xs: "block", lg: "grid" },
+        gridTemplateColumns: { lg: "46% 54%" },
+        transition: "right 280ms ease"
+      }}
+    >
+      <Box
+        data-testid="lyrics-artwork"
+        sx={{
+          display: { xs: "none", lg: "grid" },
+          placeItems: "center",
+          minWidth: 0,
+          p: 5
+        }}
+      >
+        <InteractiveAlbumArtwork
+          src={apiAssetUrl(`/album/${playingTrack?.album?._id}/cover`)}
+          queueOpen={queueOpen}
+        />
+      </Box>
+      <LyricsExperience />
+    </Box>
+  );
+}
+
 function MobileTrackDetails() {
   const playingTrack = useAppSelector((state) => state.player.playingTrack);
   const currentChapter = useAppSelector(
@@ -443,17 +524,30 @@ function InteractiveAlbumArtwork({ src, queueOpen }: { src: string; queueOpen: b
   );
 }
 
-function HeaderPill({ children }: React.PropsWithChildren) {
+function HeaderPill({
+  children,
+  active,
+  disabled,
+  onClick
+}: React.PropsWithChildren<{ active?: boolean; disabled?: boolean; onClick?: () => void }>) {
   return (
     <Box
+      component={onClick && !disabled ? "button" : "div"}
+      type={onClick && !disabled ? "button" : undefined}
+      onClick={disabled ? undefined : onClick}
       sx={{
+        border: 0,
+        color: "inherit",
+        cursor: disabled ? "default" : onClick ? "pointer" : "default",
         px: 2.5,
         height: 48,
         display: "flex",
         alignItems: "center",
         borderRadius: "999px",
-        bgcolor: "rgba(255,255,255,.1)",
-        fontWeight: 800
+        bgcolor: active ? "rgba(255,255,255,.9)" : "rgba(255,255,255,.1)",
+        ...(active ? { color: "#171717" } : {}),
+        fontWeight: 800,
+        opacity: disabled ? 0.34 : 1
       }}
     >
       {children}

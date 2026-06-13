@@ -155,6 +155,21 @@ listing.
 [`useAdmin.ts`](admin/hooks/useAdmin.ts),
 [`admin.spec.ts`](../../../../e2e/admin.spec.ts)
 
+## Lyrics
+
+**Decision:** The lyrics feature owns lyric API access, query keys, language
+types, timing resolution, and player presentation. Admin creates or replaces
+one synchronized row set through a dedicated dialog. Each row shares timing
+across Japanese, Romaji, English, and Vietnamese. Japanese SRT and LRCLIB
+imports generate Hepburn Romaji locally through Kuroshiro; English and
+Vietnamese are generated explicitly.
+
+**Change guidance:** Keep lyrics as server state in TanStack Query. Updating a
+track must invalidate the matching media lyrics query so an open player
+refreshes without copying lyric documents into Redux. Keep third-party calls
+in the backend, require preview and explicit save, and never partially persist
+a failed generation request.
+
 ## Current Non-Decisions
 
 Placeholder or absent behavior is not an architectural commitment. In

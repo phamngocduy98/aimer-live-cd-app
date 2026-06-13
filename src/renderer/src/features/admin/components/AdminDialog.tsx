@@ -30,6 +30,7 @@ import type { SelectChangeEvent } from "@mui/material/Select";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+import LyricsIcon from "@mui/icons-material/Lyrics";
 import ImageIcon from "@mui/icons-material/Image";
 import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
 import MovieIcon from "@mui/icons-material/Movie";
@@ -70,6 +71,7 @@ import type {
   AdminUpload,
   AdminVideo
 } from "../types";
+import { SynchronizedLyricsDialog } from "./SynchronizedLyricsDialog";
 
 interface AdminDialogProps {
   open: boolean;
@@ -181,7 +183,13 @@ function AdminTable<T extends { _id?: string; id?: string }>({
   );
 }
 
-function AdminNavigation({ value, onChange }: { value: AdminTab; onChange: (tab: AdminTab) => void }) {
+function AdminNavigation({
+  value,
+  onChange
+}: {
+  value: AdminTab;
+  onChange: (tab: AdminTab) => void;
+}) {
   return (
     <Box
       component="nav"
@@ -222,9 +230,11 @@ function AdminNavigation({ value, onChange }: { value: AdminTab; onChange: (tab:
 
 function Actions({
   onEdit,
+  onLyrics,
   onDelete
 }: {
   onEdit?: () => void;
+  onLyrics?: () => void;
   onDelete?: () => void;
 }) {
   return (
@@ -232,6 +242,11 @@ function Actions({
       {onEdit && (
         <IconButton size="small" aria-label="Edit" onClick={onEdit}>
           <EditIcon fontSize="small" />
+        </IconButton>
+      )}
+      {onLyrics && (
+        <IconButton size="small" aria-label="Lyrics" onClick={onLyrics}>
+          <LyricsIcon fontSize="small" />
         </IconButton>
       )}
       {onDelete && (
@@ -301,9 +316,23 @@ function SongEditDialog({
       <DialogTitle>Edit song metadata</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
-          <TextField label="Title" value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
-          <TextField label="Artists" value={draft.artist} helperText="Comma separated" onChange={(e) => setDraft({ ...draft, artist: e.target.value })} />
-          <TextField label="Track number" type="number" value={draft.trackNo} onChange={(e) => setDraft({ ...draft, trackNo: e.target.value })} />
+          <TextField
+            label="Title"
+            value={draft.title}
+            onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+          />
+          <TextField
+            label="Artists"
+            value={draft.artist}
+            helperText="Comma separated"
+            onChange={(e) => setDraft({ ...draft, artist: e.target.value })}
+          />
+          <TextField
+            label="Track number"
+            type="number"
+            value={draft.trackNo}
+            onChange={(e) => setDraft({ ...draft, trackNo: e.target.value })}
+          />
           <InputLabel id="song-album-label">Album</InputLabel>
           <Select
             labelId="song-album-label"
@@ -377,8 +406,17 @@ function VideoEditDialog({
       <DialogTitle>Edit video metadata</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
-          <TextField label="Title" value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
-          <TextField label="Artists" value={draft.artist} helperText="Comma separated" onChange={(e) => setDraft({ ...draft, artist: e.target.value })} />
+          <TextField
+            label="Title"
+            value={draft.title}
+            onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+          />
+          <TextField
+            label="Artists"
+            value={draft.artist}
+            helperText="Comma separated"
+            onChange={(e) => setDraft({ ...draft, artist: e.target.value })}
+          />
           <InputLabel id="video-album-label">Album</InputLabel>
           <Select
             labelId="video-album-label"
@@ -395,11 +433,7 @@ function VideoEditDialog({
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Typography fontWeight={700}>Chapters</Typography>
             <Stack direction="row" spacing={1}>
-              <Button
-                component="label"
-                size="small"
-                variant="outlined"
-              >
+              <Button component="label" size="small" variant="outlined">
                 Import CSV
                 <input
                   hidden
@@ -444,7 +478,10 @@ function VideoEditDialog({
                         value={chapter.time}
                         onChange={(event) => {
                           const chapters = [...draft.chapters];
-                          chapters[index] = { ...chapter, time: parseChapterTime(event.target.value) };
+                          chapters[index] = {
+                            ...chapter,
+                            time: parseChapterTime(event.target.value)
+                          };
                           setDraft({ ...draft, chapters });
                         }}
                       />
@@ -480,7 +517,9 @@ function VideoEditDialog({
                         onClick={() =>
                           setDraft({
                             ...draft,
-                            chapters: draft.chapters.filter((_item, itemIndex) => itemIndex !== index)
+                            chapters: draft.chapters.filter(
+                              (_item, itemIndex) => itemIndex !== index
+                            )
                           })
                         }
                       >
@@ -579,10 +618,28 @@ function AlbumEditDialog({
             </Button>
           </Stack>
           <Stack spacing={2}>
-            <TextField label="Title" value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
-            <TextField label="Artist" value={draft.artist} onChange={(e) => setDraft({ ...draft, artist: e.target.value })} />
-            <TextField label="Genre" helperText="Comma separated" value={draft.genre} onChange={(e) => setDraft({ ...draft, genre: e.target.value })} />
-            <TextField label="Year" type="number" value={draft.year} onChange={(e) => setDraft({ ...draft, year: e.target.value })} />
+            <TextField
+              label="Title"
+              value={draft.title}
+              onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+            />
+            <TextField
+              label="Artist"
+              value={draft.artist}
+              onChange={(e) => setDraft({ ...draft, artist: e.target.value })}
+            />
+            <TextField
+              label="Genre"
+              helperText="Comma separated"
+              value={draft.genre}
+              onChange={(e) => setDraft({ ...draft, genre: e.target.value })}
+            />
+            <TextField
+              label="Year"
+              type="number"
+              value={draft.year}
+              onChange={(e) => setDraft({ ...draft, year: e.target.value })}
+            />
           </Stack>
         </Box>
       </DialogContent>
@@ -590,17 +647,15 @@ function AlbumEditDialog({
         <Button onClick={onClose}>Cancel</Button>
         <Button
           onClick={async () => {
-            await update.mutateAsync(
-              {
-                id: album._id,
-                data: {
-                  title: draft.title,
-                  artist: draft.artist,
-                  genre: splitList(draft.genre),
-                  year: draft.year ? Number(draft.year) : undefined
-                }
+            await update.mutateAsync({
+              id: album._id,
+              data: {
+                title: draft.title,
+                artist: draft.artist,
+                genre: splitList(draft.genre),
+                year: draft.year ? Number(draft.year) : undefined
               }
-            );
+            });
             if (coverFile) {
               await updateCover.mutateAsync({ id: album._id, file: coverFile });
             }
@@ -691,18 +746,56 @@ function HostEditDialog({
       <DialogTitle>{host ? "Edit hosting provider" : "Add hosting provider"}</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
-          <TextField label="Name" value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
-          <TextField label="Provider" value={draft.provider} onChange={(e) => setDraft({ ...draft, provider: e.target.value })} />
-          <TextField label="Stream host" value={draft.host} onChange={(e) => setDraft({ ...draft, host: e.target.value })} />
-          <TextField label="Path" value={draft.path} onChange={(e) => setDraft({ ...draft, path: e.target.value })} />
+          <TextField
+            label="Name"
+            value={draft.name}
+            onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+          />
+          <TextField
+            label="Provider"
+            value={draft.provider}
+            onChange={(e) => setDraft({ ...draft, provider: e.target.value })}
+          />
+          <TextField
+            label="Stream host"
+            value={draft.host}
+            onChange={(e) => setDraft({ ...draft, host: e.target.value })}
+          />
+          <TextField
+            label="Path"
+            value={draft.path}
+            onChange={(e) => setDraft({ ...draft, path: e.target.value })}
+          />
           {!host && (
             <>
               <Divider />
-              <TextField label="FTP host" value={draft.ftpHost} onChange={(e) => setDraft({ ...draft, ftpHost: e.target.value })} />
-              <TextField label="FTP port" type="number" value={draft.ftpPort} onChange={(e) => setDraft({ ...draft, ftpPort: e.target.value })} />
-              <TextField label="FTP username" value={draft.ftpUser} onChange={(e) => setDraft({ ...draft, ftpUser: e.target.value })} />
-              <TextField label="FTP password" type="password" value={draft.ftpPassword} onChange={(e) => setDraft({ ...draft, ftpPassword: e.target.value })} />
-              <TextField label="FTP root" value={draft.ftpRoot} onChange={(e) => setDraft({ ...draft, ftpRoot: e.target.value })} />
+              <TextField
+                label="FTP host"
+                value={draft.ftpHost}
+                onChange={(e) => setDraft({ ...draft, ftpHost: e.target.value })}
+              />
+              <TextField
+                label="FTP port"
+                type="number"
+                value={draft.ftpPort}
+                onChange={(e) => setDraft({ ...draft, ftpPort: e.target.value })}
+              />
+              <TextField
+                label="FTP username"
+                value={draft.ftpUser}
+                onChange={(e) => setDraft({ ...draft, ftpUser: e.target.value })}
+              />
+              <TextField
+                label="FTP password"
+                type="password"
+                value={draft.ftpPassword}
+                onChange={(e) => setDraft({ ...draft, ftpPassword: e.target.value })}
+              />
+              <TextField
+                label="FTP root"
+                value={draft.ftpRoot}
+                onChange={(e) => setDraft({ ...draft, ftpRoot: e.target.value })}
+              />
             </>
           )}
         </Stack>
@@ -784,13 +877,27 @@ function ArtistEditDialog({
                 border: "1px solid rgba(255,255,255,.12)"
               }}
             />
-            <Button component="label" startIcon={<ImageIcon />} variant="contained" sx={{ borderRadius: 2, py: 1.4 }}>
+            <Button
+              component="label"
+              startIcon={<ImageIcon />}
+              variant="contained"
+              sx={{ borderRadius: 2, py: 1.4 }}
+            >
               Change image
-              <input hidden type="file" accept="image/*" onChange={(event) => setFile(event.target.files?.[0] ?? null)} />
+              <input
+                hidden
+                type="file"
+                accept="image/*"
+                onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+              />
             </Button>
           </Stack>
           <Stack spacing={2}>
-            <TextField label="Canonical artist name" value={name} onChange={(e) => setName(e.target.value)} />
+            <TextField
+              label="Canonical artist name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
             <Box
               sx={{
                 border: "1px solid rgba(255,255,255,.12)",
@@ -804,7 +911,8 @@ function ArtistEditDialog({
                 Merge duplicate artist names
               </Typography>
               <Typography variant="body2" sx={{ mt: 1 }}>
-                Saving a different name replaces this artist string across songs, videos, and albums.
+                Saving a different name replaces this artist string across songs, videos, and
+                albums.
               </Typography>
               <Typography variant="body2" sx={{ mt: 2 }}>
                 Songs {artist.songCount} · Videos {artist.videoCount} · Albums {artist.albumCount}
@@ -913,7 +1021,12 @@ function UploadMediaDialog({
               <Typography>{file ? file.name : "Drop a media file here"}</Typography>
               <Button component="label" variant="outlined">
                 Browse
-                <input hidden type="file" accept="audio/*,video/*" onChange={(event) => chooseFiles(event.target.files)} />
+                <input
+                  hidden
+                  type="file"
+                  accept="audio/*,video/*"
+                  onChange={(event) => chooseFiles(event.target.files)}
+                />
               </Button>
             </Stack>
           </Box>
@@ -982,6 +1095,9 @@ export function AdminDialog({ open, onClose }: AdminDialogProps) {
   const deleteHost = useDeleteAdminHost();
   const [songEdit, setSongEdit] = React.useState<AdminSong | null>(null);
   const [videoEdit, setVideoEdit] = React.useState<AdminVideo | null>(null);
+  const [lyricsTarget, setLyricsTarget] = React.useState<
+    { mediaType: "audio"; media: AdminSong } | { mediaType: "video"; media: AdminVideo } | null
+  >(null);
   const [albumEdit, setAlbumEdit] = React.useState<AdminAlbum | null>(null);
   const [albumMedia, setAlbumMedia] = React.useState<AdminAlbum | null>(null);
   const [artistEdit, setArtistEdit] = React.useState<AdminArtist | null>(null);
@@ -1003,7 +1119,11 @@ export function AdminDialog({ open, onClose }: AdminDialogProps) {
       <Stack sx={{ height: "100%" }} spacing={1.5}>
         <Stack direction="row" justifyContent="space-between" alignItems="center">
           <Typography variant="h6">Uploads</Typography>
-          <Button startIcon={<CloudUploadIcon />} variant="contained" onClick={() => setUploadOpen(true)}>
+          <Button
+            startIcon={<CloudUploadIcon />}
+            variant="contained"
+            onClick={() => setUploadOpen(true)}
+          >
             Upload media
           </Button>
         </Stack>
@@ -1021,7 +1141,9 @@ export function AdminDialog({ open, onClose }: AdminDialogProps) {
               render: (row) => (
                 <Chip
                   size="small"
-                  label={row.healthy ? "Healthy" : row.health === "unknown" ? "Unknown" : "Missing parts"}
+                  label={
+                    row.healthy ? "Healthy" : row.health === "unknown" ? "Unknown" : "Missing parts"
+                  }
                   color={row.healthy ? "success" : "warning"}
                 />
               )
@@ -1041,12 +1163,23 @@ export function AdminDialog({ open, onClose }: AdminDialogProps) {
           { key: "artist", label: "Artist", render: (row) => joinArtists(row.artist) },
           { key: "album", label: "Album", render: (row) => row.album?.title ?? "" },
           { key: "track", label: "Track", width: 80, render: (row) => row.trackNo ?? "" },
-          { key: "hosts", label: "HA", width: 80, render: (row) => `x${row.hostingList?.length ?? 0}` },
+          {
+            key: "hosts",
+            label: "HA",
+            width: 80,
+            render: (row) => `x${row.hostingList?.length ?? 0}`
+          },
           {
             key: "actions",
             label: "",
-            width: 96,
-            render: (row) => <Actions onEdit={() => setSongEdit(row)} onDelete={() => setDeleteTarget({ type: "song", item: row })} />
+            width: 132,
+            render: (row) => (
+              <Actions
+                onEdit={() => setSongEdit(row)}
+                onLyrics={() => setLyricsTarget({ mediaType: "audio", media: row })}
+                onDelete={() => setDeleteTarget({ type: "song", item: row })}
+              />
+            )
           }
         ]}
       />
@@ -1061,12 +1194,23 @@ export function AdminDialog({ open, onClose }: AdminDialogProps) {
           { key: "artist", label: "Artist", render: (row) => joinArtists(row.artist) },
           { key: "album", label: "Album", render: (row) => row.album?.title ?? "" },
           { key: "format", label: "Format", width: 100, render: (row) => row.format ?? "" },
-          { key: "hosts", label: "HA", width: 80, render: (row) => `x${row.hostingList?.length ?? 0}` },
+          {
+            key: "hosts",
+            label: "HA",
+            width: 80,
+            render: (row) => `x${row.hostingList?.length ?? 0}`
+          },
           {
             key: "actions",
             label: "",
-            width: 96,
-            render: (row) => <Actions onEdit={() => setVideoEdit(row)} onDelete={() => setDeleteTarget({ type: "video", item: row })} />
+            width: 132,
+            render: (row) => (
+              <Actions
+                onEdit={() => setVideoEdit(row)}
+                onLyrics={() => setLyricsTarget({ mediaType: "video", media: row })}
+                onDelete={() => setDeleteTarget({ type: "video", item: row })}
+              />
+            )
           }
         ]}
       />
@@ -1104,7 +1248,12 @@ export function AdminDialog({ open, onClose }: AdminDialogProps) {
             key: "actions",
             label: "",
             width: 96,
-            render: (row) => <Actions onEdit={() => setAlbumEdit(row)} onDelete={() => setDeleteTarget({ type: "album", item: row })} />
+            render: (row) => (
+              <Actions
+                onEdit={() => setAlbumEdit(row)}
+                onDelete={() => setDeleteTarget({ type: "album", item: row })}
+              />
+            )
           }
         ]}
       />
@@ -1159,7 +1308,12 @@ export function AdminDialog({ open, onClose }: AdminDialogProps) {
               key: "actions",
               label: "",
               width: 96,
-              render: (row) => <Actions onEdit={() => setHostEdit(row)} onDelete={() => setDeleteTarget({ type: "host", item: row })} />
+              render: (row) => (
+                <Actions
+                  onEdit={() => setHostEdit(row)}
+                  onDelete={() => setDeleteTarget({ type: "host", item: row })}
+                />
+              )
             }
           ]}
         />
@@ -1174,7 +1328,16 @@ export function AdminDialog({ open, onClose }: AdminDialogProps) {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth={false} aria-labelledby="admin-dialog-title">
-      <Box sx={{ width: 1120, height: 720, bgcolor: "#080808", color: "#fff", display: "flex", flexDirection: "column" }}>
+      <Box
+        sx={{
+          width: 1120,
+          height: 720,
+          bgcolor: "#080808",
+          color: "#fff",
+          display: "flex",
+          flexDirection: "column"
+        }}
+      >
         <DialogTitle id="admin-dialog-title" sx={{ display: "flex", alignItems: "center", pr: 1 }}>
           <Typography variant="h6" sx={{ flex: 1 }}>
             Admin
@@ -1186,15 +1349,49 @@ export function AdminDialog({ open, onClose }: AdminDialogProps) {
         <Divider />
         <Box sx={{ display: "flex", minHeight: 0, flex: 1 }}>
           <AdminNavigation value={tab} onChange={setTab} />
-          <DialogContent sx={{ p: 2, minWidth: 0, flex: 1, height: "100%" }}>{content}</DialogContent>
+          <DialogContent sx={{ p: 2, minWidth: 0, flex: 1, height: "100%" }}>
+            {content}
+          </DialogContent>
         </Box>
       </Box>
-      <SongEditDialog song={songEdit} albums={albumRows} open={Boolean(songEdit)} onClose={() => setSongEdit(null)} />
-      <VideoEditDialog video={videoEdit} albums={albumRows} open={Boolean(videoEdit)} onClose={() => setVideoEdit(null)} />
-      <AlbumEditDialog album={albumEdit} open={Boolean(albumEdit)} onClose={() => setAlbumEdit(null)} />
-      <AlbumMediaDialog album={albumMedia} open={Boolean(albumMedia)} onClose={() => setAlbumMedia(null)} />
-      <ArtistEditDialog artist={artistEdit} open={Boolean(artistEdit)} onClose={() => setArtistEdit(null)} />
-      <HostEditDialog host={hostEdit ?? null} open={hostEdit !== undefined} onClose={() => setHostEdit(undefined)} />
+      <SongEditDialog
+        song={songEdit}
+        albums={albumRows}
+        open={Boolean(songEdit)}
+        onClose={() => setSongEdit(null)}
+      />
+      <VideoEditDialog
+        video={videoEdit}
+        albums={albumRows}
+        open={Boolean(videoEdit)}
+        onClose={() => setVideoEdit(null)}
+      />
+      <SynchronizedLyricsDialog
+        media={lyricsTarget?.media ?? null}
+        mediaType={lyricsTarget?.mediaType ?? "audio"}
+        open={Boolean(lyricsTarget)}
+        onClose={() => setLyricsTarget(null)}
+      />
+      <AlbumEditDialog
+        album={albumEdit}
+        open={Boolean(albumEdit)}
+        onClose={() => setAlbumEdit(null)}
+      />
+      <AlbumMediaDialog
+        album={albumMedia}
+        open={Boolean(albumMedia)}
+        onClose={() => setAlbumMedia(null)}
+      />
+      <ArtistEditDialog
+        artist={artistEdit}
+        open={Boolean(artistEdit)}
+        onClose={() => setArtistEdit(null)}
+      />
+      <HostEditDialog
+        host={hostEdit ?? null}
+        open={hostEdit !== undefined}
+        onClose={() => setHostEdit(undefined)}
+      />
       <UploadMediaDialog
         open={uploadOpen}
         hosts={hostRows}
@@ -1208,14 +1405,21 @@ export function AdminDialog({ open, onClose }: AdminDialogProps) {
         open={Boolean(deleteTarget)}
         title="Confirm delete"
         message={deleteMessage}
-        pending={deleteSong.isPending || deleteVideo.isPending || deleteAlbum.isPending || deleteHost.isPending}
+        pending={
+          deleteSong.isPending ||
+          deleteVideo.isPending ||
+          deleteAlbum.isPending ||
+          deleteHost.isPending
+        }
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => {
           if (!deleteTarget) return;
           const onSuccess = () => setDeleteTarget(null);
           if (deleteTarget.type === "song") deleteSong.mutate(deleteTarget.item._id, { onSuccess });
-          if (deleteTarget.type === "video") deleteVideo.mutate(deleteTarget.item._id, { onSuccess });
-          if (deleteTarget.type === "album") deleteAlbum.mutate(deleteTarget.item._id, { onSuccess });
+          if (deleteTarget.type === "video")
+            deleteVideo.mutate(deleteTarget.item._id, { onSuccess });
+          if (deleteTarget.type === "album")
+            deleteAlbum.mutate(deleteTarget.item._id, { onSuccess });
           if (deleteTarget.type === "host") deleteHost.mutate(deleteTarget.item._id, { onSuccess });
         }}
       />

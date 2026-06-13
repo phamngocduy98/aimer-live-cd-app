@@ -8,6 +8,7 @@ import { Hosting, IHosting, StreamStrategy, UploadStrategy } from "../models/Hos
 import { Playlist } from "../models/Playlist.js";
 import { Song } from "../models/Song.js";
 import { Video } from "../models/Video.js";
+import { Lyrics } from "../models/Lyrics.js";
 import { FtpMediaUploader } from "../services/mediaUpload/FtpMediaUploader.js";
 import { getMediaUploader } from "../services/mediaUpload/index.js";
 import { getPartProvider } from "../services/stream/part-provider/index.js";
@@ -45,7 +46,9 @@ function buildSongUpdate(body: any) {
   return {
     ...(compactString(body.title) ? { title: compactString(body.title) } : {}),
     ...(Array.isArray(body.artist) ? { artist: mergeArtistNames(body.artist) } : {}),
-    ...(numberOrUndefined(body.trackNo) != null ? { trackNo: numberOrUndefined(body.trackNo) } : {}),
+    ...(numberOrUndefined(body.trackNo) != null
+      ? { trackNo: numberOrUndefined(body.trackNo) }
+      : {}),
     ...(isValidId(String(body.album ?? "")) ? { album: body.album } : {})
   };
 }
@@ -132,7 +135,9 @@ export async function handleAdminGetUploads(_req, res) {
       }
     })
   );
-  const ids = Array.from(new Set(listings.flatMap((listing) => listing.files.map((f) => f.fileName))));
+  const ids = Array.from(
+    new Set(listings.flatMap((listing) => listing.files.map((f) => f.fileName)))
+  );
   res.json(buildUploadRows(listings, await getMediaLookup(ids)));
 }
 
@@ -160,11 +165,13 @@ export async function handleAdminGetAlbums(_req, res) {
   res.json(
     (
       await Album.find({})
-      .populate("trackList", { title: 1 })
-      .populate("videoList", { title: 1 })
-      .sort({ year: 1, title: 1 })
-      .lean()
-    ).map(albumPublicProjection).map(({ cover: _cover, ...album }) => album)
+        .populate("trackList", { title: 1 })
+        .populate("videoList", { title: 1 })
+        .sort({ year: 1, title: 1 })
+        .lean()
+    )
+      .map(albumPublicProjection)
+      .map(({ cover: _cover, ...album }) => album)
   );
 }
 
@@ -190,7 +197,9 @@ export async function handleAdminGetArtists(_req, res) {
     return rows.get(name)!;
   };
 
-  songs.forEach((song) => mergeArtistNames(song.artist).forEach((name) => ensure(name).songCount++));
+  songs.forEach((song) =>
+    mergeArtistNames(song.artist).forEach((name) => ensure(name).songCount++)
+  );
   videos.forEach((video) =>
     mergeArtistNames(video.artist).forEach((name) => ensure(name).videoCount++)
   );
@@ -207,7 +216,10 @@ export async function handleAdminGetArtists(_req, res) {
 }
 
 export async function handleAdminGetArtistImage(req, res) {
-  const profile = await ArtistProfile.findOne({ name: req.params.name }, { image: 1, imageMimeType: 1 });
+  const profile = await ArtistProfile.findOne(
+    { name: req.params.name },
+    { image: 1, imageMimeType: 1 }
+  );
   if (!profile?.image) return fail(res, "No artist image", 404);
   res.setHeader("Content-Type", profile.imageMimeType ?? "application/octet-stream");
   res.setHeader("Cache-Control", "public, max-age=86400");
@@ -366,6 +378,7 @@ export async function handleAdminDeleteSong(req, res) {
         {},
         { $pull: { songs: song._id, items: { mediaType: "audio", mediaId: song._id } } }
       ),
+      Lyrics.deleteOne({ mediaType: "audio", mediaId: song._id }),
       Song.findByIdAndDelete(song._id)
     ]);
     ok(res);
@@ -384,6 +397,7 @@ export async function handleAdminDeleteVideo(req, res) {
     await Promise.all([
       Album.updateMany({}, { $pull: { videoList: video._id } }),
       Playlist.updateMany({}, { $pull: { items: { mediaType: "video", mediaId: video._id } } }),
+      Lyrics.deleteOne({ mediaType: "video", mediaId: video._id }),
       Video.findByIdAndDelete(video._id)
     ]);
     ok(res);

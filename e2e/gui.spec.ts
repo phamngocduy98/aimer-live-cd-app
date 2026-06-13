@@ -324,6 +324,65 @@ test.describe("GUI expected features", () => {
     await expect(songRow).toHaveClass(/Mui-selected/);
   });
 
+  test("renders bilingual synchronized lyrics and switches language pairs", async () => {
+    await openSidebarPage(ctx.mainWindow, "Songs");
+    await ctx.mainWindow.getByRole("row", { name: /E2E Song One/ }).dispatchEvent("dblclick");
+    await toggleFullScreenPlayer(ctx.mainWindow);
+    await ctx.mainWindow.getByRole("button", { name: "Lyrics", exact: true }).click();
+
+    const lyrics = ctx.mainWindow.getByTestId("lyrics-experience");
+    await expect(lyrics.getByText("最初の歌詞")).toBeVisible();
+    await expect(lyrics.getByText("Saisho no kashi")).toBeVisible();
+    await expect(ctx.mainWindow.getByTestId("lyrics-artwork")).toBeVisible();
+
+    await lyrics.getByRole("button", { name: "Lyrics language" }).click();
+    await ctx.mainWindow.getByRole("menuitem", { name: "Romaji / English" }).click();
+    await expect(lyrics.getByText("The first lyric")).toBeVisible();
+
+    const sync = lyrics.getByRole("button", { name: "Sync Lyrics" });
+    await expect(sync).toHaveAttribute("aria-pressed", "true");
+    await sync.click();
+    await expect(sync).toHaveAttribute("aria-pressed", "false");
+    await sync.click();
+    await expect(sync).toHaveAttribute("aria-pressed", "true");
+
+    await ctx.electronApp
+      .browserWindow(ctx.mainWindow)
+      .then((win) => win.evaluate((browserWindow) => browserWindow.setSize(800, 760)));
+    await expect(ctx.mainWindow.getByTestId("lyrics-artwork")).not.toBeVisible();
+    await expect(lyrics).toBeVisible();
+
+    await ctx.electronApp
+      .browserWindow(ctx.mainWindow)
+      .then((win) => win.evaluate((browserWindow) => browserWindow.setSize(390, 760)));
+    await expect(lyrics).toBeVisible();
+    await expect(ctx.mainWindow.getByRole("button", { name: "Lyrics", exact: true })).toBeVisible();
+  });
+
+  test("disables lyrics when the current song has no lyrics document", async () => {
+    await openSidebarPage(ctx.mainWindow, "Songs");
+    await ctx.mainWindow.getByRole("row", { name: /E2E Song Two/ }).dispatchEvent("dblclick");
+    await toggleFullScreenPlayer(ctx.mainWindow);
+    await ctx.electronApp
+      .browserWindow(ctx.mainWindow)
+      .then((win) => win.evaluate((browserWindow) => browserWindow.setSize(390, 760)));
+    await expect(
+      ctx.mainWindow.getByRole("button", { name: "Lyrics", exact: true })
+    ).toBeDisabled();
+  });
+
+  test("shows bilingual lyrics over video without remounting the runtime", async () => {
+    await openSidebarPage(ctx.mainWindow, "Videos");
+    await ctx.mainWindow.getByTitle("E2E Video One").click();
+    await toggleFullScreenPlayer(ctx.mainWindow);
+    const runtime = ctx.mainWindow.getByTestId("persistent-video-runtime");
+    await expect(runtime).toHaveCount(1);
+
+    await ctx.mainWindow.getByRole("button", { name: "Lyrics", exact: true }).click();
+    await expect(ctx.mainWindow.getByTestId("video-lyrics-overlay")).toContainText("映像の歌詞");
+    await expect(runtime).toHaveCount(1);
+  });
+
   test("creates a playlist from the current play queue", async () => {
     await openSidebarPage(ctx.mainWindow, "Songs");
     await ctx.mainWindow.getByRole("button", { name: "Songs actions" }).click();

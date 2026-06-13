@@ -54,6 +54,8 @@
     "express": "^4.18.2",
     "ftp": "^0.3.10",
     "get-port": "^7.1.0",
+    "kuroshiro": "^1.2.0",
+    "kuroshiro-analyzer-kuromoji": "^1.1.0",
     "linkedlist": "^1.0.1",
     "localforage": "^1.10.0",
     "lodash.assign": "^4.2.0",

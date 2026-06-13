@@ -62,7 +62,8 @@ export async function seedE2eDatabase(): Promise<void> {
     db.collection("songs").deleteMany({}),
     db.collection("videos").deleteMany({}),
     db.collection("playlists").deleteMany({}),
-    db.collection("hostings").deleteMany({})
+    db.collection("hostings").deleteMany({}),
+    db.collection("lyrics").deleteMany({})
   ]);
 
   await db.collection("hostings").insertOne({
@@ -193,6 +194,57 @@ export async function seedE2eDatabase(): Promise<void> {
     album: testIds.albumAlpha,
     iv: "00000000000000000000000000000000"
   });
+
+  await db.collection("lyrics").insertMany([
+    {
+      mediaType: "audio",
+      mediaId: testIds.songOne,
+      rows: [
+        {
+          startMs: 0,
+          endMs: 2500,
+          ja: "最初の歌詞",
+          romaji: "Saisho no kashi",
+          en: "The first lyric",
+          vi: "Lời đầu tiên"
+        },
+        {
+          startMs: 2500,
+          endMs: 5000,
+          ja: "次の歌詞",
+          romaji: "Tsugi no kashi",
+          en: "The next lyric",
+          vi: "Lời tiếp theo"
+        }
+      ],
+      provenance: {
+        ja: { source: "manual-srt", generatedAt: new Date("2026-01-01") },
+        romaji: { source: "kuroshiro", generatedAt: new Date("2026-01-01") },
+        en: { source: "mymemory", generatedAt: new Date("2026-01-01") },
+        vi: { source: "mymemory", generatedAt: new Date("2026-01-01") }
+      }
+    },
+    {
+      mediaType: "video",
+      mediaId: testIds.videoOne,
+      rows: [
+        {
+          startMs: 0,
+          endMs: 12000,
+          ja: "映像の歌詞",
+          romaji: "Eizou no kashi",
+          en: "Video lyric",
+          vi: "Lời video"
+        }
+      ],
+      provenance: {
+        ja: { source: "manual-srt", generatedAt: new Date("2026-01-01") },
+        romaji: { source: "kuroshiro", generatedAt: new Date("2026-01-01") },
+        en: { source: "mymemory", generatedAt: new Date("2026-01-01") },
+        vi: { source: "mymemory", generatedAt: new Date("2026-01-01") }
+      }
+    }
+  ]);
 
   await db.collection("playlists").insertOne({
     _id: testIds.playlistSeed,

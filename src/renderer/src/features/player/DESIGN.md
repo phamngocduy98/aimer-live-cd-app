@@ -139,6 +139,29 @@ when chapter metadata is absent.
 [`onNextTrack.ts`](thunks/onNextTrack.ts),
 [`onPrevTrack.ts`](thunks/onPrevTrack.ts)
 
+## Synchronized Lyrics
+
+**Decision:** Lyrics are a separately fetched server resource for the current
+media item. They are not copied into queue entries or library payloads.
+Expanded audio may replace the artwork stage with a bilingual lyric
+presentation, while expanded video renders the same timed content as an
+overlay without remounting the persistent video runtime.
+
+Each synchronized row has one shared start/end range and optional language
+fields. The selected pair determines a primary line and a smaller secondary
+line: Japanese/Romaji by default, Romaji/English, or Romaji/Vietnamese. Sync
+mode follows the active row; manual scrolling disables following until the user
+selects Sync Lyrics again.
+
+At `lg` and above, audio lyrics share the stage with artwork. From `sm` through
+below `lg`, artwork is hidden and lyrics use the full stage. Mobile reserves the
+upper expanded-player area for lyrics and keeps metadata and controls below.
+
+**Change guidance:** Derive lyric timing from the existing audio or video clock.
+Do not add lyric data to Redux playback state or create another media runtime.
+Keep the language selector adjacent to Sync Lyrics and preserve the selected
+pair across queue transitions.
+
 ## Responsive Presentation
 
 **Decision:** The same playback state drives compact desktop/tablet chrome,
