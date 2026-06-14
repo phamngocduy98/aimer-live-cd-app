@@ -18,7 +18,6 @@ import {
   Typography
 } from "@mui/material";
 import React from "react";
-import { apiAssetUrl } from "@lib/axios";
 import { useAppDispatch, useAppSelector } from "@app/hooks";
 import { deleteTrack, nextTrack, prevTrack, reset, setCurrentChapter } from "../store/playerSlice";
 import { hideView } from "../store/playerGuiSlice";
@@ -29,6 +28,7 @@ import { SongActionsMenu } from "@components/media/MediaActionsMenu";
 import { CreatePlaylistDialog } from "@features/playlist";
 import { router } from "@app/router";
 import { ArtistLinks } from "@components/media/ArtistLinks";
+import { mediaArtworkUrl } from "@utils/mediaArtwork";
 
 export const FloatingQueueList = () => {
   const { playingQueue, mobilePlayer } = useAppSelector((state) => state.playerGui);
@@ -163,7 +163,7 @@ export const QueueList: React.FC<{ onClear?: () => void }> = ({ onClear }) => {
               key={entry.queueEntryId}
               track={entry.media}
               title={entry.media.title}
-              cover={entry.media.album?._id}
+              artworkUrl={mediaArtworkUrl(entry.media)}
               playFromLabel={entry.playFrom.label}
               onPlayFrom={() => router.navigate(entry.playFrom.route)}
               onClick={() => dispatch(prevTrack({ skip: history.length - idx - 1 }))}
@@ -181,7 +181,7 @@ export const QueueList: React.FC<{ onClear?: () => void }> = ({ onClear }) => {
             active
             track={playingTrack}
             title={playingTrack.title}
-            cover={playingTrack.album?._id}
+            artworkUrl={mediaArtworkUrl(playingTrack)}
             playFromLabel={currentEntry?.playFrom.label}
             onPlayFrom={() => currentEntry && router.navigate(currentEntry.playFrom.route)}
           />
@@ -196,7 +196,7 @@ export const QueueList: React.FC<{ onClear?: () => void }> = ({ onClear }) => {
               track={playingTrack}
               active={index === currentChapterIdx}
               title={chapter.title}
-              cover={playingTrack.album?._id}
+              artworkUrl={mediaArtworkUrl(playingTrack)}
               onClick={() => {
                 const nextChapterTime =
                   playingTrack.chapters[index + 1]?.time ?? playingTrack.duration;
@@ -220,7 +220,7 @@ export const QueueList: React.FC<{ onClear?: () => void }> = ({ onClear }) => {
               key={entry.queueEntryId}
               track={entry.media}
               title={entry.media.title}
-              cover={entry.media.album?._id}
+              artworkUrl={mediaArtworkUrl(entry.media)}
               playFromLabel={entry.playFrom.label}
               onPlayFrom={() => router.navigate(entry.playFrom.route)}
               onClick={() => dispatch(nextTrack({ skip: idx }))}
@@ -262,7 +262,7 @@ function QueueSection({
 interface QueueRowProps {
   track: Song | Video;
   title: string;
-  cover?: string;
+  artworkUrl?: string;
   active?: boolean;
   action?: React.ReactNode;
   onClick?: () => void;
@@ -273,7 +273,7 @@ interface QueueRowProps {
 function QueueRow({
   track,
   title,
-  cover,
+  artworkUrl,
   active,
   action,
   onClick,
@@ -298,7 +298,7 @@ function QueueRow({
           <ListItemAvatar sx={{ minWidth: 66 }}>
             <Avatar
               variant="rounded"
-              src={cover ? apiAssetUrl(`/album/${cover}/cover`) : undefined}
+              src={artworkUrl}
               sx={{ width: 56, height: 56, borderRadius: 1.25 }}
             >
               {active ? <VolumeUpIcon /> : <MusicNoteIcon />}

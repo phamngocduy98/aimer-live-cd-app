@@ -127,13 +127,17 @@ aspect calculation pure and unit tested.
 
 **Decision:** Video progress derives the active chapter. User next/previous
 commands navigate adjacent chapters before changing tracks when applicable.
+Starting a chapter from a video detail page creates one video queue entry and
+stores a media-scoped pending seek. The seek is consumed only after the matching
+video runtime is ready.
 
 **Why:** Chapters are navigation points within one queue entry, not separate
 media or queue items.
 
 **Change guidance:** Seeking must update runtime position and chapter UI without
 creating queue entries. Test boundary behavior at the first/last chapter and
-when chapter metadata is absent.
+when chapter metadata is absent. Never apply a pending seek to a runtime loaded
+for a different video.
 
 **References:** [`onVideoPosition.ts`](thunks/onVideoPosition.ts),
 [`onNextTrack.ts`](thunks/onNextTrack.ts),

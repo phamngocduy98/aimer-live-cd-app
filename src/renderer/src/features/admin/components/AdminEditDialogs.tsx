@@ -37,6 +37,7 @@ import {
   useUpdateAdminArtistImage,
   useUpdateAdminSong,
   useUpdateAdminVideo,
+  useUpdateAdminVideoCover,
   useUploadAdminMedia
 } from "../hooks/useAdmin";
 import { listAdminSongs, listAdminVideos, uploadProgressUrl } from "../api/admin";
@@ -138,30 +139,33 @@ export function SongEditDialog({
 
 export function VideoEditDialog({
   video,
-  albums,
   open,
   onClose
 }: {
   video: AdminVideo | null;
-  albums: AdminAlbum[];
   open: boolean;
   onClose: () => void;
 }) {
   const update = useUpdateAdminVideo();
+  const updateCover = useUpdateAdminVideoCover();
   const [draft, setDraft] = React.useState({
     title: "",
     artist: "",
-    album: "",
+    genre: "",
+    year: "",
     chapters: [] as NonNullable<AdminVideo["chapters"]>
   });
+  const [coverFile, setCoverFile] = React.useState<File | null>(null);
 
   React.useEffect(() => {
     setDraft({
       title: video?.title ?? "",
       artist: joinArtists(video?.artist),
-      album: video?.album?._id ?? "",
+      genre: video?.genre?.join(", ") ?? "",
+      year: video?.year?.toString() ?? "",
       chapters: video?.chapters ?? []
     });
+    setCoverFile(null);
   }, [video]);
 
   if (!video) return null;
@@ -181,19 +185,39 @@ export function VideoEditDialog({
             helperText="Comma separated"
             onChange={(event) => setDraft({ ...draft, artist: event.target.value })}
           />
-          <InputLabel id="video-album-label">Album</InputLabel>
-          <Select
-            labelId="video-album-label"
-            value={draft.album}
-            onChange={(event) => setDraft({ ...draft, album: event.target.value })}
-          >
-            <MenuItem value="">None</MenuItem>
-            {albums.map((album) => (
-              <MenuItem key={album._id} value={album._id}>
-                {album.title}
-              </MenuItem>
-            ))}
-          </Select>
+          <TextField
+            label="Genres"
+            value={draft.genre}
+            helperText="Comma separated"
+            onChange={(event) => setDraft({ ...draft, genre: event.target.value })}
+          />
+          <TextField
+            label="Release year"
+            type="number"
+            value={draft.year}
+            onChange={(event) => setDraft({ ...draft, year: event.target.value })}
+          />
+          <Box
+            component="img"
+            src={
+              coverFile
+                ? URL.createObjectURL(coverFile)
+                : video.hasCover
+                  ? apiAssetUrl(`/video/${video._id}/cover`)
+                  : undefined
+            }
+            alt=""
+            sx={{ width: 240, aspectRatio: "16 / 9", objectFit: "cover", bgcolor: "#18181c" }}
+          />
+          <Button component="label" variant="outlined">
+            Change cover
+            <input
+              hidden
+              type="file"
+              accept="image/*"
+              onChange={(event) => setCoverFile(event.target.files?.[0] ?? null)}
+            />
+          </Button>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Typography fontWeight={700}>Chapters</Typography>
             <Stack direction="row" spacing={1}>
@@ -300,21 +324,21 @@ export function VideoEditDialog({
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
         <Button
-          onClick={() =>
-            update.mutate(
-              {
-                id: video._id,
-                data: {
-                  title: draft.title,
-                  artist: splitList(draft.artist),
-                  album: draft.album as unknown as AdminAlbum,
-                  chapters: draft.chapters
-                }
-              },
-              { onSuccess: onClose }
-            )
-          }
-          disabled={update.isPending}
+          onClick={async () => {
+            await update.mutateAsync({
+              id: video._id,
+              data: {
+                title: draft.title,
+                artist: splitList(draft.artist),
+                genre: splitList(draft.genre),
+                year: draft.year ? Number(draft.year) : undefined,
+                chapters: draft.chapters
+              }
+            });
+            if (coverFile) await updateCover.mutateAsync({ id: video._id, file: coverFile });
+            onClose();
+          }}
+          disabled={update.isPending || updateCover.isPending}
         >
           Save
         </Button>
@@ -445,8 +469,7 @@ export function AlbumMediaDialog({
 }) {
   if (!album) return null;
   const rows = [
-    ...(album.trackList ?? []).map((item) => ({ ...item, id: item._id, type: "Song" })),
-    ...(album.videoList ?? []).map((item) => ({ ...item, id: item._id, type: "Video" }))
+    ...(album.trackList ?? []).map((item) => ({ ...item, id: item._id, type: "Song" }))
   ];
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>

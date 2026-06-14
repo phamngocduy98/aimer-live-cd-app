@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from "react";
-import { Box } from "@mui/material";
 import { playContext } from "@features/player/store/playerSlice";
 import { useAppDispatch } from "@app/hooks";
 import { SongTable } from "@components/media/SongTable";
 import { CollectionHeader } from "@components/view/CollectionHeader";
 import { PageScaffold } from "@components/view/PageScaffold";
+import { CollectionContent } from "@components/view/designSystem";
 import { formatArtists } from "@utils/artist";
 import { useSongs } from "../hooks/useLibrary";
 
@@ -48,7 +48,7 @@ export const Songs: React.FC = () => {
         ]}
       />
 
-      <Box sx={{ maxWidth: 1440, mx: "auto", px: { xs: 2.5, sm: 4, lg: 6 }, pb: 3 }}>
+      <CollectionContent>
         <SongTable
           songs={visibleSongs}
           ariaLabel="songs table"
@@ -61,7 +61,7 @@ export const Songs: React.FC = () => {
             dispatch(playContext({ items: visibleSongs, playFrom: playSource, startIndex: idx }))
           }
         />
-      </Box>
+      </CollectionContent>
     </PageScaffold>
   );
 };

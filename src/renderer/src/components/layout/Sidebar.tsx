@@ -81,6 +81,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           sx={{
             position: collapsed ? "absolute" : "static",
             top: collapsed ? 26 : "auto",
+            left: collapsed ? 23 : "auto",
+            zIndex: collapsed ? 1 : "auto",
             width: 30,
             height: 30,
             bgcolor: "transparent",

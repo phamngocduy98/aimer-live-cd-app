@@ -72,18 +72,28 @@ server objects in local or Redux state.
 ## Library and Detail Views
 
 **Decision:** Library routes own collection filtering and launch playback with
-an explicit play source. Album and artist routes compose shared media
-components but own their hero, actions, and domain-specific presentation.
+an explicit play source. Albums, Songs, Videos, and Playlists consume the
+shared **Filtered Collection Page** composition. Album, Playlist, and Video
+consume the shared **Media Detail Page** composition while retaining their
+domain behavior. Artist remains a specialized detail page.
+Videos have a dedicated detail route that presents one video as the collection
+and its chapters as song-like rows. Video cards navigate to this route, while
+their explicit play action preserves the source collection queue.
+Videos are independent artist releases with their own artwork and release
+metadata. Home exposes Featured videos and Artist pages expose a Videos shelf
+beside the artist's Albums; album detail remains song-only.
 
 **Why:** Filtering is temporary view state, while play-source metadata is
 needed globally to identify the active row and navigate back from the queue.
-Detail pages have different content and responsive priorities despite sharing
-cards and tables.
+Detail pages have different domain content but share canonical album geometry,
+action zones, and responsive spacing.
 
 **Change guidance:** Preserve the source collection when starting playback.
-Keep collection content aligned through shared page spacing rather than
-per-item offsets. Do not force album, artist, and playlist heroes into one
-abstraction unless their behavior genuinely converges.
+Keep collection content aligned through `CollectionHeader` and
+`CollectionContent`. Feature modules translate resource models into shared
+presentation props and retain queries, mutations, playback dispatches, and
+dialogs. Do not copy the album hero into a feature-local implementation.
+Do not attach videos to albums or use album artwork as a video metadata source.
 
 **References:** [`SongList.tsx`](library/components/SongList.tsx),
 [`AlbumView.tsx`](album/components/AlbumView.tsx),
@@ -174,5 +184,6 @@ a failed generation request.
 
 Placeholder or absent behavior is not an architectural commitment. In
 particular, suggested tracks are currently a placeholder and chapter editing is
-not implemented in the renderer. Consult the GUI expectations and skipped E2E
-coverage before treating either as finished behavior.
+implemented only through administration. Consult the GUI expectations and E2E
+coverage before treating suggested tracks or chapter editing as finished
+playback-page workflows.

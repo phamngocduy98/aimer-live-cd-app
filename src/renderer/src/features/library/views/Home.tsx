@@ -3,17 +3,22 @@ import { useNavigate } from "react-router-dom";
 import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
 import { Box, Grid, IconButton, Typography } from "@mui/material";
 import { AlbumCard } from "@components/media/AlbumCard";
+import { VideoShelf } from "@components/media/VideoShelf";
 import { PageScaffold } from "@components/view/PageScaffold";
 import { SectionHeader } from "@components/view/SectionHeader";
 import { artistImageUrl, artistPath } from "@utils/artist";
 import { apiAssetUrl } from "@lib/axios";
-import { useAlbums, useSongs } from "../hooks/useLibrary";
+import { useAlbums, useSongs, useVideos } from "../hooks/useLibrary";
+import { useAppDispatch } from "@app/hooks";
+import { playContext } from "@features/player/store/playerSlice";
 import { usePlayAlbum } from "@features/album";
 
 export const Home: React.FC = () => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const { data: albums = [] } = useAlbums(0, 12);
   const { data: songs = [] } = useSongs(0, 12);
+  const { data: videos = [] } = useVideos(0, 12);
   const playAlbum = usePlayAlbum();
 
   const artists = useMemo(() => {
@@ -64,6 +69,23 @@ export const Home: React.FC = () => {
             </Grid>
           ))}
         </Grid>
+
+        <VideoShelf
+          title="Featured videos"
+          videos={videos}
+          action="View all"
+          onAction={() => navigate("/videos")}
+          sx={{ mt: 5 }}
+          onPlay={(_video, index) =>
+            dispatch(
+              playContext({
+                items: videos,
+                playFrom: { type: "videos", label: "Featured videos", route: "/" },
+                startIndex: index
+              })
+            )
+          }
+        />
 
         <SectionHeader title="Artists to revisit" sx={{ mt: 5 }} />
         <Grid container spacing={2.5}>

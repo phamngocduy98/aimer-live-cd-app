@@ -1,5 +1,4 @@
 import React from "react";
-import styled from "@emotion/styled";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
@@ -15,6 +14,7 @@ import {
   Typography,
   tableCellClasses
 } from "@mui/material";
+import { styled } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import type { Song } from "@features/library";
 import { useAppSelector } from "@app/hooks";
@@ -30,7 +30,6 @@ import {
 } from "./MediaActionsMenu";
 import type { PlaySource } from "@features/player/types";
 import { isCurrentSourceItem, sourceItemKey } from "@features/player/types";
-import { NOW_PLAYING_BACKGROUND, NOW_PLAYING_COLOR } from "./nowPlayingStyles";
 import { ArtistLinks } from "./ArtistLinks";
 
 interface SongTableProps {
@@ -128,24 +127,24 @@ export const SongTable: React.FC<SongTableProps> = ({
                   setAnchorEl(null);
                   setAnchorPosition({ top: event.clientY, left: event.clientX });
                 }}
-                sx={{
-                  transition: "background-color .16s ease",
-                  "&:hover": { backgroundColor: "rgba(255,255,255,.065)" },
+                sx={(theme) => ({
+                  transition: `background-color ${theme.design.motion.fast}`,
+                  "&:hover": { backgroundColor: theme.design.color.surfaceHover },
                   "&:last-child td, &:last-child th": { border: 0 },
                   "& th": {
-                    borderTopLeftRadius: "5px",
-                    borderBottomLeftRadius: "5px",
+                    borderTopLeftRadius: theme.design.radius.row,
+                    borderBottomLeftRadius: theme.design.radius.row,
                     border: 1
                   },
                   "& td:last-child": {
-                    borderTopRightRadius: "5px",
-                    borderBottomRightRadius: "5px"
+                    borderTopRightRadius: theme.design.radius.row,
+                    borderBottomRightRadius: theme.design.radius.row
                   },
                   "&.Mui-selected": {
-                    backgroundColor: NOW_PLAYING_BACKGROUND,
-                    "& .now-playing-accent": { color: NOW_PLAYING_COLOR }
+                    backgroundColor: theme.design.color.nowPlayingBackground,
+                    "& .now-playing-accent": { color: theme.design.color.nowPlaying }
                   }
-                }}
+                })}
               >
                 <NoBorderTableCell align="center" component="th" scope="row" width={30}>
                   {!isPlaying ? (
@@ -319,10 +318,10 @@ const MetadataLink: React.FC<
   </Typography>
 );
 
-const NoBorderTableCell = styled(TableCell)(() => ({
+const NoBorderTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
     border: 0,
-    color: "#9b9b9b",
+    color: theme.design.color.textMuted,
     fontSize: 12
   },
   [`&.${tableCellClasses.body}`]: {

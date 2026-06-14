@@ -17,6 +17,10 @@ import { Aes } from "../utils/crypto/aes.js";
 import { fail, ok } from "../utils/reqUtils.js";
 import { createLogger } from "../utils/log.js";
 import {
+  normalizeVideoChapters,
+  syncDefaultVideoChapterTitle
+} from "../utils/videoLibrary.js";
+import {
   buildUploadRows,
   getPartFileNames,
   mergeArtistNames,
@@ -57,7 +61,8 @@ function buildVideoUpdate(body: any) {
   return {
     ...(compactString(body.title) ? { title: compactString(body.title) } : {}),
     ...(Array.isArray(body.artist) ? { artist: mergeArtistNames(body.artist) } : {}),
-    ...(isValidId(String(body.album ?? "")) ? { album: body.album } : {}),
+    ...(Array.isArray(body.genre) ? { genre: mergeArtistNames(body.genre) } : {}),
+    ...(numberOrUndefined(body.year) != null ? { year: numberOrUndefined(body.year) } : {}),
     ...(Array.isArray(body.chapters) ? { chapters: body.chapters } : {})
   };
 }
@@ -153,11 +158,12 @@ export async function handleAdminGetSongs(_req, res) {
 
 export async function handleAdminGetVideos(_req, res) {
   res.json(
-    await Video.find({}, { iv: 0 })
-      .populate("album", { title: 1, artist: 1, year: 1 })
+    (
+      await Video.find({}, { iv: 0 })
       .populate("hostingList", { name: 1 })
-      .sort({ title: 1 })
+      .sort({ year: -1, title: 1 })
       .lean()
+    ).map(({ cover, ...video }) => ({ ...video, hasCover: Boolean(cover) }))
   );
 }
 
@@ -166,7 +172,6 @@ export async function handleAdminGetAlbums(_req, res) {
     (
       await Album.find({})
         .populate("trackList", { title: 1 })
-        .populate("videoList", { title: 1 })
         .sort({ year: 1, title: 1 })
         .lean()
     )
@@ -237,9 +242,30 @@ export async function handleAdminUpdateSong(req, res) {
 
 export async function handleAdminUpdateVideo(req, res) {
   if (!isValidId(req.params.id)) return fail(res, "Invalid request");
-  const video = await Video.findByIdAndUpdate(req.params.id, buildVideoUpdate(req.body), {
-    new: true
-  }).lean();
+  const video = await Video.findById(req.params.id);
+  if (!video) return fail(res, "Video not found", 404);
+
+  const previousTitle = video.title;
+  const update = buildVideoUpdate(req.body);
+  Object.assign(video, update);
+
+  if (Array.isArray(req.body.chapters)) {
+    video.chapters = normalizeVideoChapters(video.title, req.body.chapters);
+  } else if (video.title !== previousTitle) {
+    video.chapters = syncDefaultVideoChapterTitle(previousTitle, video.title, video.chapters);
+  } else {
+    video.chapters = normalizeVideoChapters(video.title, video.chapters);
+  }
+
+  await video.save();
+  ok(res);
+}
+
+export async function handleAdminUpdateVideoCover(req, res) {
+  if (!isValidId(req.params.id)) return fail(res, "Invalid request");
+  if (!req.file) return fail(res, "Cover image is required", 400);
+  if (!req.file.mimetype.startsWith("image/")) return fail(res, "Cover must be an image", 400);
+  const video = await Video.findByIdAndUpdate(req.params.id, { cover: req.file.buffer });
   if (!video) return fail(res, "Video not found", 404);
   ok(res);
 }
@@ -395,7 +421,6 @@ export async function handleAdminDeleteVideo(req, res) {
   try {
     await deleteRemoteMediaFiles(video);
     await Promise.all([
-      Album.updateMany({}, { $pull: { videoList: video._id } }),
       Playlist.updateMany({}, { $pull: { items: { mediaType: "video", mediaId: video._id } } }),
       Lyrics.deleteOne({ mediaType: "video", mediaId: video._id }),
       Video.findByIdAndDelete(video._id)
@@ -412,7 +437,6 @@ export async function handleAdminDeleteAlbum(req, res) {
   const albumId = new Types.ObjectId(req.params.id);
   await Promise.all([
     Song.updateMany({ album: albumId }, { $unset: { album: "" } }),
-    Video.updateMany({ album: albumId }, { $unset: { album: "" } }),
     Album.findByIdAndDelete(albumId)
   ]);
   ok(res);

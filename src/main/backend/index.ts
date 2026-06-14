@@ -22,10 +22,13 @@ import {
   handleGetAlbumCover,
   handleGetSongs,
   handleGetVideos,
+  handleGetVideo,
+  handleGetVideoCover,
   handleGetSong,
   handleGetSongCover,
   handleGetArtistImage,
   handleGetArtistTopTracks,
+  handleGetArtistVideos,
   handleSearch
 } from "./routes/metadata.js";
 import { handleDeprecatedStream, handleStreamAudio, handleStreamVideo } from "./routes/stream.js";
@@ -79,7 +82,8 @@ import {
   handleAdminUpdateArtistImage,
   handleAdminUpdateHost,
   handleAdminUpdateSong,
-  handleAdminUpdateVideo
+  handleAdminUpdateVideo,
+  handleAdminUpdateVideoCover
 } from "./routes/admin.js";
 
 const rootDir = path.resolve();
@@ -107,7 +111,7 @@ app.use(webdav.extensions.express("/webdav", webdavServer.server));
 
 const upload = multer();
 
-app.post("/api/videos/youtube/:albumId?", handleYoutubeVideoUpload);
+app.post("/api/videos/youtube", upload.single("cover"), handleYoutubeVideoUpload);
 
 app.post("/api/upload/:hostId?", upload.single("audio"), handleFileUpload);
 app.get("/api/upload-progress/:id", handleUploadProgress);
@@ -126,6 +130,7 @@ app.get("/api/admin/hosts", handleAdminGetHosts);
 app.post("/api/admin/hosts", handleAdminCreateHost);
 app.put("/api/admin/songs/:id", handleAdminUpdateSong);
 app.put("/api/admin/videos/:id", handleAdminUpdateVideo);
+app.put("/api/admin/videos/:id/cover", upload.single("cover"), handleAdminUpdateVideoCover);
 app.put("/api/admin/lyrics/:mediaType/:mediaId/tracks", handleAdminSaveLyrics);
 app.get("/api/admin/lyrics/providers", handleAdminGetLyricsProviders);
 app.post("/api/admin/lyrics/preview-srt", upload.single("subtitle"), handleAdminPreviewSrt);
@@ -166,6 +171,8 @@ app.get("/api/album/:id/cover", handleGetAlbumCover);
 app.get("/api/songs", handleGetSongs);
 
 app.get("/api/videos", handleGetVideos);
+app.get("/api/video/:id", handleGetVideo);
+app.get("/api/video/:id/cover", handleGetVideoCover);
 app.get("/api/lyrics/:mediaType/:mediaId", handleGetLyrics);
 
 app.get("/api/song/:id", handleGetSong);
@@ -183,6 +190,7 @@ app.get("/api/song/:id/cover", handleGetSongCover);
 app.get("/api/artist/:name/image", handleGetArtistImage);
 
 app.get("/api/artist/:name/top-tracks", handleGetArtistTopTracks);
+app.get("/api/artist/:name/videos", handleGetArtistVideos);
 
 app.get("/api/search", handleSearch);
 

@@ -81,9 +81,7 @@ export async function handleGetPlaylist(req, res) {
     Song.find({ _id: { $in: audioIds } }, { iv: 0, hostingList: 0 })
       .populate("album", { title: 1, artist: 1 })
       .lean(),
-    Video.find({ _id: { $in: videoIds } }, { iv: 0, hostingList: 0 })
-      .populate("album", { title: 1, artist: 1 })
-      .lean()
+    Video.find({ _id: { $in: videoIds } }, { iv: 0, hostingList: 0 }).lean()
   ]);
   const songMap = new Map(songs.map((song) => [song._id.toString(), song]));
   const videoMap = new Map(videos.map((video) => [video._id.toString(), video]));

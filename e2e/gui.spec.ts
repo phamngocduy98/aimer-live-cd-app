@@ -60,6 +60,7 @@ test.describe("GUI expected features", () => {
   test("renders primary navigation screens from seeded backend data", async () => {
     await waitForHome(ctx.mainWindow);
     await expect(ctx.mainWindow.getByRole("heading", { name: "Featured albums" })).toBeVisible();
+    await expect(ctx.mainWindow.getByRole("heading", { name: "Featured videos" })).toBeVisible();
     await expect(ctx.mainWindow.getByRole("heading", { name: "Artists to revisit" })).toBeVisible();
     await expect(ctx.mainWindow.getByRole("heading", { name: "Listen deeper" })).not.toBeVisible();
     await expect(ctx.mainWindow.getByRole("img", { name: "E2E Artist" }).locator("..")).toHaveCSS(
@@ -89,7 +90,7 @@ test.describe("GUI expected features", () => {
     await openSidebarPage(ctx.mainWindow, "Albums");
     await expect(ctx.mainWindow.getByLabel("Filter albums")).toBeVisible();
     await openAlbum(ctx.mainWindow);
-    await expect(ctx.mainWindow.getByText("E2E Video One")).toBeVisible();
+    await expect(ctx.mainWindow.getByText("E2E Video One")).not.toBeVisible();
   });
 
   test("plays an album from its card and routes the card artist to the artist page", async () => {
@@ -445,7 +446,7 @@ test.describe("GUI expected features", () => {
 
   test("shows bilingual lyrics over video without remounting the runtime", async () => {
     await openSidebarPage(ctx.mainWindow, "Videos");
-    await ctx.mainWindow.getByTitle("E2E Video One").click();
+    await ctx.mainWindow.getByRole("button", { name: "Play E2E Video One" }).click();
     await toggleFullScreenPlayer(ctx.mainWindow);
     const runtime = ctx.mainWindow.getByTestId("persistent-video-runtime");
     await expect(runtime).toHaveCount(1);
@@ -496,6 +497,7 @@ test.describe("GUI expected features", () => {
     await expect(ctx.mainWindow.getByRole("button", { name: "Artist radio" })).toBeVisible();
     await expect(ctx.mainWindow.getByRole("table", { name: "artist songs table" })).toBeVisible();
     await expect(ctx.mainWindow.getByTitle("E2E Album Alpha")).toBeVisible();
+    await expect(ctx.mainWindow.getByTitle("E2E Video One")).toBeVisible();
 
     await ctx.electronApp
       .browserWindow(ctx.mainWindow)
@@ -514,13 +516,7 @@ test.describe("GUI expected features", () => {
     await expect(ctx.mainWindow.getByRole("button", { name: "Add", exact: true })).toBeVisible();
     await expect(ctx.mainWindow.getByRole("button", { name: "Credits" })).toBeVisible();
     await expect(ctx.mainWindow.getByRole("table", { name: "album songs table" })).toBeVisible();
-    const tracksBox = await ctx.mainWindow
-      .getByRole("table", { name: "album songs table" })
-      .boundingBox();
-    const albumVideosHeadingBox = await ctx.mainWindow
-      .getByRole("heading", { name: "Videos" })
-      .boundingBox();
-    expect(Math.abs((tracksBox?.x ?? 0) - (albumVideosHeadingBox?.x ?? 0))).toBeLessThanOrEqual(1);
+    await expect(ctx.mainWindow.getByRole("heading", { name: "Videos" })).not.toBeVisible();
     await expect(ctx.mainWindow.getByText("More Albums by E2E Artist")).toBeVisible();
     await expect(ctx.mainWindow.getByTitle("E2E Album Beta")).toBeVisible();
     await ctx.mainWindow.getByRole("button", { name: "More", exact: true }).click();
@@ -542,9 +538,11 @@ test.describe("GUI expected features", () => {
   });
 
   test("opens video queue and navigates chapters", async () => {
-    await openAlbum(ctx.mainWindow);
-
+    await openSidebarPage(ctx.mainWindow, "Videos");
     await ctx.mainWindow.getByTitle("E2E Video One").click();
+    await expect(ctx.mainWindow.getByRole("heading", { name: "E2E Video One" })).toBeVisible();
+    await expect(ctx.mainWindow.getByRole("table", { name: "video chapters table" })).toBeVisible();
+    await ctx.mainWindow.getByText("E2E Intro", { exact: true }).click();
     await expect(ctx.mainWindow.getByText("E2E Video One").first()).toBeVisible();
     await openQueue(ctx.mainWindow);
     await expect(ctx.mainWindow.getByText("Videos", { exact: true }).first()).toBeVisible();
@@ -570,7 +568,7 @@ test.describe("GUI expected features", () => {
     await expect(ctx.mainWindow.getByRole("button", { name: "Close play queue" })).toBeVisible();
     await ctx.mainWindow.getByText("E2E Chorus", { exact: true }).last().click();
     await expect(
-      ctx.mainWindow.locator('[aria-current="true"]').filter({ hasText: "E2E Chorus" })
+      expandedQueue.locator('[aria-current="true"]').filter({ hasText: "E2E Chorus" })
     ).toBeVisible();
     await ctx.mainWindow.getByRole("button", { name: "Close play queue" }).click();
     await expect(expandedQueue).toHaveCSS("opacity", "0");
@@ -597,8 +595,8 @@ test.describe("GUI expected features", () => {
   });
 
   test("adds video to a mixed playlist and keeps one video runtime while resizing", async () => {
-    await openAlbum(ctx.mainWindow);
-    await ctx.mainWindow.getByTitle("E2E Video One").click();
+    await openSidebarPage(ctx.mainWindow, "Videos");
+    await ctx.mainWindow.getByRole("button", { name: "Play E2E Video One" }).click();
     await ctx.mainWindow.getByRole("button", { name: "Player track actions" }).click();
     await ctx.mainWindow.getByRole("menuitem", { name: "Add to Playlist" }).click();
     await ctx.mainWindow

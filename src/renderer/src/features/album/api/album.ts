@@ -13,8 +13,5 @@ export const getAlbum = async (id: string): Promise<AlbumDetail> => {
   album.trackList.forEach((track) => {
     track.album = summary
   })
-  album.videoList.forEach((video) => {
-    video.album = summary
-  })
   return album
 }

@@ -41,11 +41,12 @@ export async function uploadSongAPI(
 
   songBuilder.addHosting(hosting);
 
-  const albumBuilder = new AlbumBuilder();
-  await albumBuilder.init(meta, buffer.length, fileExtension);
-  songBuilder.attachAlbum(albumBuilder);
-
-  await albumBuilder.save();
+  if (type === "song") {
+    const albumBuilder = new AlbumBuilder();
+    await albumBuilder.init(meta, buffer.length, fileExtension);
+    songBuilder.attachAlbum(albumBuilder);
+    await albumBuilder.save();
+  }
   await songBuilder.save();
 
   const startTimestamp = Date.now();

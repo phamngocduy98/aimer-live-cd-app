@@ -20,6 +20,7 @@ import { AddToPlaylistDialog } from "@features/playlist";
 import { apiAssetUrl } from "@lib/axios";
 import { router } from "@app/router";
 import { artistPath, getPrimaryArtist } from "@utils/artist";
+import { mediaArtworkUrl } from "@utils/mediaArtwork";
 
 export interface ActionMenuPosition {
   top: number;
@@ -62,7 +63,7 @@ export function SongActionsMenu({
         },
         { label: "Add to My Collection" },
         { label: isVideo(track) ? "Go to video radio" : "Go to track radio" },
-        track.album?._id
+        !isVideo(track) && track.album?._id
           ? {
               label: "Go to album",
               onClick: () => navigateAndClose(`/album/${track.album?._id}`, onClose)
@@ -86,7 +87,7 @@ export function SongActionsMenu({
         anchorPosition={anchorPosition}
         title={track?.title ?? ""}
         subtitle={track?.artist.join(", ") ?? ""}
-        cover={track?.album?._id}
+        artworkUrl={mediaArtworkUrl(track)}
         actions={actions as ExtraMediaAction[]}
       />
       <AddToPlaylistDialog
@@ -147,7 +148,7 @@ export function AlbumActionsMenu({
       anchorPosition={anchorPosition}
       title={album?.title ?? ""}
       subtitle={album?.artist ?? ""}
-      cover={album?._id}
+      artworkUrl={album?._id ? apiAssetUrl(`/album/${album._id}/cover`) : undefined}
       actions={actions}
     />
   );
@@ -160,7 +161,7 @@ function ResponsiveActionSurface({
   anchorPosition,
   title,
   subtitle,
-  cover,
+  artworkUrl,
   actions
 }: {
   open: boolean;
@@ -169,13 +170,20 @@ function ResponsiveActionSurface({
   anchorPosition?: ActionMenuPosition | null;
   title: string;
   subtitle: string;
-  cover?: string;
+  artworkUrl?: string;
   actions: ExtraMediaAction[];
 }) {
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down("sm"));
   const titleId = "media-actions-title";
-  const header = <ActionHeader title={title} subtitle={subtitle} cover={cover} titleId={titleId} />;
+  const header = (
+    <ActionHeader
+      title={title}
+      subtitle={subtitle}
+      artworkUrl={artworkUrl}
+      titleId={titleId}
+    />
+  );
 
   if (mobile) {
     return (
@@ -253,19 +261,19 @@ function ResponsiveActionSurface({
 function ActionHeader({
   title,
   subtitle,
-  cover,
+  artworkUrl,
   titleId
 }: {
   title: string;
   subtitle: string;
-  cover?: string;
+  artworkUrl?: string;
   titleId?: string;
 }) {
   return (
     <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
       <Avatar
         variant="rounded"
-        src={cover ? apiAssetUrl(`/album/${cover}/cover`) : undefined}
+        src={artworkUrl}
         sx={{ width: 48, height: 48 }}
       />
       <Box sx={{ minWidth: 0 }}>

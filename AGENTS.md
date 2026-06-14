@@ -23,10 +23,14 @@
 - **Player decisions:** `src/renderer/src/features/player/DESIGN.md` — playback, queue, runtime, chapter, and responsive invariants
 - **Shared component decisions:** `src/renderer/src/components/DESIGN.md` — reuse boundaries, layout, alignment, and accessibility contracts
 - **GUI expected features (test plan):** `docs/gui_expected_features.md` — current source for GUI E2E scenarios
+- **Backend expected features:** `docs/backend_expected_feature.md` — authoritative API,
+  upload, persistence, cleanup, and backend test contracts; read before backend,
+  upload, or schema changes
 - **System implementation overview:** `docs/implement_design.md`
 
-Read the relevant renderer design guides before changing behavior. They explain
-intent and invariants; code and tests remain the source of truth for mechanics.
+Read the relevant renderer or backend guides before changing behavior. They
+explain intent and invariants; code and tests remain the source of truth for
+mechanics.
 
 ## Project Structure
 

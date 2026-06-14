@@ -41,16 +41,18 @@ Routes are lazy-loaded by feature. Redux remains scoped to player state, while s
 ### Music Library
 
 - **Songs** — full metadata, bitrate, file count
-- **Videos** — stream with chapter support
-- **Albums** — contain songs + videos
-- **Playlists** — song-only collections
-- **Artists** — top songs + albums view
+- **Videos** — independent artist releases with cover, year, genres,
+  album-style detail, and chapter-based playback
+- **Albums** — song releases
+- **Playlists** — mixed song/video collections
+- **Artists** — top songs plus album and video release shelves
 
 ### Media Upload
 
-- Upload songs to hosting providers
+- Upload songs and videos to hosting providers; video metadata is independent
+  and never creates or attaches an album
 - Partial upload resume — skip or limit parts for interrupted uploads
-- YouTube video integration — add YouTube videos to your library
+- Multipart YouTube video integration with metadata JSON and optional cover
 
 ### Hosting Management
 

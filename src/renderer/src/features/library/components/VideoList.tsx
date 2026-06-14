@@ -2,10 +2,9 @@ import { useAppDispatch } from "@app/hooks";
 import { VideoCard } from "@components/media/VideoCard";
 import { CollectionHeader } from "@components/view/CollectionHeader";
 import { PageScaffold } from "@components/view/PageScaffold";
+import { CollectionContent, PageState } from "@components/view/designSystem";
 import { playContext } from "@features/player/store/playerSlice";
-import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
-import Typography from "@mui/material/Typography";
 import React, { useMemo, useState } from "react";
 import { useVideos } from "../hooks/useLibrary";
 
@@ -19,7 +18,7 @@ export const Videos: React.FC = () => {
     if (!query) return videos;
 
     return videos.filter((video) =>
-      [video.title, video.artist?.join(", "), video.album?.title]
+      [video.title, video.artist?.join(", "), video.year?.toString(), video.genre?.join(", ")]
         .filter(Boolean)
         .some((value) => value?.toLocaleLowerCase().includes(query))
     );
@@ -49,13 +48,13 @@ export const Videos: React.FC = () => {
         ]}
       />
 
-      <Box sx={{ maxWidth: 1440, mx: "auto", px: { xs: 2.5, sm: 4, lg: 6 }, pb: 3 }}>
+      <CollectionContent>
         <Grid container spacing={2.5}>
           {visibleVideos.map((video, idx) => (
             <Grid key={video._id} item xs={6} sm={4} md={3} lg={2}>
               <VideoCard
                 video={video}
-                onClick={() =>
+                onPlay={() =>
                   dispatch(
                     playContext({ items: visibleVideos, playFrom: playSource, startIndex: idx })
                   )
@@ -65,15 +64,16 @@ export const Videos: React.FC = () => {
           ))}
           {visibleVideos.length === 0 && (
             <Grid item xs={12}>
-              <Typography color="text.secondary" sx={{ py: 5, textAlign: "center" }}>
-                {videos.length === 0
-                  ? "No videos in your library"
-                  : `No videos match &ldquo;{filter}&rdquo;`}
-              </Typography>
+              <PageState
+                state="empty"
+                message={
+                  videos.length === 0 ? "No videos in your library" : `No videos match “${filter}”`
+                }
+              />
             </Grid>
           )}
         </Grid>
-      </Box>
+      </CollectionContent>
     </PageScaffold>
   );
 };

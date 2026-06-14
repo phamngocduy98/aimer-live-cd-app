@@ -1,5 +1,6 @@
 import React from "react";
-import { apiAssetUrl } from "@lib/axios";
+import type { Song, Video } from "@features/library";
+import { mediaArtworkUrl } from "@utils/mediaArtwork";
 
 const PLAYER_BACKGROUND_PALETTE = [
   "#96391f",
@@ -12,16 +13,17 @@ const PLAYER_BACKGROUND_PALETTE = [
   "#75502d"
 ] as const;
 
-export function useAlbumBackgroundColor(albumId?: string): string {
+export function useAlbumBackgroundColor(media?: Song | Video | null): string {
   const [color, setColor] = React.useState<string>(PLAYER_BACKGROUND_PALETTE[0]);
 
   React.useEffect(() => {
-    if (!albumId) {
+    const artworkUrl = mediaArtworkUrl(media);
+    if (!artworkUrl) {
       setColor(PLAYER_BACKGROUND_PALETTE[0]);
       return;
     }
-    void getAlbumBackgroundColor(apiAssetUrl(`/album/${albumId}/cover`)).then(setColor);
-  }, [albumId]);
+    void getAlbumBackgroundColor(artworkUrl).then(setColor);
+  }, [media]);
 
   return color;
 }

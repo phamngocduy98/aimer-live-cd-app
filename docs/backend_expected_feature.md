@@ -19,8 +19,10 @@ test planning.
 
 - **Albums:** list albums, load album details, return album covers, and report album backup status.
 - **Songs:** list songs, load one song, return album cover for a song.
-- **Videos:** list videos with album metadata and chapter metadata.
-- **Artists:** return top tracks for an artist name.
+- **Videos:** list independent releases with artists, year, genres, and
+  chapters; retrieve metadata through `/api/video/:id` and artwork through
+  `/api/video/:id/cover`.
+- **Artists:** return top tracks and independent videos for an artist name.
 - **Search:** search albums, songs, and videos with empty-query handling.
 - **Pagination:** list endpoints that accept `page` and `pageSize` should return stable sorted slices.
 
@@ -35,13 +37,25 @@ test planning.
 
 ## 4. Upload And Backup
 
-- **Media upload:** `/api/upload/:hostId?` uploads one audio/video file to a selected or default host.
+- **Media upload:** multipart `/api/upload/:hostId?` uploads one audio/video
+  file in field `audio` to a selected or default host.
 - **Upload result:** upload returns the created media identity as `{ id, type }`.
 - **Upload progress:** `/api/upload-progress/:id` sends server-sent events for upload lifecycle and part progress.
 - **Album upload:** `/api/upload-album/:hostId?` uploads multiple audio files in sequence.
 - **Partial upload:** `skipPart` and `limitPart` support retrying interrupted uploads.
-- **YouTube video:** `/api/videos/youtube/:albumId?` creates a YouTube-backed video record.
-- **Album backup:** `/api/album/:id/backup/:hostid` and `/api/album/:id/backup2/:hostid` copy album media to another host.
+- **File metadata extraction:** audio uploads retain album creation. Video
+  uploads extract embedded cover, year, and genres and never create or attach
+  an album.
+- **YouTube video:** multipart `/api/videos/youtube` accepts required text field
+  `metadata` containing JSON with `title`, `artists`, `youtubeUrl`, `duration`,
+  optional `year`, `genres`, and `chapters`, plus optional image field `cover`.
+  It creates or updates an independent video and returns `{ id, type: "video" }`.
+- **YouTube validation:** malformed or missing metadata, invalid chapter/year/
+  duration values, and non-image covers return HTTP 400.
+- **Video chapters:** every video persists at least one chapter. Empty chapter
+  input becomes a `0:00` chapter named after the video.
+- **Album backup:** `/api/album/:id/backup/:hostid` and
+  `/api/album/:id/backup2/:hostid` copy album songs only.
 
 ## 5. Hosting Provider Management
 
@@ -59,6 +73,7 @@ test planning.
 - **Metadata update:** admin update endpoints modify core song, video, album, host, and artist metadata.
 - **Video chapters:** admin video update accepts editable chapter rows with `time`, `title`, and optional `subTitle`.
 - **Album cover:** `/api/admin/albums/:id/cover` replaces album cover image data.
+- **Video cover:** `/api/admin/videos/:id/cover` replaces video artwork.
 - **Artist rename:** `/api/admin/artists/:name` renames an artist string across songs, videos, and albums.
 - **Artist image:** `/api/admin/artists/:name/image` stores and serves an artist profile image.
 - **Song/video delete:** deletes remote media files first; database rows are deleted only after remote cleanup succeeds or files are confirmed absent.
@@ -78,8 +93,10 @@ test planning.
 
 ## 8. Persistence And Cleanup Rules
 
-- **Songs/videos:** store media metadata, file extension, file count, IV, album reference, and hosting list.
-- **Albums:** store cover, title, artist, genre, year, track list, and video list.
+- **Songs:** store media metadata, file extension, file count, IV, album reference, and hosting list.
+- **Videos:** store independent cover, title, artists, genres, year, chapters,
+  file metadata, IV, and hosting list; they never store an album reference.
+- **Albums:** store cover, title, artist, genre, year, and song track list only.
 - **Artist profiles:** store image data keyed by canonical artist name.
 - **Host credentials:** store encrypted FTP passwords in MongoDB.
 - **Reference cleanup:** deleting hosts, albums, songs, or videos must not leave stale album or playlist references.
@@ -91,7 +108,9 @@ test planning.
 - Upload progress: SSE connection, started/uploading/done/error events.
 - Remote delete: generated part filenames, missing file as success, remote errors block DB deletion.
 - Admin metadata: song/video/album/host update and artist rename.
-- Album cover and artist image upload/serve.
+- Album/video cover and artist image upload/serve.
+- YouTube multipart metadata parsing and cover validation.
+- Artist video filtering and release sorting.
 - Playlist create/update/delete and mixed item resolution.
 - Stream failover across multiple hosting providers.
 - LRC parsing, LRCLIB normalization, duration matching, romaji generation,

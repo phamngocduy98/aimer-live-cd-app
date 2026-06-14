@@ -3,11 +3,10 @@ import { IAudioMetadata } from "music-metadata";
 import { DbDocument } from "../../types/type.js";
 import { IAlbum, metadataToAlbum, Album } from "../../models/Album.js";
 import { ISong } from "../../models/Song.js";
-import { IVideo } from "../../models/Video.js";
 import { Builder } from "./index.js";
 
 export class AlbumBuilder extends Builder<IAlbum> {
-  async init(meta: IAudioMetadata, size: number, fileExtension: string): Promise<void> {
+  async init(meta: IAudioMetadata, _size: number, _fileExtension: string): Promise<void> {
     const ialbum = metadataToAlbum(meta);
     this.doc = await Album.findOne({
       title: ialbum.title,
@@ -27,16 +26,6 @@ export class AlbumBuilder extends Builder<IAlbum> {
       ) == -1
     ) {
       this.doc.trackList.push(song);
-    }
-  }
-  addVideo(video: DbDocument<IVideo>) {
-    if (this.doc == null) throw Error("Builder not initiated!");
-    if (
-      (this.doc.videoList as unknown as Types.ObjectId[]).findIndex(
-        (oid) => oid.toString() === video?.id
-      ) == -1
-    ) {
-      this.doc.videoList.push(video);
     }
   }
 }

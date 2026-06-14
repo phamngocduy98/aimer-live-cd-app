@@ -19,7 +19,7 @@ export function Player() {
   const showMobilePlayer = useAppSelector((state) => state.playerGui.mobilePlayer);
   const playingTrack = useAppSelector((state) => state.player.playingTrack);
   const desktopVideoOpen = showMobilePlayer && isVideo(playingTrack);
-  const albumBackgroundColor = useAlbumBackgroundColor(playingTrack?.album?._id);
+  const albumBackgroundColor = useAlbumBackgroundColor(playingTrack);
   const [desktopChromeVisible, setDesktopChromeVisible] = React.useState(true);
 
   React.useEffect(() => {

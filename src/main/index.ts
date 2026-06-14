@@ -8,6 +8,7 @@ import type { Server } from "node:http";
 
 let httpServer: Server | null = null;
 let isShuttingDown = false;
+let isInitializing = true;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let log: any = { info: () => {}, error: () => {} };
@@ -177,6 +178,7 @@ async function initializeApp(): Promise<void> {
   // create handle for get port
   ipcMain.handle("get-port", () => port);
   createWindow();
+  isInitializing = false;
 
   app.on("activate", function () {
     // On macOS it's common to re-create a window in the app when the
@@ -267,7 +269,7 @@ app.whenReady().then(initializeApp);
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
+  if (process.platform !== "darwin" && !isInitializing) {
     app.quit();
   }
 });

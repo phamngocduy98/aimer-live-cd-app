@@ -174,7 +174,6 @@ export function AdminDialog({ open, onClose }: AdminDialogProps) {
       />
       <VideoEditDialog
         video={videoEdit}
-        albums={albumRows}
         open={Boolean(videoEdit)}
         onClose={() => setVideoEdit(null)}
       />

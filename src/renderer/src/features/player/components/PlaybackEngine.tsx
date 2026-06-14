@@ -29,9 +29,16 @@ export function PlaybackEngine() {
   const playingTrack = useAppSelector((state) => state.player.playingTrack);
   const expanded = useAppSelector((state) => state.playerGui.mobilePlayer);
   const { repeat } = useAppSelector((state) => state.player);
-  const { videoUrl, videoPlaying, videoLoop, videoVolume, videoSeekPosition } = useAppSelector(
-    (state) => state.playerVideoControl
-  );
+  const {
+    videoUrl,
+    videoPlaying,
+    videoLoop,
+    videoVolume,
+    videoSeekPosition,
+    videoIsReady,
+    videoLoadedMediaId,
+    videoSeekMediaId
+  } = useAppSelector((state) => state.playerVideoControl);
   const { load, stop, loop, volume, src, playing } = useGlobalAudioPlayer();
   const videoSourceKey =
     playingTrack && isVideo(playingTrack) ? `${playingTrack._id}:${videoUrl ?? ""}` : "";
@@ -73,7 +80,8 @@ export function PlaybackEngine() {
 
     if (video) {
       if (playing) stop();
-      if (nextSource !== videoUrl) dispatch(loadVideo({ url: nextSource }));
+      if (nextSource !== videoUrl)
+        dispatch(loadVideo({ url: nextSource, mediaId: playingTrack._id }));
       else dispatch(loopVideo({ loopOnOff: repeat === 2 }));
       return;
     }
@@ -108,10 +116,25 @@ export function PlaybackEngine() {
   ]);
 
   React.useEffect(() => {
-    if (videoSeekPosition == null) return;
+    if (
+      videoSeekPosition == null ||
+      !videoIsReady ||
+      !isVideo(playingTrack) ||
+      videoLoadedMediaId !== playingTrack._id ||
+      videoSeekMediaId !== playingTrack._id
+    ) {
+      return;
+    }
     videoRef.current?.seekTo(videoSeekPosition, "seconds");
     dispatch(videoOnSeek({ position: null }));
-  }, [dispatch, videoSeekPosition]);
+  }, [
+    dispatch,
+    playingTrack,
+    videoIsReady,
+    videoLoadedMediaId,
+    videoSeekMediaId,
+    videoSeekPosition
+  ]);
 
   React.useLayoutEffect(() => {
     if (expanded) return;

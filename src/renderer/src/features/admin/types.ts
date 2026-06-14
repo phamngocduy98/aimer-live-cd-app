@@ -30,11 +30,13 @@ export interface AdminVideo {
   _id: string;
   title: string;
   artist?: string[];
+  genre?: string[];
+  year?: number;
+  hasCover?: boolean;
   duration?: number;
   format?: string;
   fileExtension?: string;
   fileCount?: number;
-  album?: AdminAlbumSummary;
   hostingList?: AdminHostSummary[];
   chapters?: { time: number; title: string; subTitle?: string }[];
 }
@@ -47,7 +49,6 @@ export interface AdminAlbum {
   year?: number;
   hasCover?: boolean;
   trackList?: { _id: string; title: string }[];
-  videoList?: { _id: string; title: string }[];
 }
 
 export interface AdminArtist {

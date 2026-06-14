@@ -35,6 +35,12 @@ export const updateAdminVideo = async (id: string, data: Partial<AdminVideo>): P
   await apiClient.put(`/admin/videos/${id}`, data);
 };
 
+export const updateAdminVideoCover = async (id: string, file: File): Promise<void> => {
+  const form = new FormData();
+  form.append("cover", file);
+  await apiClient.put(`/admin/videos/${id}/cover`, form);
+};
+
 export const updateAdminAlbum = async (id: string, data: Partial<AdminAlbum>): Promise<void> => {
   await apiClient.put(`/admin/albums/${id}`, data);
 };

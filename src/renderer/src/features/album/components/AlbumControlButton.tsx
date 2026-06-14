@@ -3,14 +3,17 @@ import FavoriteBorderRoundedIcon from "@mui/icons-material/FavoriteBorderRounded
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import IosShareOutlinedIcon from "@mui/icons-material/IosShareOutlined";
 import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
-import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
-import ShuffleRoundedIcon from "@mui/icons-material/ShuffleRounded";
-import { Box, Button, Menu, Snackbar, Typography } from "@mui/material";
+import { Box, Menu, Snackbar, Typography } from "@mui/material";
 import { useAppDispatch } from "@app/hooks";
 import { playContext } from "@features/player/store/playerSlice";
 import { AddToPlaylistDialog } from "@features/playlist";
 import type { AlbumDetail } from "../types";
 import { AlbumActionsMenu } from "@components/media/MediaActionsMenu";
+import {
+  DetailActionButton,
+  DetailActions,
+  PrimaryActionGroup
+} from "@components/view/designSystem";
 
 export const AlbumControlButton: React.FC<{ album: AlbumDetail }> = ({ album }) => {
   const dispatch = useAppDispatch();
@@ -56,84 +59,33 @@ export const AlbumControlButton: React.FC<{ album: AlbumDetail }> = ({ album }) 
 
   return (
     <>
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: { xs: "column", md: "row" },
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: { xs: 3.25, md: 4 },
-          mt: { xs: 3.5, md: 4 }
-        }}
-      >
-        <Box sx={{ display: "flex", gap: 1.5, width: { xs: "100%", sm: "auto" } }}>
-          <Button
-            startIcon={<PlayArrowRoundedIcon />}
-            variant="contained"
-            aria-label="Play all"
-            onClick={() => play()}
-            size="large"
-            sx={{
-              width: { xs: "50%", sm: 164 },
-              minHeight: 50,
-              bgcolor: "#fff",
-              color: "#000",
-              borderRadius: "999px",
-              fontSize: 16,
-              fontWeight: 850,
-              "&:hover": { bgcolor: "#e9e9e9" }
-            }}
-          >
-            Play
-          </Button>
-          <Button
-            startIcon={<ShuffleRoundedIcon />}
-            aria-label="Shuffle play"
-            onClick={() => play(true)}
-            size="large"
-            sx={{
-              width: { xs: "50%", sm: 164 },
-              minHeight: 50,
-              bgcolor: "rgba(255,255,255,.14)",
-              color: "#fff",
-              border: "1px solid rgba(255,255,255,.08)",
-              borderRadius: "999px",
-              fontSize: 16,
-              fontWeight: 850,
-              "&:hover": { bgcolor: "rgba(255,255,255,.22)" }
-            }}
-          >
-            Shuffle
-          </Button>
-        </Box>
-
-        <Box
-          aria-label="Album actions"
-          sx={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, minmax(64px, 1fr))",
-            width: { xs: "100%", sm: 390 },
-            gap: { xs: 1, sm: 2 }
-          }}
-        >
-          <AlbumAction
-            label="Add"
-            icon={<FavoriteBorderRoundedIcon />}
-            onClick={() => setAddToPlaylistOpen(true)}
-          />
-          <AlbumAction
-            label="Credits"
-            icon={<InfoOutlinedIcon />}
-            onClick={(event) => setCreditsAnchor(event.currentTarget)}
-          />
-          <AlbumAction label="Share" icon={<IosShareOutlinedIcon />} onClick={shareAlbum} />
-          <AlbumAction
-            label="More"
-            icon={<MoreHorizRoundedIcon />}
-            onClick={(event) => setMoreAnchor(event.currentTarget)}
-          />
-        </Box>
-      </Box>
+      <DetailActions
+        primary={<PrimaryActionGroup onPlay={() => play()} onShuffle={() => play(true)} />}
+        secondary={
+          <>
+            <DetailActionButton
+              label="Add"
+              icon={<FavoriteBorderRoundedIcon />}
+              onClick={() => setAddToPlaylistOpen(true)}
+            />
+            <DetailActionButton
+              label="Credits"
+              icon={<InfoOutlinedIcon />}
+              onClick={(event) => setCreditsAnchor(event.currentTarget)}
+            />
+            <DetailActionButton
+              label="Share"
+              icon={<IosShareOutlinedIcon />}
+              onClick={shareAlbum}
+            />
+            <DetailActionButton
+              label="More"
+              icon={<MoreHorizRoundedIcon />}
+              onClick={(event) => setMoreAnchor(event.currentTarget)}
+            />
+          </>
+        }
+      />
 
       <Menu
         anchorEl={creditsAnchor}
@@ -178,31 +130,3 @@ export const AlbumControlButton: React.FC<{ album: AlbumDetail }> = ({ album }) 
     </>
   );
 };
-
-interface AlbumActionProps {
-  icon: React.ReactNode;
-  label: string;
-  onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
-}
-
-const AlbumAction: React.FC<AlbumActionProps> = ({ icon, label, onClick }) => (
-  <Button
-    aria-label={label}
-    onClick={onClick}
-    sx={{
-      minWidth: 0,
-      color: "#fff",
-      display: "flex",
-      flexDirection: "column",
-      gap: 0.65,
-      fontSize: { xs: 11, sm: 12 },
-      fontWeight: 800,
-      lineHeight: 1.15,
-      "& .MuiSvgIcon-root": { fontSize: 29 },
-      "&:hover": { bgcolor: "rgba(255,255,255,.08)" }
-    }}
-  >
-    {icon}
-    <span>{label}</span>
-  </Button>
-);

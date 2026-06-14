@@ -26,6 +26,10 @@ export const router = createHashRouter([
         lazy: () => import("@features/album").then((module) => ({ Component: module.AlbumView }))
       },
       {
+        path: "/video/:id",
+        lazy: () => import("@features/video").then((module) => ({ Component: module.VideoView }))
+      },
+      {
         path: "/artist/:name",
         lazy: () => import("@features/artist").then((module) => ({ Component: module.ArtistView }))
       },

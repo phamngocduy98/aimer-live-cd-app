@@ -1,6 +1,5 @@
 import { Writable } from "node:stream";
 import { EventEmitter } from "node:events";
-import axios from "axios";
 import { PARTSIZE } from "../config/const.js";
 import { Album } from "../models/Album.js";
 import { IHosting, IHttpStreamConfig, StreamStrategy, UploadStrategy } from "../models/Hosting.js";
@@ -15,6 +14,8 @@ import { waitStreamClose } from "../utils/stream/stream2buffer.js";
 import { fail, ok } from "../utils/reqUtils.js";
 import { DbDocument, WithDocument } from "../types/type.js";
 import { createLogger } from "../utils/log.js";
+import { normalizeVideoChapters } from "../utils/videoLibrary.js";
+import { parseYoutubeVideoMetadata, validateImageUpload } from "./videoUploadLogic.js";
 
 const log = createLogger("Upload");
 const uploadProgressEvents = new EventEmitter();
@@ -40,35 +41,11 @@ export async function handleUploadProgress(req, res) {
   req.on("close", () => uploadProgressEvents.off(progressId, send));
 }
 
-// POST /api/videos/youtube/:albumId?
+// POST /api/videos/youtube
 export async function handleYoutubeVideoUpload(req, res) {
   try {
-    const data: IVideo = {
-      ...req.body,
-      genre: undefined,
-      cover: undefined,
-      year: undefined
-    };
-    const albumId = req.params.albumId;
-    const album =
-      (await Album.findById(albumId, {
-        videoList: 1
-      })) ??
-      new Album({
-        artist: data.artist[0] ?? "Unknown",
-        genre: req.body.genre ?? "Youtube",
-        title: data.title,
-        trackList: [],
-        videoList: [],
-        cover: req.body.cover
-          ? (
-              await axios.get(req.body.cover, {
-                responseType: "arraybuffer"
-              })
-            ).data
-          : null,
-        year: req.body.year ?? new Date().getFullYear()
-      });
+    validateImageUpload(req.file);
+    const data = parseYoutubeVideoMetadata(req.body?.metadata);
     const video =
       (await Video.findOne({
         title: data.title,
@@ -76,6 +53,7 @@ export async function handleYoutubeVideoUpload(req, res) {
       })) ??
       new Video({
         ...data,
+        cover: req.file?.buffer,
         hostingList: [],
         fileCount: 0,
         bitrate: 0,
@@ -83,26 +61,22 @@ export async function handleYoutubeVideoUpload(req, res) {
         format: "youtube",
         audioLossless: false,
         fileExtension: "mp4",
-        album
+        chapters: data.chapters
       });
 
-    const set = new Set<string>();
-    album.videoList.push(video);
-    album.videoList = (album.videoList as DbDocument<IVideo>[]).filter((v) => {
-      const id = v._id.toHexString();
-      if (!set.has(id)) {
-        set.add(id);
-        return true;
-      }
-      return false;
-    });
-
+    video.title = data.title;
+    video.artist = data.artist;
+    video.genre = data.genre;
+    video.year = data.year;
+    video.youtubeUrl = data.youtubeUrl;
+    video.duration = data.duration;
+    video.chapters = data.chapters;
+    if (req.file) video.cover = req.file.buffer;
     const vid = await video.save();
-    await album.save();
-    ok(res, vid.id);
+    res.json({ id: vid.id, type: "video" });
   } catch (e) {
     log.error({ err: e }, "YouTube video upload failed");
-    fail(res, `${e}`);
+    fail(res, e instanceof Error ? e.message : String(e), 400);
   }
 }
 
@@ -181,7 +155,10 @@ export async function handleVideoChapters(req, res) {
       return parseInt(sp[0]) * 60 + parseInt(sp[1]);
     };
 
-    video.chapters = data3.map((d) => ({ ...d, time: parstTime(d.time) }));
+    video.chapters = normalizeVideoChapters(
+      video.title,
+      data3.map((d) => ({ ...d, time: parstTime(d.time) }))
+    );
     await video.save();
     ok(res);
   } catch (e) {
@@ -270,17 +247,10 @@ export async function handleAlbumBackup(req, res) {
   if (req.params.id.length !== 12 && req.params.id.length !== 24)
     return fail(res, "Invalid request");
   const album = await Album.findById(req.params.id, {
-    trackList: 1,
-    videoList: 1
+    trackList: 1
   })
     .populate({
       path: "trackList",
-      populate: {
-        path: "hostingList"
-      }
-    })
-    .populate({
-      path: "videoList",
       populate: {
         path: "hostingList"
       }
@@ -333,17 +303,10 @@ export async function handleAlbumBackup2(req, res) {
   const limitPart = parseInt((req.query["limitPart"] as string) ?? "99999999999");
 
   const album = await Album.findById(req.params.id, {
-    trackList: 1,
-    videoList: 1
+    trackList: 1
   })
     .populate({
       path: "trackList",
-      populate: {
-        path: "hostingList"
-      }
-    })
-    .populate({
-      path: "videoList",
       populate: {
         path: "hostingList"
       }
@@ -354,10 +317,7 @@ export async function handleAlbumBackup2(req, res) {
   try {
     const targetHosting = await dbClient.findHosting(req.params.hostid);
     if (targetHosting == null) throw Error("hosting not found");
-    const songs: (DbDocument<ISong> | DbDocument<IVideo>)[] = [
-      ...(album.trackList as DbDocument<ISong>[]),
-      ...(album.videoList as DbDocument<IVideo>[])
-    ];
+    const songs = album.trackList as DbDocument<ISong>[];
     for (const song of songs) {
       const provider = getPartProvider(targetHosting, req.headers);
 

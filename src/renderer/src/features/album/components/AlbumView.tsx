@@ -9,9 +9,10 @@ import { apiAssetUrl } from "@lib/axios";
 import { AlbumControlButton } from "./AlbumControlButton";
 import { AlbumInfo } from "./AlbumInfo";
 import { SongListTable } from "./SongListTable";
-import { VideoList } from "./VideoList";
 import { useAlbum } from "../hooks/useAlbum";
 import { usePlayAlbum } from "../hooks/usePlayAlbum";
+import { MediaDetailHero } from "@components/view/MediaDetailPage";
+import { DetailContent } from "@components/view/designSystem";
 
 export const AlbumView: React.FC = () => {
   const { id = "" } = useParams();
@@ -30,57 +31,18 @@ export const AlbumView: React.FC = () => {
 
   return (
     <PageScaffold sx={{ pt: "64px" }}>
-      <Box
-        component="section"
-        sx={{
-          position: "relative",
-          minHeight: { xs: "min(790px, calc(100dvh - 64px))", md: 470 },
-          display: "flex",
-          alignItems: "center",
-          overflow: "hidden",
-          backgroundColor: "#17140d",
-          backgroundImage: {
-            xs: `linear-gradient(180deg, rgba(0,0,0,.08) 0%, rgba(0,0,0,.28) 40%, #000 100%), url("${apiAssetUrl(`/album/${album._id}/cover`)}")`,
-            md: `linear-gradient(180deg, rgba(0,0,0,.2) 0%, rgba(0,0,0,.32) 54%, #000 100%), linear-gradient(90deg, rgba(0,0,0,.62), rgba(0,0,0,.08) 72%), url("${apiAssetUrl(`/album/${album._id}/cover`)}")`
-          },
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          "&::before": {
-            content: '""',
-            position: "absolute",
-            inset: 0,
-            background: "rgba(0,0,0,.08)",
-            backdropFilter: { xs: "none", md: "blur(1.5px)" }
-          }
+      <MediaDetailHero
+        backgroundImage={{
+          xs: `linear-gradient(180deg, rgba(0,0,0,.08) 0%, rgba(0,0,0,.28) 40%, #000 100%), url("${apiAssetUrl(`/album/${album._id}/cover`)}")`,
+          md: `linear-gradient(180deg, rgba(0,0,0,.2) 0%, rgba(0,0,0,.32) 54%, #000 100%), linear-gradient(90deg, rgba(0,0,0,.62), rgba(0,0,0,.08) 72%), url("${apiAssetUrl(`/album/${album._id}/cover`)}")`
         }}
       >
-        <Box
-          sx={{
-            position: "relative",
-            zIndex: 1,
-            width: "100%",
-            maxWidth: 1180,
-            mx: "auto",
-            px: { xs: 2.5, sm: 4, lg: 6 },
-            py: { xs: 4, md: 3.5 }
-          }}
-        >
-          <AlbumInfo album={album} />
-          <AlbumControlButton album={album} />
-        </Box>
-      </Box>
+        <AlbumInfo album={album} />
+        <AlbumControlButton album={album} />
+      </MediaDetailHero>
 
       {album.trackList.length > 0 && (
-        <Box
-          component="section"
-          sx={{
-            maxWidth: 1180,
-            mx: "auto",
-            px: { xs: 1.5, sm: 4, lg: 6 },
-            pt: { xs: 4, md: 2 }
-          }}
-        >
+        <DetailContent compactGutter sx={{ pt: { xs: 4, md: 2 } }}>
           <SongListTable album={album} />
           <Box
             sx={{
@@ -115,27 +77,17 @@ export const AlbumView: React.FC = () => {
               </Typography>
             )}
           </Box>
-        </Box>
+        </DetailContent>
       )}
 
-      <VideoList album={album} />
-
-      <Box
-        component="section"
-        sx={{
-          maxWidth: 1180,
-          mx: "auto",
-          px: { xs: 2.5, sm: 4, lg: 6 },
-          pt: { xs: 7, md: 8 }
-        }}
-      >
+      <DetailContent sx={{ pt: { xs: 7, md: 8 } }}>
         <AlbumShelf
           title={`More Albums by ${album.artist}`}
           albums={relatedAlbums}
           onPlay={playAlbum}
           secondary="year"
         />
-      </Box>
+      </DetailContent>
     </PageScaffold>
   );
 };

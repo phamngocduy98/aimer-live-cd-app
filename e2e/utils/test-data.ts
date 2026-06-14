@@ -99,8 +99,7 @@ export async function seedE2eDatabase(): Promise<void> {
       artist: "E2E Artist",
       genre: ["E2E"],
       year: 2026,
-      trackList: [testIds.songOne, testIds.songTwo],
-      videoList: [testIds.videoOne]
+      trackList: [testIds.songOne, testIds.songTwo]
     },
     {
       _id: testIds.albumBeta,
@@ -109,8 +108,7 @@ export async function seedE2eDatabase(): Promise<void> {
       artist: "E2E Artist",
       genre: ["E2E"],
       year: 2025,
-      trackList: [testIds.songThree],
-      videoList: []
+      trackList: [testIds.songThree]
     }
   ]);
 
@@ -171,8 +169,11 @@ export async function seedE2eDatabase(): Promise<void> {
 
   await db.collection("videos").insertOne({
     _id: testIds.videoOne,
+    cover: tinyPng,
     title: "E2E Video One",
     artist: ["E2E Artist"],
+    genre: ["E2E Live"],
+    year: 2026,
     size: 4096,
     duration: 12,
     videoWidth: 640,
@@ -191,7 +192,6 @@ export async function seedE2eDatabase(): Promise<void> {
       { time: 0, title: "E2E Intro", subTitle: "Opening" },
       { time: 5, title: "E2E Chorus", subTitle: "Main part" }
     ],
-    album: testIds.albumAlpha,
     iv: "00000000000000000000000000000000"
   });
 

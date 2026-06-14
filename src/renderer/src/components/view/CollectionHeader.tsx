@@ -39,9 +39,9 @@ export const CollectionHeader: React.FC<CollectionHeaderProps> = ({
       component="header"
       sx={{
         width: "100%",
-        maxWidth: 1440,
+        maxWidth: (theme) => theme.design.layout.collectionWidth,
         mx: "auto",
-        px: { xs: 2.5, sm: 4, lg: 6 },
+        px: (theme) => theme.design.layout.gutters,
         pt: { xs: 4, sm: 5 },
         pb: { xs: 4, sm: 5 }
       }}

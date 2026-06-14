@@ -1,4 +1,3 @@
-import { IAudioMetadata } from "music-metadata";
 import { DbDocument } from "../../types/type.js";
 import { IHosting } from "../../models/Hosting.js";
 import { AlbumBuilder } from "./AlbumBuilder.js";
@@ -10,7 +9,7 @@ export class ContentBuilder<T> extends Builder<T> {
   title(): string {
     throw Error("Not implemented");
   }
-  fileCount(fileCount: number) {}
-  attachAlbum(album: AlbumBuilder) {}
-  addHosting(hosting: DbDocument<IHosting>) {}
+  fileCount(_fileCount: number) {}
+  attachAlbum(_album: AlbumBuilder) {}
+  addHosting(_hosting: DbDocument<IHosting>) {}
 }

@@ -124,7 +124,7 @@ export function VideosSection({
       columns={[
         { key: "title", label: "Title", render: (row) => row.title },
         { key: "artist", label: "Artist", render: (row) => joinArtists(row.artist) },
-        { key: "album", label: "Album", render: (row) => row.album?.title ?? "" },
+        { key: "year", label: "Year", width: 80, render: (row) => row.year ?? "" },
         { key: "format", label: "Format", width: 100, render: (row) => row.format ?? "" },
         {
           key: "hosts",
@@ -178,16 +178,6 @@ export function AlbumsSection({
           render: (row) => (
             <Button size="small" onClick={() => onViewMedia(row)}>
               {row.trackList?.length ?? 0}
-            </Button>
-          )
-        },
-        {
-          key: "videos",
-          label: "Videos",
-          width: 90,
-          render: (row) => (
-            <Button size="small" onClick={() => onViewMedia(row)}>
-              {row.videoList?.length ?? 0}
             </Button>
           )
         },

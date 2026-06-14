@@ -35,6 +35,8 @@ export interface Video {
   type?: "audio" | "video";
   title: string;
   artist: string[];
+  genre?: string[];
+  year?: number;
   size: number;
   duration: number;
   videoWidth: number;
@@ -48,7 +50,6 @@ export interface Video {
   fileExtension: string;
   format: string;
   bitrate: number;
-  album?: Album;
   chapters: IVideoChapter[];
 }
 

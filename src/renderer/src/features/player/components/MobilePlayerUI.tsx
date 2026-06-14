@@ -14,7 +14,6 @@ import {
   useTheme
 } from "@mui/material";
 import React from "react";
-import { apiAssetUrl } from "@lib/axios";
 import { router } from "@app/router";
 import { useAppDispatch, useAppSelector } from "@app/hooks";
 import { hideView } from "../store/playerGuiSlice";
@@ -28,6 +27,7 @@ import { FavoriteButton } from "./FavoriteButton";
 import { useAlbumBackgroundColor } from "../utils/albumBackground";
 import { LyricsExperience } from "@features/lyrics";
 import { toggleView } from "../store/playerGuiSlice";
+import { mediaArtworkUrl } from "@utils/mediaArtwork";
 
 interface MobilePlayerProps {
   desktopChromeVisible?: boolean;
@@ -41,7 +41,7 @@ export const MobilePlayer: React.FC<MobilePlayerProps> = ({ desktopChromeVisible
   const queueOpen = useAppSelector((state) => state.playerGui.playingQueue);
   const showMobilePlayer = useAppSelector((state) => state.playerGui.mobilePlayer);
   const lyricsOpen = useAppSelector((state) => state.playerGui.lyrics);
-  const backgroundColor = useAlbumBackgroundColor(playingTrack?.album?._id);
+  const backgroundColor = useAlbumBackgroundColor(playingTrack);
   const desktopVideo = isVideo(playingTrack);
   const mediaType = isVideo(playingTrack) ? "video" : "audio";
   const { data: lyricsData } = useLyrics(mediaType, playingTrack?._id, Boolean(playingTrack));
@@ -312,7 +312,7 @@ function ArtistIdentity() {
           aria-label={artist}
           src={artistImageUrl(artist)}
           onError={(event: React.SyntheticEvent<HTMLImageElement>) => {
-            const fallback = apiAssetUrl(`/album/${playingTrack?.album?._id}/cover`);
+            const fallback = mediaArtworkUrl(playingTrack) ?? "";
             if (event.currentTarget.src !== fallback) {
               event.currentTarget.src = fallback;
             }
@@ -405,7 +405,7 @@ function AudioPlayerContent({ queueOpen, visible }: { queueOpen: boolean; visibl
       }}
     >
       <InteractiveAlbumArtwork
-        src={apiAssetUrl(`/album/${playingTrack?.album?._id}/cover`)}
+        src={mediaArtworkUrl(playingTrack) ?? ""}
         queueOpen={queueOpen}
       />
     </Box>
@@ -446,7 +446,7 @@ function AudioLyricsContent({ queueOpen, visible }: { queueOpen: boolean; visibl
         }}
       >
         <InteractiveAlbumArtwork
-          src={apiAssetUrl(`/album/${playingTrack?.album?._id}/cover`)}
+          src={mediaArtworkUrl(playingTrack) ?? ""}
           queueOpen={queueOpen}
         />
       </Box>

@@ -21,7 +21,7 @@ const log = createLogger("Metadata");
 const rootDir = path.resolve();
 
 // GET /api/hosts
-export async function handleGetHosts(req, res) {
+export async function handleGetHosts(_req, res) {
   const hostings = await Hosting.find(
     {},
     {
@@ -166,12 +166,6 @@ export async function handleDeleteHost(req, res) {
   });
   log.info(`Deleted ${delResult.deletedCount} songs!`);
 
-  const videosToDel = await Video.find({ hostingList: [], youtubeUrl: null }, { _id: 1 }).lean();
-  const videoIds = videosToDel.map((v) => v._id);
-  if (videoIds.length > 0) {
-    await Album.updateMany({}, { $pull: { videoList: { $in: videoIds } } });
-    log.info(`Cleaned ${videoIds.length} video refs from albums`);
-  }
   const delVResult = await Video.deleteMany({
     hostingList: [],
     youtubeUrl: null
@@ -241,7 +235,7 @@ export async function handleGetAlbums(req, res) {
   const pageSize = parseInt((req.query.pageSize as string) ?? "30");
   const albums = await Album.find(
     {
-      $or: [{ "trackList.0": { $exists: true } }, { "videoList.0": { $exists: true } }]
+      "trackList.0": { $exists: true }
     },
     {
       title: 1,
@@ -272,11 +266,6 @@ export async function handleGetAlbum(req, res) {
       iv: 0,
       album: 0
     })
-    .populate("videoList", {
-      hostingList: 0,
-      iv: 0,
-      album: 0
-    })
     .lean()
     .exec();
   if (album == null) return fail(res, "Album not found");
@@ -289,17 +278,10 @@ export async function handleGetAlbumBackup(req, res) {
   if (req.params.id.length !== 12 && req.params.id.length !== 24)
     return fail(res, "Invalid request");
   const album = await Album.findById(req.params.id, {
-    trackList: 1,
-    videoList: 1
+    trackList: 1
   })
     .populate({
       path: "trackList",
-      populate: {
-        path: "hostingList"
-      }
-    })
-    .populate({
-      path: "videoList",
       populate: {
         path: "hostingList"
       }
@@ -319,30 +301,10 @@ export async function handleGetAlbumBackup(req, res) {
     ((album.trackList?.[0]?.hostingList ?? []) as WithDocument<IHosting>[]).forEach((host) =>
       hosted.add(host.id)
     );
-    ((album.videoList?.[0]?.hostingList ?? []) as WithDocument<IHosting>[]).forEach((host) =>
-      hosted.add(host.id)
-    );
 
     for (const track of album.trackList) {
       const trackHostIds: string[] = (
-        (album.trackList?.[0]?.hostingList ?? []) as WithDocument<IHosting>[]
-      ).map((h) => h.id);
-      for (const hostId of trackHostIds) {
-        if (!hosted.has(hostId)) {
-          patialHosted.add(hostId);
-        }
-      }
-      for (const hostId of hosted) {
-        if (!trackHostIds.includes(hostId)) {
-          hosted.delete(hostId);
-          patialHosted.add(hostId);
-        }
-      }
-    }
-
-    for (const track of album.videoList) {
-      const trackHostIds: string[] = (
-        (album.videoList?.[0]?.hostingList ?? []) as WithDocument<IHosting>[]
+        (track.hostingList ?? []) as WithDocument<IHosting>[]
       ).map((h) => h.id);
       for (const hostId of trackHostIds) {
         if (!hosted.has(hostId)) {
@@ -423,24 +385,42 @@ export async function handleGetSongs(req, res) {
 export async function handleGetVideos(req, res) {
   const page = parseInt((req.query.page as string) ?? "0");
   const pageSize = parseInt((req.query.pageSize as string) ?? "50");
-  const videos = await Video.aggregate([
-    { $match: {} },
-    { $project: { iv: 0, hostingList: 0 } },
-    {
-      $lookup: {
-        from: "albums",
-        localField: "album",
-        foreignField: "_id",
-        as: "album"
-      }
-    },
-    { $unwind: { path: "$album", preserveNullAndEmptyArrays: true } },
-    { $sort: { "album.year": -1, title: 1 } },
-    { $skip: page * pageSize },
-    { $limit: pageSize }
-  ]);
+  const videos = await Video.find({}, { cover: 0, iv: 0, hostingList: 0 })
+    .sort({ year: -1, title: 1 })
+    .skip(page * pageSize)
+    .limit(pageSize)
+    .lean();
   res.send(videos);
   res.end();
+}
+
+// GET /api/video/:id
+export async function handleGetVideo(req, res) {
+  if (req.params.id.length !== 12 && req.params.id.length !== 24)
+    return fail(res, "Invalid request");
+  const video = await Video.findById(req.params.id, {
+    cover: 0,
+    iv: 0,
+    hostingList: 0
+  })
+    .lean()
+    .exec();
+  if (!video) return fail(res, "Video not found", 404);
+  res.send(video);
+  res.end();
+}
+
+// GET /api/video/:id/cover
+export async function handleGetVideoCover(req, res) {
+  if (req.params.id.length !== 12 && req.params.id.length !== 24)
+    return fail(res, "Invalid request");
+  const video = await Video.findById(req.params.id, { cover: 1 }).exec();
+  res.setHeader("Cache-Control", "public, max-age=86400");
+  if (video?.cover) {
+    Readable.from(video.cover).pipe(res);
+  } else {
+    fail(res, "No cover image", 404);
+  }
 }
 
 // GET /api/song/:id
@@ -450,8 +430,7 @@ export async function handleGetSong(req, res) {
     hostingList: 0
   })
     .populate("album", {
-      trackList: 0,
-      videoList: 0
+      trackList: 0
     })
     .lean()
     .exec();
@@ -486,6 +465,19 @@ export async function handleGetArtistTopTracks(req, res) {
   res.end();
 }
 
+// GET /api/artist/:name/videos
+export async function handleGetArtistVideos(req, res) {
+  const name = decodeURIComponent(req.params.name ?? "").trim();
+  if (!name) return fail(res, "Artist name is required");
+  const videos = await Video.find(
+    { artist: name },
+    { cover: 0, iv: 0, hostingList: 0 }
+  )
+    .sort({ year: -1, title: 1 })
+    .lean();
+  res.send(videos);
+}
+
 // GET /api/artist/:name/image
 export async function handleGetArtistImage(req, res) {
   const name = decodeURIComponent(req.params.name ?? "").trim();
@@ -512,7 +504,7 @@ export async function handleSearch(req, res) {
       {
         $and: [
           { $or: [{ title: regex }, { artist: regex }] },
-          { $or: [{ "trackList.0": { $exists: true } }, { "videoList.0": { $exists: true } }] }
+          { "trackList.0": { $exists: true } }
         ]
       },
       { title: 1, artist: 1, year: 1 }
@@ -525,20 +517,13 @@ export async function handleSearch(req, res) {
       .limit(20)
       .lean()
       .exec(),
-    Video.aggregate([
-      { $match: { $or: [{ title: regex }, { artist: regex }] } },
-      { $project: { iv: 0, hostingList: 0 } },
-      {
-        $lookup: {
-          from: "albums",
-          localField: "album",
-          foreignField: "_id",
-          as: "album"
-        }
-      },
-      { $unwind: { path: "$album", preserveNullAndEmptyArrays: true } },
-      { $limit: 20 }
-    ])
+    Video.find(
+      { $or: [{ title: regex }, { artist: regex }] },
+      { cover: 0, iv: 0, hostingList: 0 }
+    )
+      .sort({ year: -1, title: 1 })
+      .limit(20)
+      .lean()
   ]);
 
   res.json({ songs, albums, videos });

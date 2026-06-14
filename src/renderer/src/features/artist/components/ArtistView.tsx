@@ -6,6 +6,7 @@ import PodcastsRoundedIcon from "@mui/icons-material/PodcastsRounded";
 import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
 import { Box, Button, Menu, MenuItem, Snackbar, Typography } from "@mui/material";
 import { AlbumShelf } from "@components/media/AlbumShelf";
+import { VideoShelf } from "@components/media/VideoShelf";
 import { SongTable } from "@components/media/SongTable";
 import { PageScaffold } from "@components/view/PageScaffold";
 import { PlayShuffleActions } from "@components/view/PlayShuffleActions";
@@ -27,13 +28,18 @@ export const ArtistView: React.FC = () => {
   const { data } = useArtist(artistName);
   const songs = data?.songs ?? [];
   const albums = data?.albums ?? [];
+  const videos = data?.videos ?? [];
   const [isFollowing, setIsFollowing] = useState(true);
   const [showAllTracks, setShowAllTracks] = useState(false);
   const [moreAnchor, setMoreAnchor] = useState<HTMLElement | null>(null);
   const [shareMessage, setShareMessage] = useState("");
 
   const heroAlbum = albums[0] ?? songs.find((song) => song.album)?.album;
-  const fallbackHeroImage = heroAlbum ? apiAssetUrl(`/album/${heroAlbum._id}/cover`) : "";
+  const fallbackHeroImage = heroAlbum
+    ? apiAssetUrl(`/album/${heroAlbum._id}/cover`)
+    : videos[0]
+      ? apiAssetUrl(`/video/${videos[0]._id}/cover`)
+      : "";
   const [heroImage, setHeroImage] = useState("");
   React.useEffect(() => {
     setHeroImage(artistName ? artistImageUrl(artistName) : fallbackHeroImage);
@@ -239,6 +245,14 @@ export const ArtistView: React.FC = () => {
         sx={{ maxWidth: 1440, mx: "auto", px: { xs: 2.5, sm: 3, lg: 5 }, pt: 5 }}
       >
         <AlbumShelf title="Albums" albums={albums} onPlay={playAlbum} />
+        <VideoShelf
+          title="Videos"
+          videos={videos}
+          sx={{ mt: albums.length > 0 ? 5 : 0 }}
+          onPlay={(_video, index) =>
+            dispatch(playContext({ items: videos, playFrom: playSource, startIndex: index }))
+          }
+        />
       </Box>
 
       <Menu anchorEl={moreAnchor} open={Boolean(moreAnchor)} onClose={() => setMoreAnchor(null)}>

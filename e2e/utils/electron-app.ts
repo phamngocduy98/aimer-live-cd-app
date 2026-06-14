@@ -9,13 +9,16 @@ export type { ElectronTestContext, LaunchOptions };
 
 export async function launchApp(
   testUserDataDir: string,
-  options?: LaunchOptions,
+  options?: LaunchOptions
 ): Promise<ElectronTestContext> {
   const launchEnv = { ...process.env };
   delete launchEnv.ELECTRON_RUN_AS_NODE;
 
   const electronApp: ElectronApp = await electron.launch({
-    args: [join(fileURLToPath(import.meta.url), "../../../out/main/index.js")],
+    args: [
+      `--user-data-dir=${testUserDataDir}`,
+      join(fileURLToPath(import.meta.url), "../../../out/main/index.js")
+    ],
     env: {
       ...launchEnv,
       APPDATA: testUserDataDir,
@@ -23,40 +26,41 @@ export async function launchApp(
       E2E_TEST_MODE: "true",
       MONGO_DB_NAME: process.env.MONGO_DB_NAME || E2E_DB_NAME
     },
-    timeout: 60000,
+    timeout: 60000
   });
 
-  let window = await electronApp.waitForEvent("window", {
-    predicate: (page: Page) => page.title().then((t) => !t.includes("DevTools")),
-    timeout: options?.windowTimeout ?? 30000,
-  });
-  await window.waitForLoadState("domcontentloaded");
+  try {
+    let window = await electronApp.waitForEvent("window", {
+      predicate: (page: Page) => page.title().then((t) => !t.includes("DevTools")),
+      timeout: options?.windowTimeout ?? 30000
+    });
+    await window.waitForLoadState("domcontentloaded");
 
-  const windowTitle = await window.title();
-  if (windowTitle.includes("Cấu hình")) {
-    // first-setup screen
-    await fillFormWithEnvInfoAndSubmit(window);
-
-    // find main screen
-    const pages = electronApp.windows();
-    for (const page of pages) {
-      const pageTitle = await page.title();
-      if (!pageTitle.includes("Cấu hình") && !pageTitle.includes("DevTools")) {
-        await page.waitForLoadState("domcontentloaded");
-        await page.waitForTimeout(2000);
-        window = page;
-      }
+    const windowTitle = await window.title();
+    if (windowTitle.includes("Cấu hình")) {
+      const mainWindowPromise = electronApp.waitForEvent("window", {
+        predicate: (page: Page) =>
+          page.title().then((title) => !title.includes("Cấu hình") && !title.includes("DevTools")),
+        timeout: options?.windowTimeout ?? 30000
+      });
+      await fillFormWithEnvInfoAndSubmit(window);
+      window = await mainWindowPromise;
+      await window.waitForLoadState("domcontentloaded");
+      await window.waitForTimeout(2000);
     }
-  }
 
-  if (options?.windowSize) {
-    const [width, height] = options.windowSize;
-    const electronWin = await electronApp.browserWindow(window);
-    await electronWin.evaluate(
-      (win, { width, height }) => win.setSize(width, height),
-      { width, height }
-    );
-  }
+    if (options?.windowSize) {
+      const [width, height] = options.windowSize;
+      const electronWin = await electronApp.browserWindow(window);
+      await electronWin.evaluate((win, { width, height }) => win.setSize(width, height), {
+        width,
+        height
+      });
+    }
 
-  return { electronApp, mainWindow: window };
+    return { electronApp, mainWindow: window };
+  } catch (error) {
+    await electronApp.close();
+    throw error;
+  }
 }

@@ -103,7 +103,7 @@ export const SearchResults: React.FC = () => {
               <Grid key={video._id} item xs={6} sm={4} md={3} lg={2}>
                 <VideoCard
                   video={video}
-                  onClick={() =>
+                  onPlay={() =>
                     dispatch(
                       playContext({ items: result.videos, playFrom: playSource, startIndex: idx })
                     )

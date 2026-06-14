@@ -17,15 +17,15 @@ export const PageScaffold: React.FC<PageScaffoldProps> = ({
   <Box
     sx={{
       minHeight: "100vh",
-      bgcolor: "#000",
+      bgcolor: (theme) => theme.design.color.canvas,
       color: "white",
       background,
       backgroundImage,
       backgroundSize: "cover",
       backgroundPosition: "center top",
       backgroundRepeat: "no-repeat",
-      pt: "64px",
-      pb: { xs: "190px", sm: "120px" },
+      pt: (theme) => theme.design.layout.topClearance,
+      pb: (theme) => theme.design.layout.playerClearance,
       overflow: "hidden",
       ...sx
     }}

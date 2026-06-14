@@ -64,6 +64,22 @@ compact desktop/tablet from `sm` through below `lg`, and expanded desktop at
 feature or playback ownership. See the shared component and player guides
 before changing breakpoints.
 
+## Renderer Design System
+
+Reusable visual values are owned by the typed `Theme.design` tokens. Album and
+Video cards use the shared `MediaCard`; Album, Playlist, and Video details use
+the **Media Detail Page** family; Albums, Songs, Videos, and Playlists use the
+**Filtered Collection Page** family. New pages described as album-style must
+consume the shared detail composition rather than copy album CSS.
+
+Videos are independent artist-managed releases. They own their cover, year,
+genres, artists, and chapters; renderer code must not infer video artwork or
+release metadata from an album.
+
+Do not add new raw colors, shadows, radii, page widths, or responsive gutters
+to feature components when a theme token or shared primitive can represent the
+same decision. See the [renderer design-system reference](docs/renderer_design_system.md).
+
 Scrollable immersive surfaces, including expanded lyrics, must inherit the
 global `::-webkit-scrollbar` styles from
 [`index.css`](src/renderer/src/index.css). Keep the scroll container inset from
@@ -87,6 +103,7 @@ lyric alignment, fade-mask, and artwork-column constraints.
 - [Feature decisions](src/renderer/src/features/DESIGN.md)
 - [Player decisions](src/renderer/src/features/player/DESIGN.md)
 - [Shared component decisions](src/renderer/src/components/DESIGN.md)
+- [Renderer design system](docs/renderer_design_system.md)
 - [System implementation overview](docs/implement_design.md)
 - [GUI acceptance expectations](docs/gui_expected_features.md)
 - [Renderer E2E coverage](e2e/gui.spec.ts)

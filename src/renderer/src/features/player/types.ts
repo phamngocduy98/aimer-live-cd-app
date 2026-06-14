@@ -9,6 +9,7 @@ export type PlaySourceType =
   | "search"
   | "songs"
   | "videos"
+  | "video"
   | "home";
 
 export interface PlaySource {

@@ -13,6 +13,8 @@ interface PlayerVideoControlSlice {
 
   videoPosition: number;
   videoSeekPosition: number | null;
+  videoLoadedMediaId: string | null;
+  videoSeekMediaId: string | null;
 }
 
 const playerVideoControlSlice = createSlice({
@@ -27,16 +29,22 @@ const playerVideoControlSlice = createSlice({
     videoIsLoading: true,
     videoError: null,
     videoPosition: 0,
-    videoSeekPosition: null
+    videoSeekPosition: null,
+    videoLoadedMediaId: null,
+    videoSeekMediaId: null
   } as PlayerVideoControlSlice,
   reducers: {
-    loadVideo(state, payload: PayloadAction<{ url: string }>) {
+    loadVideo(state, payload: PayloadAction<{ url: string; mediaId: string }>) {
       state.videoUrl = payload.payload.url;
+      state.videoLoadedMediaId = payload.payload.mediaId;
       state.videoPlaying = true;
       state.videoIsReady = false;
       state.videoIsLoading = false;
       state.videoPosition = 0;
-      state.videoSeekPosition = null;
+      if (state.videoSeekMediaId !== payload.payload.mediaId) {
+        state.videoSeekPosition = null;
+        state.videoSeekMediaId = null;
+      }
       state.videoLoop = false;
     },
     togglePlayPauseVideo(state) {
@@ -66,8 +74,15 @@ const playerVideoControlSlice = createSlice({
     videoOnProgress(state, payload: PayloadAction<{ position: number }>) {
       state.videoPosition = payload.payload.position;
     },
-    videoOnSeek(state, payload: PayloadAction<{ position: number | null }>) {
+    videoOnSeek(
+      state,
+      payload: PayloadAction<{ position: number | null; mediaId?: string | null }>
+    ) {
       state.videoSeekPosition = payload.payload.position;
+      state.videoSeekMediaId =
+        payload.payload.position == null
+          ? null
+          : (payload.payload.mediaId ?? state.videoLoadedMediaId);
     }
   }
 });

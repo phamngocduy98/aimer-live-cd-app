@@ -19,6 +19,7 @@ import {
   updateAdminHost,
   updateAdminSong,
   updateAdminVideo,
+  updateAdminVideoCover,
   uploadAdminMedia
 } from "../api/admin";
 import type { AdminAlbum, AdminHost, AdminSong, AdminVideo } from "../types";
@@ -33,7 +34,15 @@ export const adminKeys = {
   hosts: ["admin", "hosts"] as const
 };
 
-const invalidateAdmin = () => queryClient.invalidateQueries({ queryKey: adminKeys.all });
+const invalidateAdmin = async () => {
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: adminKeys.all }),
+    queryClient.invalidateQueries({ queryKey: ["library"] }),
+    queryClient.invalidateQueries({ queryKey: ["video"] }),
+    queryClient.invalidateQueries({ queryKey: ["artist"] }),
+    queryClient.invalidateQueries({ queryKey: ["search"] })
+  ]);
+};
 
 export const useAdminUploads = () =>
   useQuery({ queryKey: adminKeys.uploads, queryFn: listAdminUploads });
@@ -57,6 +66,12 @@ export const useUpdateAdminVideo = () =>
   useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<AdminVideo> }) =>
       updateAdminVideo(id, data),
+    onSuccess: invalidateAdmin
+  });
+
+export const useUpdateAdminVideoCover = () =>
+  useMutation({
+    mutationFn: ({ id, file }: { id: string; file: File }) => updateAdminVideoCover(id, file),
     onSuccess: invalidateAdmin
   });
 

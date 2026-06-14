@@ -2,10 +2,9 @@ import { Types } from "mongoose";
 import { IAudioMetadata, IFormat } from "music-metadata";
 import { DbDocument } from "../../types/type.js";
 import { IHosting } from "../../models/Hosting.js";
-import { ISong, Song } from "../../models/Song.js";
 import { ContentBuilder } from "./ContentBuilder.js";
-import { AlbumBuilder } from "./AlbumBuilder.js";
 import { IVideo, Video } from "../../models/Video.js";
+import { normalizeVideoChapters } from "../../utils/videoLibrary.js";
 
 const VIDEO_CODEC = ["<avc1>", "MPEGH/ISO/HEVC", "mp42", "VP9", "MPEG4/ISO/AVC"];
 
@@ -30,11 +29,15 @@ export class VideoBuilder extends ContentBuilder<IVideo> {
 
     if (this.doc == null) {
       const videos = meta.format.trackInfo.filter((t) => isVideoTrackInfo(t));
-      const audios = meta.format.trackInfo.filter((t) => t.audio != null && isVideoTrackInfo(t));
       this.doc = new Video({
         _id: this._id,
+        cover: meta.common.picture?.[0]?.data
+          ? Buffer.from(meta.common.picture[0].data)
+          : undefined,
         title: meta.common.title,
         artist: meta.common.artists,
+        genre: meta.common.genre ?? [],
+        year: meta.common.year,
         size,
         duration: meta.format.duration,
 
@@ -53,6 +56,7 @@ export class VideoBuilder extends ContentBuilder<IVideo> {
         hostingList: [],
         fileCount: 0,
         fileExtension,
+        chapters: normalizeVideoChapters(meta.common.title ?? "Unknown", []),
 
         iv: this.iv.toString("hex")
       });
@@ -72,10 +76,5 @@ export class VideoBuilder extends ContentBuilder<IVideo> {
     ) {
       this.doc.hostingList.push(hosting);
     }
-  }
-  attachAlbum(album: AlbumBuilder) {
-    if (this.doc == null) throw Error("Builder not initiated!");
-    album.addVideo(this.doc);
-    this.doc.album = album.get();
   }
 }

@@ -19,6 +19,10 @@ domain fetching, mutations, or workflow state.
   desktop width ranges. A band changes presentation, not domain ownership.
 - **Accessibility contract:** A stable role, landmark, or accessible name used
   by keyboard users and role-based E2E selectors.
+- **Media Detail Page:** The album-style hero, identity, actions, and content
+  composition shared by Album, Playlist, Video, and future album-style pages.
+- **Filtered Collection Page:** The shared header, filter, content alignment,
+  and state contract used by Albums, Songs, Videos, and Playlists.
 
 ## Shared Versus Feature UI
 
@@ -103,6 +107,25 @@ Check alignment at all breakpoints after changing shared spacing.
 [`CollectionHeader.tsx`](view/CollectionHeader.tsx),
 [`gui.spec.ts`](../../../../e2e/gui.spec.ts)
 
+## Design Tokens And Page Families
+
+**Decision:** Reusable renderer visual values live in the typed
+`Theme.design` object. `MediaDetailHero`, `MediaDetailIdentity`,
+`DetailActions`, and `DetailContent` implement the **Media Detail Page**.
+`CollectionHeader`, `CollectionContent`, and `PageState` implement the
+**Filtered Collection Page**.
+
+**Change guidance:** Do not create feature-local page widths, gutters, card
+radii, shadows, or palette values when the theme expresses the decision. New
+album-style pages use the detail-page composition exactly. New searchable
+library pages use the filtered-collection composition whether their content is
+a grid or table.
+
+**References:** [`theme.ts`](../app/theme.ts),
+[`designSystem.tsx`](view/designSystem.tsx),
+[`MediaDetailPage.tsx`](view/MediaDetailPage.tsx),
+[`renderer_design_system.md`](../../../../docs/renderer_design_system.md)
+
 ## Media Components
 
 **Decision:** Shared media cards, shelves, tables, and action menus own
@@ -120,6 +143,11 @@ context and mutations differ by feature.
 components. Preserve source-aware active-row behavior and mixed audio/video
 support when extending tables or menus. Do not introduce feature-specific
 active-row colors; use the shared now-playing presentation.
+
+Album and Video cards use `MediaCard` with `square` and `landscape` artwork
+variants respectively. Resource wrappers retain navigation, playback source,
+favorite behavior, menus, and metadata formatting. Do not introduce another
+card frame for a resource that can map to this presentation contract.
 
 **References:** [`media/`](media/),
 [`player/DESIGN.md`](../features/player/DESIGN.md)

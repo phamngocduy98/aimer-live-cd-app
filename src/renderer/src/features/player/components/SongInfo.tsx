@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from "@app/hooks";
 import { hideView } from "../store/playerGuiSlice";
 import { artistPath, getPrimaryArtist } from "@utils/artist";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
+import { isVideo } from "@features/library";
 
 interface AlbumImageProps extends React.PropsWithChildren {
   hideArtworkBelow?: "narrow" | "responsiveMedia" | "sm" | "md";
@@ -107,7 +108,8 @@ export const AlbumImage: React.FC<AlbumImageProps> = ({ children, hideArtworkBel
           onClick={(e) => {
             e.stopPropagation();
             dispatch(hideView("mobilePlayer"));
-            router.navigate(`/album/${playingTrack?.album?._id}`);
+            if (isVideo(playingTrack)) router.navigate(`/video/${playingTrack._id}`);
+            else if (playingTrack?.album?._id) router.navigate(`/album/${playingTrack.album._id}`);
           }}
         >
           {currentChapter
@@ -171,10 +173,11 @@ export const AlbumImage: React.FC<AlbumImageProps> = ({ children, hideArtworkBel
             onClick={(e) => {
               e.stopPropagation();
               dispatch(hideView("mobilePlayer"));
-              router.navigate(`/album/${playingTrack?.album?._id}`);
+              if (isVideo(playingTrack)) router.navigate(`/video/${playingTrack._id}`);
+              else if (playingTrack?.album?._id) router.navigate(`/album/${playingTrack.album._id}`);
             }}
           >
-            {playingTrack?.type === "video" ? "Videos" : playingTrack?.album?.title}
+            {isVideo(playingTrack) ? "Videos" : playingTrack?.album?.title}
           </Typography>
         </Typography>
       </Box>

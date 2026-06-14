@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from "react";
-import { Box, Grid, Typography } from "@mui/material";
+import { Grid } from "@mui/material";
 import { AlbumCard } from "@components/media/AlbumCard";
 import { CollectionHeader } from "@components/view/CollectionHeader";
 import { PageScaffold } from "@components/view/PageScaffold";
+import { CollectionContent, PageState } from "@components/view/designSystem";
 import { useAlbums } from "../hooks/useLibrary";
 import { usePlayAlbum } from "@features/album";
 
@@ -32,7 +33,7 @@ export const Albums: React.FC = () => {
         actions={[{ label: `${albums.length} albums`, disabled: true }]}
       />
 
-      <Box sx={{ maxWidth: 1440, mx: "auto", px: { xs: 2.5, sm: 4, lg: 6 }, pb: 3 }}>
+      <CollectionContent>
         <Grid container spacing={2.5}>
           {visibleAlbums.map((album) => (
             <Grid key={album._id} item xs={6} sm={4} md={3} lg={2}>
@@ -41,13 +42,11 @@ export const Albums: React.FC = () => {
           ))}
           {visibleAlbums.length === 0 && (
             <Grid item xs={12}>
-              <Typography color="text.secondary" sx={{ py: 5, textAlign: "center" }}>
-                No albums match &ldquo;{filter}&rdquo;
-              </Typography>
+              <PageState state="empty" message={`No albums match “${filter}”`} />
             </Grid>
           )}
         </Grid>
-      </Box>
+      </CollectionContent>
     </PageScaffold>
   );
 };

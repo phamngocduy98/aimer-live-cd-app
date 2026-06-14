@@ -22,7 +22,7 @@ export const ControlButton = () => {
 
   const showMobilePlayer = useAppSelector((state) => state.playerGui.mobilePlayer);
 
-  const canNext = queue.length > 0 || (currentChapterIdx ?? -1) < chapters.length;
+  const canNext = queue.length > 0 || (currentChapterIdx ?? -1) < chapters.length - 1;
   const canPrev = history.length > 0 || (currentChapterIdx ?? -1) > 0;
 
   const { togglePlayPause, isReady, isLoading, playing } = useGlobalAudioPlayer();

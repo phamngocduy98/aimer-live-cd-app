@@ -1,6 +1,6 @@
 import { model, mongo, Schema } from "mongoose";
-import { IAlbum } from "./Album.js";
 import { IHosting } from "./Hosting.js";
+import { normalizeVideoChapters } from "../utils/videoLibrary.js";
 
 export interface IVideoChapter {
   time: number;
@@ -21,8 +21,11 @@ export const videoChapterSchema = new Schema<IVideoChapter>({
 });
 
 export interface IVideo {
+  cover?: Buffer;
   title: string;
   artist: string[];
+  genre?: string[];
+  year?: number;
   size: number;
   duration: number;
 
@@ -45,17 +48,24 @@ export interface IVideo {
 
   chapters: IVideoChapter[];
 
-  album?: IAlbum;
-
   iv: string;
 }
 
 export const videoSchema = new Schema<IVideo>({
+  cover: {
+    type: "Buffer"
+  },
   title: {
     type: "String"
   },
   artist: {
     type: ["String"]
+  },
+  genre: {
+    type: ["String"]
+  },
+  year: {
+    type: "Number"
   },
   size: {
     type: "Number"
@@ -112,14 +122,14 @@ export const videoSchema = new Schema<IVideo>({
     type: [videoChapterSchema]
   },
 
-  album: {
-    type: mongo.ObjectId,
-    ref: "Album"
-  },
-
   iv: {
     type: "String"
   }
+});
+
+videoSchema.pre("validate", function (next) {
+  this.chapters = normalizeVideoChapters(this.title, this.chapters);
+  next();
 });
 
 export const Video = model("Video", videoSchema, "videos");

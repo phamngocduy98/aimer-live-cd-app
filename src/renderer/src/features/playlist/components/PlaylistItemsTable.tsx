@@ -1,5 +1,4 @@
 import React from "react";
-import styled from "@emotion/styled";
 import {
   Avatar,
   Box,
@@ -15,14 +14,14 @@ import {
   Typography,
   tableCellClasses
 } from "@mui/material";
+import { styled } from "@mui/material/styles";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import OndemandVideoIcon from "@mui/icons-material/OndemandVideo";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import { useAppSelector } from "@app/hooks";
 import type { PlaySource } from "@features/player/types";
 import { isCurrentSourceItem } from "@features/player/types";
-import { apiAssetUrl } from "@lib/axios";
-import { NOW_PLAYING_BACKGROUND, NOW_PLAYING_COLOR } from "@components/media/nowPlayingStyles";
+import { mediaArtworkUrl } from "@utils/mediaArtwork";
 import type { PlaylistItem } from "../types";
 import { formatDuration } from "@utils/formatDuration";
 import { ArtistLinks } from "@components/media/ArtistLinks";
@@ -101,23 +100,23 @@ export function PlaylistItemsTable({
                   selected={active}
                   key={item._id}
                   onDoubleClick={() => onPlay(index)}
-                  sx={{
-                    transition: "background-color .16s ease",
-                    "&:hover": { backgroundColor: "rgba(255,255,255,.065)" },
+                  sx={(theme) => ({
+                    transition: `background-color ${theme.design.motion.fast}`,
+                    "&:hover": { backgroundColor: theme.design.color.surfaceHover },
                     "&:last-child td, &:last-child th": { border: 0 },
                     "& th": {
-                      borderTopLeftRadius: "5px",
-                      borderBottomLeftRadius: "5px"
+                      borderTopLeftRadius: theme.design.radius.row,
+                      borderBottomLeftRadius: theme.design.radius.row
                     },
                     "& td:last-child": {
-                      borderTopRightRadius: "5px",
-                      borderBottomRightRadius: "5px"
+                      borderTopRightRadius: theme.design.radius.row,
+                      borderBottomRightRadius: theme.design.radius.row
                     },
                     "&.Mui-selected": {
-                      bgcolor: NOW_PLAYING_BACKGROUND,
-                      "& .now-playing-accent": { color: NOW_PLAYING_COLOR }
+                      bgcolor: theme.design.color.nowPlayingBackground,
+                      "& .now-playing-accent": { color: theme.design.color.nowPlaying }
                     }
-                  }}
+                  })}
                 >
                   <PlaylistTableCell align="center" component="th" scope="row" width={30}>
                     {active ? (
@@ -132,11 +131,7 @@ export function PlaylistItemsTable({
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
                       <Avatar
                         variant="rounded"
-                        src={
-                          item.media.album?._id
-                            ? apiAssetUrl(`/album/${item.media.album._id}/cover`)
-                            : undefined
-                        }
+                        src={mediaArtworkUrl(item.media)}
                         sx={{
                           width: { xs: 42, sm: 44 },
                           height: { xs: 42, sm: 44 },
@@ -193,8 +188,9 @@ export function PlaylistItemsTable({
                     sx={{ display: { xs: "none", lg: "table-cell" } }}
                   >
                     <Typography noWrap textOverflow="ellipsis" fontSize={14} color="#a0a0a0">
-                      {item.media.album?.title ??
-                        (item.mediaType === "video" ? "Video" : "Unknown")}
+                      {"album" in item.media
+                        ? (item.media.album?.title ?? "Unknown")
+                        : "Video"}
                     </Typography>
                   </PlaylistTableCell>
                   <PlaylistTableCell
@@ -237,10 +233,10 @@ export function PlaylistItemsTable({
   );
 }
 
-const PlaylistTableCell = styled(TableCell)(() => ({
+const PlaylistTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
     border: 0,
-    color: "#9b9b9b",
+    color: theme.design.color.textMuted,
     fontSize: 12
   },
   [`&.${tableCellClasses.body}`]: {

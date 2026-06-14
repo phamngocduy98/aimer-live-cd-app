@@ -6,6 +6,8 @@
 - **Albums tab** → album view screen
 - **Songs tab** → play a song (open player)
 - **Videos tab** → play a video (open player)
+- **Home** → Featured albums, Featured videos, and artist shortcuts
+- **Artist detail** → top tracks, albums, and independent videos
 - **Search result page** — search a song, press Enter (or click _More results_) to navigate to full search result page
 - **Add/Edit Playlist dialog** (name/description) — verify input values reset after closing and reopening the dialog
 
@@ -23,7 +25,6 @@
 - Add album to playlist
 - **Album view:** play, shuffle (songs in album)
   - Song list: add to playlist, play a song
-  - Video list: play a video
 
 ### Songs Tab
 
@@ -32,7 +33,12 @@
 ### Videos Tab
 
 - Video list: play a video
-- **Video player:** view and navigate video chapters
+- Home and Artist video shelves: open video detail or play within the displayed video collection
+- **Video detail:** video cards open an album-style video page whose chapters
+  are rendered as song-like rows; the explicit card play button starts playback
+  directly from the current collection.
+- **Video player:** play a chapter by loading one video queue entry and seeking
+  to its position; Previous/Next traverses chapters before queued media.
 - **Add / edit chapters:** add chapter markers (time + title), edit existing chapters
 
 ## 3. Global Features
@@ -50,7 +56,7 @@
   - Play / pause (with loading state on play button)
   - Next, previous
   - Volume control
-  - Navigate to album, artist
+  - Navigate audio to album and all media to artist; video title navigation opens video detail
   - Seek bar
 - **Player mode:** full-screen, minimized
 - **Now playing list:**
@@ -86,6 +92,7 @@
   - Admin
   - Upload Song
 - **Admin:** list hosting providers, browse files, delete files per host
+- **Video metadata:** edit title, artists, year, genres, chapters, and dedicated cover artwork
 - **Lyrics:** open a dedicated table-only Synchronized Lyrics dialog from
   song/video rows; import Japanese SRT or synchronized LRCLIB lyrics,
   automatically generate romaji, explicitly generate English/Vietnamese,
