@@ -5,8 +5,8 @@ import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
 import VideocamIcon from "@mui/icons-material/Videocam";
 import { Box, IconButton, Typography } from "@mui/material";
 import type { Video } from "@features/library";
-import { formatArtists } from "@utils/artist";
 import { apiAssetUrl } from "@lib/axios";
+import { ArtistLinks } from "./ArtistLinks";
 
 interface VideoCardProps {
   video: Video;
@@ -106,9 +106,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({ video, onClick }) => {
       <Typography noWrap fontWeight={750} sx={{ mt: 1.15, letterSpacing: "-.01em" }}>
         {video.title}
       </Typography>
-      <Typography noWrap color="#9b9b9b" fontSize={13}>
-        {formatArtists(video.artist)}
-      </Typography>
+      <ArtistLinks artists={video.artist} color="#9b9b9b" fontSize={13} />
     </Box>
   );
 };

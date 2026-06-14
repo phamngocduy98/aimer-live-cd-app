@@ -11,11 +11,13 @@ import { AlbumInfo } from "./AlbumInfo";
 import { SongListTable } from "./SongListTable";
 import { VideoList } from "./VideoList";
 import { useAlbum } from "../hooks/useAlbum";
+import { usePlayAlbum } from "../hooks/usePlayAlbum";
 
 export const AlbumView: React.FC = () => {
   const { id = "" } = useParams();
   const { data: album } = useAlbum(id);
   const { data: artistData } = useArtist(album?.artist ?? "");
+  const playAlbum = usePlayAlbum();
 
   if (!album) {
     return <PageScaffold>{null}</PageScaffold>;
@@ -130,6 +132,7 @@ export const AlbumView: React.FC = () => {
         <AlbumShelf
           title={`More Albums by ${album.artist}`}
           albums={relatedAlbums}
+          onPlay={playAlbum}
           secondary="year"
         />
       </Box>

@@ -11,6 +11,7 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 import CircularProgress from "@mui/material/CircularProgress";
+import { ArtistLinks } from "@components/media/ArtistLinks";
 
 interface SearchDropdownProps {
   query: string;
@@ -102,7 +103,8 @@ export const SearchDropdown: React.FC<SearchDropdownProps> = ({
                   key={song._id}
                   onClick={() => handleSongClick(song)}
                   primary={song.title}
-                  secondary={song.artist?.join(", ")}
+                  artists={song.artist}
+                  onArtistNavigate={onClose}
                 />
               ))}
             </>
@@ -164,7 +166,8 @@ export const SearchDropdown: React.FC<SearchDropdownProps> = ({
                   key={video._id}
                   onClick={() => handleVideoClick(video)}
                   primary={video.title}
-                  secondary={video.artist?.join(", ")}
+                  artists={video.artist}
+                  onArtistNavigate={onClose}
                 />
               ))}
             </>
@@ -214,11 +217,13 @@ function SectionHeader({ title, count }: { title: string; count: number }): Reac
 
 function ResultRow({
   primary,
-  secondary,
+  artists,
+  onArtistNavigate,
   onClick
 }: {
   primary: string;
-  secondary?: string;
+  artists?: string[];
+  onArtistNavigate?: () => void;
   onClick: () => void;
 }): React.ReactElement {
   return (
@@ -238,10 +243,13 @@ function ResultRow({
         <Typography variant="body2" noWrap textOverflow="ellipsis">
           {primary}
         </Typography>
-        {secondary && (
-          <Typography variant="caption" color="text.secondary" noWrap textOverflow="ellipsis">
-            {secondary}
-          </Typography>
+        {artists && (
+          <ArtistLinks
+            artists={artists}
+            color="text.secondary"
+            fontSize="0.75rem"
+            onNavigate={onArtistNavigate}
+          />
         )}
       </Box>
     </Box>

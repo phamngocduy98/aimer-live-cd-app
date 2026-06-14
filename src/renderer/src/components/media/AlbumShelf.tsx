@@ -9,6 +9,7 @@ import { SectionHeader } from "@components/view/SectionHeader";
 interface AlbumShelfProps {
   title: string;
   albums: Album[];
+  onPlay: (album: Album) => void;
   secondary?: "artist" | "year" | "none";
   sx?: SxProps<Theme>;
 }
@@ -16,6 +17,7 @@ interface AlbumShelfProps {
 export const AlbumShelf: React.FC<AlbumShelfProps> = ({
   title,
   albums,
+  onPlay,
   secondary = "year",
   sx
 }) => {
@@ -89,7 +91,7 @@ export const AlbumShelf: React.FC<AlbumShelfProps> = ({
       >
         {albums.map((album) => (
           <Box key={album._id} sx={{ minWidth: 0, scrollSnapAlign: "start" }}>
-            <AlbumCard album={album} secondary={secondary} />
+            <AlbumCard album={album} secondary={secondary} onPlay={onPlay} />
           </Box>
         ))}
       </Box>

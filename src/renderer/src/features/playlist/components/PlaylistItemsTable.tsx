@@ -24,8 +24,8 @@ import { isCurrentSourceItem } from "@features/player/types";
 import { apiAssetUrl } from "@lib/axios";
 import { NOW_PLAYING_BACKGROUND, NOW_PLAYING_COLOR } from "@components/media/nowPlayingStyles";
 import type { PlaylistItem } from "../types";
-import { formatArtists } from "@utils/artist";
 import { formatDuration } from "@utils/formatDuration";
+import { ArtistLinks } from "@components/media/ArtistLinks";
 
 interface PlaylistItemsTableProps {
   items: PlaylistItem[];
@@ -169,15 +169,12 @@ export function PlaylistItemsTable({
                           {item.mediaType === "video" && (
                             <OndemandVideoIcon sx={{ fontSize: 16, flexShrink: 0 }} />
                           )}
-                          <Typography
-                            noWrap
-                            textOverflow="ellipsis"
+                          <ArtistLinks
+                            artists={item.media.artist}
                             color="#f2f2f2"
                             fontSize={15}
                             fontWeight={400}
-                          >
-                            {formatArtists(item.media.artist)}
-                          </Typography>
+                          />
                         </Box>
                       </Box>
                     </Box>
@@ -189,9 +186,7 @@ export function PlaylistItemsTable({
                       "@media (max-width: 749.95px)": { display: "none" }
                     }}
                   >
-                    <Typography noWrap textOverflow="ellipsis" fontSize={14} color="#a0a0a0">
-                      {formatArtists(item.media.artist)}
-                    </Typography>
+                    <ArtistLinks artists={item.media.artist} />
                   </PlaylistTableCell>
                   <PlaylistTableCell
                     data-testid="playlist-album-cell"

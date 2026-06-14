@@ -8,11 +8,13 @@ import { SectionHeader } from "@components/view/SectionHeader";
 import { artistImageUrl, artistPath } from "@utils/artist";
 import { apiAssetUrl } from "@lib/axios";
 import { useAlbums, useSongs } from "../hooks/useLibrary";
+import { usePlayAlbum } from "@features/album";
 
 export const Home: React.FC = () => {
   const navigate = useNavigate();
   const { data: albums = [] } = useAlbums(0, 12);
   const { data: songs = [] } = useSongs(0, 12);
+  const playAlbum = usePlayAlbum();
 
   const artists = useMemo(() => {
     const coverByArtist = new Map<string, string>();
@@ -58,7 +60,7 @@ export const Home: React.FC = () => {
         <Grid container spacing={2.5}>
           {albums.map((album) => (
             <Grid key={album._id} item xs={6} sm={4} md={3} lg={2}>
-              <AlbumCard album={album} />
+              <AlbumCard album={album} onPlay={playAlbum} />
             </Grid>
           ))}
         </Grid>
@@ -99,7 +101,10 @@ export const Home: React.FC = () => {
                     src={artistImageUrl(name)}
                     alt={name}
                     onError={(event: React.SyntheticEvent<HTMLImageElement>) => {
-                      if (coverAlbumId && event.currentTarget.src !== apiAssetUrl(`/album/${coverAlbumId}/cover`)) {
+                      if (
+                        coverAlbumId &&
+                        event.currentTarget.src !== apiAssetUrl(`/album/${coverAlbumId}/cover`)
+                      ) {
                         event.currentTarget.src = apiAssetUrl(`/album/${coverAlbumId}/cover`);
                         return;
                       }

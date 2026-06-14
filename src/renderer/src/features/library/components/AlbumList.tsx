@@ -4,9 +4,11 @@ import { AlbumCard } from "@components/media/AlbumCard";
 import { CollectionHeader } from "@components/view/CollectionHeader";
 import { PageScaffold } from "@components/view/PageScaffold";
 import { useAlbums } from "../hooks/useLibrary";
+import { usePlayAlbum } from "@features/album";
 
 export const Albums: React.FC = () => {
   const { data: albums = [] } = useAlbums();
+  const playAlbum = usePlayAlbum();
   const [filter, setFilter] = useState("");
 
   const visibleAlbums = useMemo(() => {
@@ -34,7 +36,7 @@ export const Albums: React.FC = () => {
         <Grid container spacing={2.5}>
           {visibleAlbums.map((album) => (
             <Grid key={album._id} item xs={6} sm={4} md={3} lg={2}>
-              <AlbumCard album={album} />
+              <AlbumCard album={album} onPlay={playAlbum} />
             </Grid>
           ))}
           {visibleAlbums.length === 0 && (

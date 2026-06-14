@@ -18,7 +18,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import type { Song } from "@features/library";
 import { useAppSelector } from "@app/hooks";
-import { artistPath, formatArtists, getPrimaryArtist } from "@utils/artist";
+import { formatArtists } from "@utils/artist";
 import { formatDuration } from "@utils/formatDuration";
 import { SongBitDepth } from "@features/player/components/SongBitDepth";
 import { AddToPlaylistDialog } from "@features/playlist";
@@ -31,6 +31,7 @@ import {
 import type { PlaySource } from "@features/player/types";
 import { isCurrentSourceItem, sourceItemKey } from "@features/player/types";
 import { NOW_PLAYING_BACKGROUND, NOW_PLAYING_COLOR } from "./nowPlayingStyles";
+import { ArtistLinks } from "./ArtistLinks";
 
 interface SongTableProps {
   songs: Song[];
@@ -188,29 +189,31 @@ export const SongTable: React.FC<SongTableProps> = ({
                         {song.title}
                       </Typography>
                       <Box sx={{ display: { xs: "block", sm: "none" } }}>
-                        <Typography
-                          noWrap
-                          textOverflow="ellipsis"
-                          fontSize={mobileEmphasis ? 15 : 14}
-                          color={mobileEmphasis ? "#f2f2f2" : "#919191"}
-                          fontWeight={mobileEmphasis ? 650 : 400}
-                        >
-                          {mobileText}
-                        </Typography>
+                        {mobileSubtitle === "artist" ? (
+                          <ArtistLinks
+                            artists={song.artist}
+                            fontSize={mobileEmphasis ? 15 : 14}
+                            color={mobileEmphasis ? "#f2f2f2" : "#919191"}
+                            fontWeight={mobileEmphasis ? 650 : 400}
+                          />
+                        ) : (
+                          <Typography
+                            noWrap
+                            textOverflow="ellipsis"
+                            fontSize={mobileEmphasis ? 15 : 14}
+                            color={mobileEmphasis ? "#f2f2f2" : "#919191"}
+                            fontWeight={mobileEmphasis ? 650 : 400}
+                          >
+                            {mobileText}
+                          </Typography>
+                        )}
                       </Box>
                     </Box>
                   </Box>
                 </NoBorderTableCell>
                 {showArtist && (
                   <NoBorderTableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>
-                    <MetadataLink
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        navigate(artistPath(getPrimaryArtist(song.artist)));
-                      }}
-                    >
-                      {formatArtists(song.artist)}
-                    </MetadataLink>
+                    <ArtistLinks artists={song.artist} />
                   </NoBorderTableCell>
                 )}
                 {showAlbum && (

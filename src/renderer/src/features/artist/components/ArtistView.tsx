@@ -15,11 +15,13 @@ import { playContext } from "@features/player/store/playerSlice";
 import { apiAssetUrl } from "@lib/axios";
 import { artistImageUrl } from "@utils/artist";
 import { useArtist } from "../hooks/useArtist";
+import { usePlayAlbum } from "@features/album";
 
 const FEATURED_TRACK_COUNT = 4;
 
 export const ArtistView: React.FC = () => {
   const dispatch = useAppDispatch();
+  const playAlbum = usePlayAlbum();
   const { name } = useParams();
   const artistName = decodeURIComponent(name ?? "");
   const { data } = useArtist(artistName);
@@ -236,7 +238,7 @@ export const ArtistView: React.FC = () => {
         component="section"
         sx={{ maxWidth: 1440, mx: "auto", px: { xs: 2.5, sm: 3, lg: 5 }, pt: 5 }}
       >
-        <AlbumShelf title="Albums" albums={albums} />
+        <AlbumShelf title="Albums" albums={albums} onPlay={playAlbum} />
       </Box>
 
       <Menu anchorEl={moreAnchor} open={Boolean(moreAnchor)} onClose={() => setMoreAnchor(null)}>

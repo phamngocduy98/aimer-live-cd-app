@@ -28,6 +28,7 @@ import { videoOnSeek } from "../store/playerVideoControl";
 import { SongActionsMenu } from "@components/media/MediaActionsMenu";
 import { CreatePlaylistDialog } from "@features/playlist";
 import { router } from "@app/router";
+import { ArtistLinks } from "@components/media/ArtistLinks";
 
 export const FloatingQueueList = () => {
   const { playingQueue, mobilePlayer } = useAppSelector((state) => state.playerGui);
@@ -162,7 +163,6 @@ export const QueueList: React.FC<{ onClear?: () => void }> = ({ onClear }) => {
               key={entry.queueEntryId}
               track={entry.media}
               title={entry.media.title}
-              artist={entry.media.artist.join(", ")}
               cover={entry.media.album?._id}
               playFromLabel={entry.playFrom.label}
               onPlayFrom={() => router.navigate(entry.playFrom.route)}
@@ -181,7 +181,6 @@ export const QueueList: React.FC<{ onClear?: () => void }> = ({ onClear }) => {
             active
             track={playingTrack}
             title={playingTrack.title}
-            artist={playingTrack.artist.join(", ")}
             cover={playingTrack.album?._id}
             playFromLabel={currentEntry?.playFrom.label}
             onPlayFrom={() => currentEntry && router.navigate(currentEntry.playFrom.route)}
@@ -197,7 +196,6 @@ export const QueueList: React.FC<{ onClear?: () => void }> = ({ onClear }) => {
               track={playingTrack}
               active={index === currentChapterIdx}
               title={chapter.title}
-              artist={chapter.subTitle}
               cover={playingTrack.album?._id}
               onClick={() => {
                 const nextChapterTime =
@@ -222,7 +220,6 @@ export const QueueList: React.FC<{ onClear?: () => void }> = ({ onClear }) => {
               key={entry.queueEntryId}
               track={entry.media}
               title={entry.media.title}
-              artist={entry.media.artist.join(", ")}
               cover={entry.media.album?._id}
               playFromLabel={entry.playFrom.label}
               onPlayFrom={() => router.navigate(entry.playFrom.route)}
@@ -265,7 +262,6 @@ function QueueSection({
 interface QueueRowProps {
   track: Song | Video;
   title: string;
-  artist: string;
   cover?: string;
   active?: boolean;
   action?: React.ReactNode;
@@ -277,7 +273,6 @@ interface QueueRowProps {
 function QueueRow({
   track,
   title,
-  artist,
   cover,
   active,
   action,
@@ -313,7 +308,7 @@ function QueueRow({
             primary={title}
             secondary={
               <>
-                {artist}
+                <ArtistLinks artists={track.artist} color="text.secondary" fontSize={14} />
                 {playFromLabel && (
                   <Typography
                     component="span"

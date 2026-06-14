@@ -92,6 +92,20 @@ test.describe("GUI expected features", () => {
     await expect(ctx.mainWindow.getByText("E2E Video One")).toBeVisible();
   });
 
+  test("plays an album from its card and routes the card artist to the artist page", async () => {
+    await openSidebarPage(ctx.mainWindow, "Albums");
+
+    const albumCard = ctx.mainWindow.getByTitle("E2E Album Alpha");
+    await albumCard.hover();
+    await albumCard.getByRole("button", { name: "Play E2E Album Alpha" }).click();
+
+    await expect(ctx.mainWindow.getByRole("heading", { name: "Albums" })).toBeVisible();
+    await expect(ctx.mainWindow.getByText("E2E Song One").first()).toBeVisible();
+
+    await ctx.mainWindow.getByText("E2E Artist", { exact: true }).first().click();
+    await expect(ctx.mainWindow.getByRole("heading", { name: "E2E Artist" })).toBeVisible();
+  });
+
   test("aligns the Songs list and provides a direct playlist action", async () => {
     await waitForHome(ctx.mainWindow);
     await openSidebarPage(ctx.mainWindow, "Songs");

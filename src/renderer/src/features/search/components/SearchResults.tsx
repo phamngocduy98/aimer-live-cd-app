@@ -14,10 +14,12 @@ import { PageScaffold } from "@components/view/PageScaffold";
 import { useAppDispatch } from "@app/hooks";
 import { playContext } from "@features/player/store/playerSlice";
 import { useSearch } from "../hooks/useSearch";
+import { usePlayAlbum } from "@features/album";
 
 export const SearchResults: React.FC = () => {
   const [searchParams] = useSearchParams();
   const dispatch = useAppDispatch();
+  const playAlbum = usePlayAlbum();
   const q = searchParams.get("q") ?? "";
   const { data: result, isLoading: loading } = useSearch(q);
   const playSource = {
@@ -87,7 +89,7 @@ export const SearchResults: React.FC = () => {
           <Grid container spacing={2.5}>
             {result.albums.map((album) => (
               <Grid key={album._id} item xs={6} sm={4} md={3} lg={2}>
-                <AlbumCard album={album} />
+                <AlbumCard album={album} onPlay={playAlbum} />
               </Grid>
             ))}
           </Grid>

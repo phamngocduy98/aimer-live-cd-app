@@ -5,16 +5,17 @@ import PlayArrowRoundedIcon from "@mui/icons-material/PlayArrowRounded";
 import { Box, IconButton, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import type { Album } from "@features/library";
-import { artistPath } from "@utils/artist";
 import { apiAssetUrl } from "@lib/axios";
 import { AlbumActionsMenu, type ActionMenuPosition } from "@components/media/MediaActionsMenu";
+import { ArtistLinks } from "./ArtistLinks";
 
 interface AlbumCardProps {
   album: Album;
   secondary?: "artist" | "year" | "none";
+  onPlay: (album: Album) => void;
 }
 
-export const AlbumCard: React.FC<AlbumCardProps> = ({ album, secondary = "artist" }) => {
+export const AlbumCard: React.FC<AlbumCardProps> = ({ album, secondary = "artist", onPlay }) => {
   const navigate = useNavigate();
   const [favorite, setFavorite] = React.useState(false);
   const [actionsPosition, setActionsPosition] = React.useState<ActionMenuPosition | null>(null);
@@ -82,7 +83,7 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({ album, secondary = "artist
             aria-label={`Play ${album.title}`}
             onClick={(event) => {
               event.stopPropagation();
-              navigate(`/album/${album._id}`);
+              onPlay(album);
             }}
             sx={{ bgcolor: "#fff", color: "#111", pointerEvents: "auto" }}
           >
@@ -106,21 +107,7 @@ export const AlbumCard: React.FC<AlbumCardProps> = ({ album, secondary = "artist
         {album.title}
       </Typography>
       {secondary === "artist" && (
-        <Typography
-          noWrap
-          color="#9b9b9b"
-          fontSize={13}
-          sx={{
-            "&:hover": {
-              color: "#fff",
-              cursor: "pointer",
-              textDecoration: "underline"
-            }
-          }}
-          onClick={() => navigate(artistPath(album.artist))}
-        >
-          {album.artist}
-        </Typography>
+        <ArtistLinks artists={album.artist} color="#9b9b9b" fontSize={13} />
       )}
       {secondary === "year" && (
         <Typography noWrap color="#9b9b9b" fontSize={13}>
