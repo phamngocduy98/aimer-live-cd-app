@@ -54,17 +54,28 @@
   - Seek bar
 - **Player mode:** full-screen, minimized
 - **Now playing list:**
+  - Slide the play queue from right to left when opening and reverse the motion
+    when closing
   - Navigate between songs in the list
   - Song moves: next up → playing → history
   - Clear playing list
   - Delete song from list
 - **Synchronized lyrics:**
   - Open and close lyrics from the expanded player
+  - Slide lyrics from right to left when opening and reverse the motion when
+    closing, without interrupting playback
   - Display a large primary line with a smaller secondary translation
   - Switch Japanese/Romaji, Romaji/English, and Romaji/Vietnamese
-  - Manual scrolling disables follow mode; Sync Lyrics restores it
+  - Place the icon-only language button beside the play-queue action in player
+    chrome, with minimal menu labels: Japanese, English, and Vietnamese
+  - Hide Sync Lyrics while audio lyrics follow playback; manual scrolling shows
+    it, and activating it restores follow mode and hides it again
+  - Video lyrics always follow playback and never show Sync Lyrics
+  - Click or keyboard-activate a lyric row to seek to its shared start time
   - Tablet hides artwork, desktop shares the stage with artwork, and mobile
     keeps lyrics above playback controls
+  - Lyrics remain centered in their pane with an inset app-styled scrollbar
+    and faded top/bottom edges
   - Expanded video displays bilingual floating subtitles without restarting
     playback
 

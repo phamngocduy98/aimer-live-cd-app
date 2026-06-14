@@ -1,9 +1,6 @@
 export { LyricsExperience } from "./components/LyricsExperience";
-export {
-  useLyrics,
-  useLyricsProviders,
-  useSaveLyricsRows
-} from "./hooks/useLyrics";
+export { LyricsLanguageButton } from "./components/LyricsLanguageButton";
+export { useLyrics, useLyricsProviders, useSaveLyricsRows } from "./hooks/useLyrics";
 export { lyricPairs } from "./types";
 export type {
   LyricCue,

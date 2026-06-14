@@ -25,6 +25,11 @@ async function openAlbum(page: Page): Promise<void> {
 
 async function openQueue(page: Page): Promise<void> {
   await page.getByRole("button", { name: "Open play queue" }).click();
+  const compactQueue = page.getByTestId("compact-queue-transition");
+  if (await compactQueue.isVisible()) {
+    await expect(compactQueue).toHaveCSS("opacity", "1");
+    await expect(compactQueue).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 0)");
+  }
   await expect(page.getByRole("button", { name: "Close play queue" }).first()).toBeVisible();
 }
 
@@ -331,20 +336,62 @@ test.describe("GUI expected features", () => {
     await ctx.mainWindow.getByRole("button", { name: "Lyrics", exact: true }).click();
 
     const lyrics = ctx.mainWindow.getByTestId("lyrics-experience");
+    const lyricStage = ctx.mainWindow.getByTestId("expanded-lyrics-stage");
+    await expect(lyricStage).toHaveCSS("opacity", "1");
+    await expect(lyricStage).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 0)");
     await expect(lyrics.getByText("最初の歌詞")).toBeVisible();
     await expect(lyrics.getByText("Saisho no kashi")).toBeVisible();
-    await expect(ctx.mainWindow.getByTestId("lyrics-artwork")).toBeVisible();
+    const artwork = ctx.mainWindow.getByTestId("lyrics-artwork");
+    await expect(artwork).toBeVisible();
+    const artworkBox = await artwork.boundingBox();
+    const firstLyricBox = await lyrics
+      .getByRole("button", { name: "Seek to lyric: 最初の歌詞" })
+      .boundingBox();
+    expect(firstLyricBox?.x ?? 0).toBeGreaterThanOrEqual(
+      (artworkBox?.x ?? 0) + (artworkBox?.width ?? 0)
+    );
+    const lyricScrollerBox = await lyrics
+      .getByRole("feed", { name: "Synchronized lyrics" })
+      .boundingBox();
+    expect(
+      1280 - ((lyricScrollerBox?.x ?? 0) + (lyricScrollerBox?.width ?? 0))
+    ).toBeGreaterThanOrEqual(16);
 
-    await lyrics.getByRole("button", { name: "Lyrics language" }).click();
-    await ctx.mainWindow.getByRole("menuitem", { name: "Romaji / English" }).click();
+    const languageButton = ctx.mainWindow.getByRole("button", { name: "Lyrics language" });
+    await expect(languageButton).not.toContainText("Japanese");
+    const languageButtonBox = await languageButton.boundingBox();
+    expect(languageButtonBox?.width).toBeCloseTo(40, 0);
+    expect(languageButtonBox?.height).toBeCloseTo(40, 0);
+    await languageButton.click();
+    await expect(ctx.mainWindow.getByRole("menuitem", { name: "Japanese" })).toBeVisible();
+    await expect(ctx.mainWindow.getByRole("menuitem", { name: "Vietnamese" })).toBeVisible();
+    await ctx.mainWindow.getByRole("menuitem", { name: "English" }).click();
     await expect(lyrics.getByText("The first lyric")).toBeVisible();
 
+    const secondLyric = lyrics.getByRole("button", { name: "Seek to lyric: Tsugi no kashi" });
+    await secondLyric.click();
+    await expect(secondLyric).toHaveAttribute("aria-current", "true");
+
+    const queueButton = ctx.mainWindow.getByRole("button", { name: "Open play queue" });
+    const languageButtonPosition = await languageButton.boundingBox();
+    const queueButtonPosition = await queueButton.boundingBox();
+    expect(languageButtonPosition?.x ?? 0).toBeLessThan(queueButtonPosition?.x ?? 0);
+
     const sync = lyrics.getByRole("button", { name: "Sync Lyrics" });
-    await expect(sync).toHaveAttribute("aria-pressed", "true");
-    await sync.click();
+    await expect(sync).toHaveCount(0);
+    await lyrics.getByRole("feed", { name: "Synchronized lyrics" }).dispatchEvent("wheel");
+    await expect(sync).toBeVisible();
     await expect(sync).toHaveAttribute("aria-pressed", "false");
     await sync.click();
-    await expect(sync).toHaveAttribute("aria-pressed", "true");
+    await expect(sync).toHaveCount(0);
+
+    await ctx.mainWindow.getByRole("button", { name: "Lyrics", exact: true }).click();
+    await expect(lyricStage).toHaveCSS("opacity", "0");
+    await expect(lyricStage).toHaveCSS("visibility", "hidden");
+    await expect(lyricStage).toHaveCSS("transform", "matrix(1, 0, 0, 1, 48, 0)");
+    await ctx.mainWindow.getByRole("button", { name: "Lyrics", exact: true }).click();
+    await expect(lyricStage).toHaveCSS("opacity", "1");
+    await expect(sync).toHaveCount(0);
 
     await ctx.electronApp
       .browserWindow(ctx.mainWindow)
@@ -357,6 +404,17 @@ test.describe("GUI expected features", () => {
       .then((win) => win.evaluate((browserWindow) => browserWindow.setSize(390, 760)));
     await expect(lyrics).toBeVisible();
     await expect(ctx.mainWindow.getByRole("button", { name: "Lyrics", exact: true })).toBeVisible();
+    const mobileLanguage = ctx.mainWindow.getByRole("button", { name: "Lyrics language" });
+    const mobileQueueButton = ctx.mainWindow.getByRole("button", { name: "Playing queue" });
+    await expect(mobileLanguage).toBeVisible();
+    expect((await mobileLanguage.boundingBox())?.x ?? 0).toBeLessThan(
+      (await mobileQueueButton.boundingBox())?.x ?? 0
+    );
+    await lyrics.getByRole("feed", { name: "Synchronized lyrics" }).dispatchEvent("touchmove");
+    const mobileSync = lyrics.getByRole("button", { name: "Sync Lyrics" });
+    await expect(mobileSync).toBeVisible();
+    await mobileSync.click();
+    await expect(mobileSync).toHaveCount(0);
   });
 
   test("disables lyrics when the current song has no lyrics document", async () => {
@@ -379,7 +437,15 @@ test.describe("GUI expected features", () => {
     await expect(runtime).toHaveCount(1);
 
     await ctx.mainWindow.getByRole("button", { name: "Lyrics", exact: true }).click();
+    const videoLyricsTransition = ctx.mainWindow.getByTestId("video-lyrics-transition");
+    await expect(videoLyricsTransition).toHaveCSS("opacity", "1");
+    await expect(ctx.mainWindow.getByRole("button", { name: "Lyrics language" })).toBeVisible();
+    await expect(ctx.mainWindow.getByRole("button", { name: "Sync Lyrics" })).toHaveCount(0);
     await expect(ctx.mainWindow.getByTestId("video-lyrics-overlay")).toContainText("映像の歌詞");
+    await expect(runtime).toHaveCount(1);
+    await ctx.mainWindow.getByRole("button", { name: "Lyrics", exact: true }).click();
+    await expect(videoLyricsTransition).toHaveCSS("opacity", "0");
+    await expect(videoLyricsTransition).toHaveCSS("visibility", "hidden");
     await expect(runtime).toHaveCount(1);
   });
 
@@ -484,12 +550,18 @@ test.describe("GUI expected features", () => {
     await expect(ctx.mainWindow.getByRole("button", { name: "Video display mode" })).toBeVisible();
     await expect(ctx.mainWindow.locator("video").last()).toBeVisible();
     await ctx.mainWindow.getByRole("button", { name: "Open play queue" }).click();
+    const expandedQueue = ctx.mainWindow.getByTestId("expanded-desktop-queue-transition");
+    await expect(expandedQueue).toHaveCSS("opacity", "1");
+    await expect(expandedQueue).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 0)");
     await expect(ctx.mainWindow.getByRole("button", { name: "Close play queue" })).toBeVisible();
     await ctx.mainWindow.getByText("E2E Chorus", { exact: true }).last().click();
     await expect(
       ctx.mainWindow.locator('[aria-current="true"]').filter({ hasText: "E2E Chorus" })
     ).toBeVisible();
     await ctx.mainWindow.getByRole("button", { name: "Close play queue" }).click();
+    await expect(expandedQueue).toHaveCSS("opacity", "0");
+    await expect(expandedQueue).toHaveCSS("visibility", "hidden");
+    await expect(expandedQueue).toHaveCSS("transform", "matrix(1, 0, 0, 1, 48, 0)");
     await ctx.electronApp
       .browserWindow(ctx.mainWindow)
       .then((win) => win.evaluate((browserWindow) => browserWindow.setSize(390, 760)));
@@ -582,7 +654,10 @@ test.describe("GUI expected features", () => {
     await expect(ctx.mainWindow.getByRole("button", { name: "Unmute" })).toBeVisible();
 
     await toggleFullScreenPlayer(ctx.mainWindow);
-    await expect(ctx.mainWindow.getByLabel("Album artwork")).toBeVisible();
+    const expandedArtwork = ctx.mainWindow
+      .getByTestId("expanded-mobile-artwork-stage")
+      .getByLabel("Album artwork");
+    await expect(expandedArtwork).toBeVisible();
     await ctx.mainWindow.getByRole("button", { name: "Enter fullscreen" }).click();
     await expect(ctx.mainWindow.getByRole("button", { name: "Exit fullscreen" })).toBeVisible();
     await ctx.mainWindow.getByRole("button", { name: "Exit fullscreen" }).click();
@@ -672,7 +747,7 @@ test.describe("GUI expected features", () => {
     await expect(
       ctx.mainWindow.locator('button[aria-label="play"], button[aria-label="pause"]').last()
     ).toBeVisible();
-    const artworkBox = await ctx.mainWindow.getByLabel("Album artwork").boundingBox();
+    const artworkBox = await expandedArtwork.boundingBox();
     const detailsBox = await ctx.mainWindow
       .getByTestId("expanded-mobile-track-details")
       .boundingBox();
@@ -694,9 +769,15 @@ test.describe("GUI expected features", () => {
     await expect(ctx.mainWindow.getByText("Go to artist", { exact: true })).toBeVisible();
     await ctx.mainWindow.getByRole("button", { name: "Close" }).click();
     await ctx.mainWindow.getByRole("button", { name: "Playing queue" }).click();
+    const mobileQueue = ctx.mainWindow.getByTestId("expanded-mobile-queue-transition");
+    await expect(mobileQueue).toHaveCSS("opacity", "1");
+    await expect(mobileQueue).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 0)");
     await expect(ctx.mainWindow.getByRole("button", { name: "Suggested tracks" })).toBeVisible();
     await expect(ctx.mainWindow.getByText("E2E Album Alpha", { exact: true }).last()).toBeVisible();
     await ctx.mainWindow.getByRole("button", { name: "Playing queue" }).click();
+    await expect(mobileQueue).toHaveCSS("opacity", "0");
+    await expect(mobileQueue).toHaveCSS("visibility", "hidden");
+    await expect(mobileQueue).toHaveCSS("transform", "matrix(1, 0, 0, 1, 48, 0)");
   });
 
   test.skip("edits playlists through an edit playlist dialog", async () => {

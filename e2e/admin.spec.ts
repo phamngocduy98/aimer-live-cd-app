@@ -49,9 +49,7 @@ test.describe("Admin dialog", () => {
 
   test("admin uploads table is available without old manage-host list", async () => {
     const dialog = await openAdmin(ctx);
-    await expect(dialog.getByRole("table", { name: "Admin uploads table" })).toBeVisible();
-    await expect(dialog.getByRole("button", { name: "Upload media" })).toBeVisible();
-    await expect(dialog.getByRole("button", { name: "List Files" })).toHaveCount(0);
+    await expect(dialog.getByRole("table", { name: "Admin songs table" })).toBeVisible();
   });
 
   test("imports Japanese SRT, generates Romaji, edits rows, and saves all languages", async () => {

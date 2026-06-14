@@ -1,10 +1,10 @@
-import LanguageIcon from "@mui/icons-material/Language";
 import SyncIcon from "@mui/icons-material/Sync";
-import { Box, Button, CircularProgress, Menu, MenuItem, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, Typography } from "@mui/material";
 import React from "react";
 import { useGlobalAudioPlayer } from "react-use-audio-player";
 import { useAppDispatch, useAppSelector } from "@app/hooks";
-import { hideView, setLyricPair } from "@features/player/store/playerGuiSlice";
+import { hideView } from "@features/player/store/playerGuiSlice";
+import { videoOnSeek } from "@features/player/store/playerVideoControl";
 import { isVideo } from "@features/library";
 import { useLyrics } from "../hooks/useLyrics";
 import { findActiveCueIndex } from "../lyricsTiming";
@@ -15,7 +15,7 @@ export function LyricsExperience({ videoOverlay = false }: { videoOverlay?: bool
   const playingTrack = useAppSelector((state) => state.player.playingTrack);
   const pairId = useAppSelector((state) => state.playerGui.lyricPair);
   const videoPosition = useAppSelector((state) => state.playerVideoControl.videoPosition);
-  const { getPosition } = useGlobalAudioPlayer();
+  const { getPosition, seek } = useGlobalAudioPlayer();
   const audioPosition = useAudioPosition(getPosition, !isVideo(playingTrack));
   const mediaType = isVideo(playingTrack) ? "video" : "audio";
   const { data, isLoading } = useLyrics(mediaType, playingTrack?._id, Boolean(playingTrack));
@@ -26,9 +26,20 @@ export function LyricsExperience({ videoOverlay = false }: { videoOverlay?: bool
   const activeRow = activeIndex >= 0 ? primary[activeIndex] : undefined;
   const activePrimary = activeRow?.[pair.primary];
   const activeSecondary = activeRow?.[pair.secondary];
-  const [menuAnchor, setMenuAnchor] = React.useState<HTMLElement | null>(null);
   const [syncEnabled, setSyncEnabled] = React.useState(true);
   const activeRef = React.useRef<HTMLDivElement | null>(null);
+  const seekToRow = React.useCallback(
+    (startMs: number) => {
+      const position = startMs / 1000;
+      if (isVideo(playingTrack)) {
+        dispatch(videoOnSeek({ position }));
+      } else {
+        seek(position);
+      }
+      setSyncEnabled(true);
+    },
+    [dispatch, playingTrack, seek]
+  );
 
   React.useEffect(() => {
     if (syncEnabled && activeIndex >= 0) {
@@ -47,53 +58,6 @@ export function LyricsExperience({ videoOverlay = false }: { videoOverlay?: bool
   if (videoOverlay) {
     return (
       <>
-        <Box
-          sx={{
-            position: "absolute",
-            zIndex: 13,
-            right: { xs: 18, sm: 28 },
-            bottom: { xs: 390, sm: 156 },
-            display: "flex",
-            gap: 1
-          }}
-        >
-          <Button
-            variant="contained"
-            startIcon={<LanguageIcon />}
-            aria-label="Lyrics language"
-            onClick={(event) => setMenuAnchor(event.currentTarget)}
-            sx={floatingButtonSx}
-          >
-            {pair.label}
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<SyncIcon />}
-            aria-pressed="true"
-            sx={floatingButtonSx}
-          >
-            Sync Lyrics
-          </Button>
-        </Box>
-        <Menu
-          anchorEl={menuAnchor}
-          open={Boolean(menuAnchor)}
-          onClose={() => setMenuAnchor(null)}
-          sx={{ zIndex: 1400 }}
-        >
-          {lyricPairs.map((item) => (
-            <MenuItem
-              key={item.id}
-              selected={item.id === pair.id}
-              onClick={() => {
-                dispatch(setLyricPair(item.id));
-                setMenuAnchor(null);
-              }}
-            >
-              {item.label}
-            </MenuItem>
-          ))}
-        </Menu>
         {(activePrimary || activeSecondary) && (
           <Box
             data-testid="video-lyrics-overlay"
@@ -134,61 +98,27 @@ export function LyricsExperience({ videoOverlay = false }: { videoOverlay?: bool
         overflow: "hidden"
       }}
     >
-      <Box
-        sx={{
-          position: "absolute",
-          zIndex: 3,
-          bottom: { xs: 14, sm: 18 },
-          right: { xs: 14, sm: 22 },
-          display: { xs: "none", sm: "flex" },
-          gap: 1
-        }}
-      >
-        <Button
-          variant="contained"
-          startIcon={<LanguageIcon />}
-          aria-label="Lyrics language"
-          onClick={(event) => setMenuAnchor(event.currentTarget)}
-          sx={floatingButtonSx}
-        >
-          {pair.label}
-        </Button>
+      {!syncEnabled && (
         <Button
           variant="contained"
           startIcon={<SyncIcon />}
-          aria-pressed={syncEnabled}
+          aria-pressed="false"
           onClick={() => {
-            setSyncEnabled((current) => {
-              if (!current) {
-                activeRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-              }
-              return !current;
-            });
+            setSyncEnabled(true);
+            activeRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
           }}
-          sx={{ ...floatingButtonSx, opacity: syncEnabled ? 1 : 0.72 }}
+          sx={{
+            ...syncButtonSx,
+            position: "absolute",
+            zIndex: 3,
+            bottom: { xs: 14, sm: 28 },
+            right: { xs: 14, sm: 40 },
+            display: "inline-flex"
+          }}
         >
           Sync Lyrics
         </Button>
-      </Box>
-      <Menu
-        anchorEl={menuAnchor}
-        open={Boolean(menuAnchor)}
-        onClose={() => setMenuAnchor(null)}
-        sx={{ zIndex: 1400 }}
-      >
-        {lyricPairs.map((item) => (
-          <MenuItem
-            key={item.id}
-            selected={item.id === pair.id}
-            onClick={() => {
-              dispatch(setLyricPair(item.id));
-              setMenuAnchor(null);
-            }}
-          >
-            {item.label}
-          </MenuItem>
-        ))}
-      </Menu>
+      )}
 
       <Box
         role="feed"
@@ -198,75 +128,119 @@ export function LyricsExperience({ videoOverlay = false }: { videoOverlay?: bool
         sx={{
           height: "100%",
           overflowY: "auto",
-          px: { xs: 3, sm: 8, lg: 5 },
-          pt: { xs: 10, sm: 13 },
-          pb: { xs: 8, sm: 14 },
-          scrollbarWidth: "thin"
+          width: "calc(100% - 16px)",
+          mr: 2,
+          px: { xs: 2.5, sm: 4, lg: 3 },
+          py: { xs: 10, sm: 11 },
+          maskImage: "linear-gradient(#fff0 0%, #fff 10% 95%, #fff0 100%)",
+          WebkitMaskImage: "linear-gradient(#fff0 0%, #fff 10% 95%, #fff0 100%)"
         }}
       >
-        {isLoading && <CircularProgress />}
-        {!isLoading && primary.length === 0 && (
-          <Typography sx={{ mt: 8, fontSize: 24, fontWeight: 700, color: "text.secondary" }}>
-            No lyrics available for {pair.label}.
-          </Typography>
-        )}
-        {primary.map((cue, index) => {
-          const active = index === activeIndex;
-          const translated = cue[pair.secondary];
-          return (
-            <Box
-              key={`${cue.startMs}-${index}`}
-              ref={active ? activeRef : undefined}
-              aria-current={active ? "true" : undefined}
-              sx={{
-                mb: { xs: 3.5, sm: 4.5 },
-                opacity: active ? 1 : 0.34,
-                transform: active ? "scale(1)" : "scale(.985)",
-                transformOrigin: "left center",
-                transition: "opacity 180ms ease, transform 180ms ease"
-              }}
-            >
-              <Typography
+        <Box
+          sx={{
+            width: "100%",
+            maxWidth: { sm: 820, lg: 720, xl: 780 },
+            mx: "auto",
+            pb: { xs: 8, sm: 10 }
+          }}
+        >
+          {isLoading && <CircularProgress />}
+          {!isLoading && primary.length === 0 && (
+            <Typography sx={{ mt: 8, fontSize: 24, fontWeight: 700, color: "text.secondary" }}>
+              No lyrics available for {pair.label}.
+            </Typography>
+          )}
+          {primary.map((cue, index) => {
+            const active = index === activeIndex;
+            const translated = cue[pair.secondary];
+            return (
+              <Box
+                component="button"
+                type="button"
+                key={`${cue.startMs}-${index}`}
+                ref={active ? activeRef : undefined}
+                aria-label={`Seek to lyric: ${cue[pair.primary]}`}
+                aria-current={active ? "true" : undefined}
+                onClick={() => seekToRow(cue.startMs)}
                 sx={{
-                  whiteSpace: "pre-line",
-                  fontSize: { xs: 30, sm: 38, lg: 34, xl: 42 },
-                  fontWeight: 850,
-                  lineHeight: 1.2
+                  display: "block",
+                  width: "100%",
+                  mb: { xs: 3.5, sm: 4.5 },
+                  p: 0,
+                  border: 0,
+                  color: "inherit",
+                  bgcolor: "transparent",
+                  textAlign: "left",
+                  cursor: "pointer",
+                  opacity: active ? 1 : 0.34,
+                  transform: active ? "scale(1)" : "scale(.985)",
+                  transformOrigin: "left center",
+                  transition: "opacity 180ms ease, transform 180ms ease",
+                  "&:hover": {
+                    opacity: active ? 1 : 0.62
+                  },
+                  "&:focus-visible": {
+                    opacity: 1,
+                    outline: "2px solid rgba(255,255,255,.8)",
+                    outlineOffset: 6,
+                    borderRadius: 1
+                  }
                 }}
               >
-                {cue[pair.primary]}
-              </Typography>
-              {translated && translated !== cue[pair.primary] && (
                 <Typography
                   sx={{
-                    mt: 0.75,
                     whiteSpace: "pre-line",
-                    fontSize: { xs: 17, sm: 21, lg: 19, xl: 23 },
-                    fontWeight: 650,
-                    lineHeight: 1.35,
-                    color: active ? "rgba(255,255,255,.82)" : "inherit"
+                    fontSize: { xs: 30, sm: 36, lg: 32, xl: 38 },
+                    fontWeight: 850,
+                    lineHeight: 1.2
                   }}
                 >
-                  {translated}
+                  {cue[pair.primary]}
                 </Typography>
-              )}
-            </Box>
-          );
-        })}
+                {translated && translated !== cue[pair.primary] && (
+                  <Typography
+                    sx={{
+                      mt: 0.75,
+                      whiteSpace: "pre-line",
+                      fontSize: { xs: 17, sm: 20, lg: 18, xl: 21 },
+                      fontWeight: 650,
+                      lineHeight: 1.35,
+                      color: active ? "rgba(255,255,255,.82)" : "inherit"
+                    }}
+                  >
+                    {translated}
+                  </Typography>
+                )}
+              </Box>
+            );
+          })}
+        </Box>
       </Box>
     </Box>
   );
 }
 
-const floatingButtonSx = {
-  minHeight: 42,
+const lyricControlBaseSx = {
+  height: 40,
   borderRadius: "999px",
-  bgcolor: "rgba(220,235,255,.88)",
-  color: "#31536d",
+  fontFamily: `"Square Sans Text VF", "Square Sans Text", Helvetica, Arial, sans-serif`,
+  bgcolor: "rgba(255,255,255,.94)",
+  color: "#171717",
   textTransform: "none",
-  fontWeight: 800,
-  backdropFilter: "blur(16px)",
-  "&:hover": { bgcolor: "rgba(235,244,255,.96)" }
+  fontWeight: 600,
+  fontSize: 14,
+  boxShadow: "0 2px 10px rgba(0,0,0,.12)",
+  backdropFilter: "blur(14px)",
+  "&:hover": { bgcolor: "#fff" }
+} as const;
+
+const syncButtonSx = {
+  ...lyricControlBaseSx,
+  px: 2.25,
+  "& .MuiButton-startIcon": {
+    mr: 1
+  },
+  "& .MuiSvgIcon-root": { fontSize: 14 }
 } as const;
 
 function useAudioPosition(getPosition: () => number, enabled: boolean) {

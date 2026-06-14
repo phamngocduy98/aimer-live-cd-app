@@ -18,6 +18,7 @@ import { SongBitDepth, VideoBitDepth } from "./SongBitDepth";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import { FavoriteButton } from "./FavoriteButton";
 import { SongActionsMenu } from "@components/media/MediaActionsMenu";
+import { LyricsLanguageButton } from "@features/lyrics";
 
 function SlideTransition(props: SlideProps) {
   return <Slide {...props} direction="up" />;
@@ -29,6 +30,7 @@ export function MPlayerUI() {
   const { playingTrack } = useAppSelector((state) => state.player);
   const { videoUrl } = useAppSelector((state) => state.playerVideoControl);
   const showMobilePlayer = useAppSelector((state) => state.playerGui.mobilePlayer);
+  const lyricsOpen = useAppSelector((state) => state.playerGui.lyrics);
   const { error } = useGlobalAudioPlayer();
   const [actionsAnchor, setActionsAnchor] = React.useState<HTMLElement | null>(null);
 
@@ -167,6 +169,7 @@ export function MPlayerUI() {
               columnGap: { sm: "2px", md: "8px" }
             }}
           >
+            {lyricsOpen && <LyricsLanguageButton />}
             <IconButton
               aria-label="Open play queue"
               onClick={(e) => {

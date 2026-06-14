@@ -151,16 +151,44 @@ Each synchronized row has one shared start/end range and optional language
 fields. The selected pair determines a primary line and a smaller secondary
 line: Japanese/Romaji by default, Romaji/English, or Romaji/Vietnamese. Sync
 mode follows the active row; manual scrolling disables following until the user
-selects Sync Lyrics again.
+selects Sync Lyrics again. Sync Lyrics is a restore action, not a toggle:
+activating it always enables follow mode and recenters the active row, and
+activating it while already enabled must not disable following.
+The restore button is hidden while follow mode is enabled and appears only
+after manual audio-lyric scrolling disables follow mode. Video lyrics always
+follow playback and never render a Sync Lyrics button.
 
 At `lg` and above, audio lyrics share the stage with artwork. From `sm` through
 below `lg`, artwork is hidden and lyrics use the full stage. Mobile reserves the
 upper expanded-player area for lyrics and keeps metadata and controls below.
+Opening lyrics slides the lyric surface from right to left while fading it in;
+closing reverses the motion toward the right. Audio shifts the artwork subtly
+left during the cross-fade; video applies the same horizontal lyric motion
+without remounting the persistent video runtime. Closing surfaces remain
+mounted until their exit transition completes, with visibility and pointer
+events disabled afterward.
+Play queue surfaces use the same right-to-left entry and reversed exit motion
+in compact desktop, expanded desktop, and expanded mobile presentations. Queue
+content remains mounted through its exit transition, then becomes hidden and
+noninteractive.
+The lyric column stays centered inside a readable maximum width, and artwork
+must remain constrained to its own grid column. Lyric rows are seek controls:
+pointer or keyboard activation seeks to the row start and resumes follow mode.
+
+Scrollable lyric surfaces inherit the global `::-webkit-scrollbar` rules from
+[`index.css`](../../index.css), remain inset from the window edge, and fade
+content at the top and bottom with a mask. Do not set `scrollbarColor`,
+`scrollbarWidth`, or feature-local `::-webkit-scrollbar` styles. Do not place
+floating lyric controls beneath the persistent player chrome.
 
 **Change guidance:** Derive lyric timing from the existing audio or video clock.
 Do not add lyric data to Redux playback state or create another media runtime.
-Keep the language selector adjacent to Sync Lyrics and preserve the selected
-pair across queue transitions.
+The icon-only language selector belongs to persistent player chrome immediately
+beside the play-queue action, not inside the lyric surface. Preserve the
+selected pair across queue transitions. Its menu uses minimal destination
+labels (`Japanese`, `English`, `Vietnamese`) rather than pair descriptions.
+Preserve accessible button names for lyric rows so click-to-seek remains
+available to keyboard and assistive-technology users.
 
 ## Responsive Presentation
 

@@ -37,6 +37,7 @@ export const FloatingQueueList = () => {
 
   return (
     <Box
+      data-testid="compact-queue-transition"
       sx={{
         position: "fixed",
         top: 78,
@@ -44,8 +45,13 @@ export const FloatingQueueList = () => {
         zIndex: 1400,
         width: 390,
         maxWidth: "calc(100dvw - 36px)",
-        transform: `translateX(${playingQueue ? 0 : "calc(100% + 36px)"})`,
-        transition: "transform 280ms ease"
+        opacity: playingQueue ? 1 : 0,
+        transform: playingQueue ? "translateX(0)" : "translateX(calc(100% + 36px))",
+        visibility: playingQueue ? "visible" : "hidden",
+        pointerEvents: playingQueue ? "auto" : "none",
+        transition:
+          "opacity 240ms ease, transform 300ms cubic-bezier(.22, 1, .36, 1), visibility 0s linear " +
+          (playingQueue ? "0s" : "300ms")
       }}
     >
       <Paper

@@ -21,9 +21,11 @@ import { onNextTrack } from "../thunks/onNextTrack";
 import { onPrevTrack } from "../thunks/onPrevTrack";
 import { toggleView } from "../store/playerGuiSlice";
 import { SongActionsMenu } from "@components/media/MediaActionsMenu";
+import { LyricsLanguageButton } from "@features/lyrics";
 
 export function ExpandedMobileControls() {
   const dispatch = useAppDispatch();
+  const lyricsOpen = useAppSelector((state) => state.playerGui.lyrics);
   const [optionsOpen, setOptionsOpen] = React.useState(false);
   const {
     playingTrack,
@@ -144,18 +146,21 @@ export function ExpandedMobileControls() {
       </Box>
 
       <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2.75 }}>
-        <IconButton
-          aria-label="Playing queue"
-          onClick={() => dispatch(toggleView("playingQueue"))}
-          sx={{
-            width: 50,
-            height: 50,
-            bgcolor: "rgba(255,255,255,.12)",
-            "&:hover": { bgcolor: "rgba(255,255,255,.16)" }
-          }}
-        >
-          <QueueMusicRoundedIcon />
-        </IconButton>
+        <Box sx={{ display: "flex", gap: 1 }}>
+          {lyricsOpen && <LyricsLanguageButton size={50} />}
+          <IconButton
+            aria-label="Playing queue"
+            onClick={() => dispatch(toggleView("playingQueue"))}
+            sx={{
+              width: 50,
+              height: 50,
+              bgcolor: "rgba(255,255,255,.12)",
+              "&:hover": { bgcolor: "rgba(255,255,255,.16)" }
+            }}
+          >
+            <QueueMusicRoundedIcon />
+          </IconButton>
+        </Box>
         <IconButton
           aria-label="Player options"
           onClick={() => setOptionsOpen(true)}

@@ -69,28 +69,53 @@ export const MobilePlayer: React.FC<MobilePlayerProps> = ({ desktopChromeVisible
       {desktopVideo ? (
         <>
           <DesktopVideo />
-          {lyricsOpen && <LyricsExperience videoOverlay />}
+          <Box
+            data-testid="video-lyrics-transition"
+            sx={{
+              position: "absolute",
+              zIndex: 11,
+              inset: 0,
+              opacity: lyricsOpen ? 1 : 0,
+              transform: lyricsOpen ? "translateX(0)" : "translateX(36px)",
+              visibility: lyricsOpen ? "visible" : "hidden",
+              pointerEvents: lyricsOpen ? "auto" : "none",
+              transition:
+                "opacity 240ms ease, transform 280ms cubic-bezier(.22, 1, .36, 1), visibility 0s linear " +
+                (lyricsOpen ? "0s" : "280ms")
+            }}
+          >
+            <LyricsExperience videoOverlay />
+          </Box>
         </>
-      ) : lyricsOpen ? (
-        <AudioLyricsContent queueOpen={queueOpen} />
       ) : (
-        <AudioPlayerContent queueOpen={queueOpen} />
+        <>
+          <AudioPlayerContent queueOpen={queueOpen} visible={!lyricsOpen} />
+          <AudioLyricsContent queueOpen={queueOpen} visible={lyricsOpen} />
+        </>
       )}
 
       <Box sx={{ display: { xs: "block", sm: "none" } }}>
         <MobileTrackDetails />
       </Box>
 
-      {showMobilePlayer && queueOpen && (
+      {showMobilePlayer && (
         <>
           {!desktop && (
             <Box
+              data-testid="expanded-mobile-queue-transition"
               sx={{
                 position: "absolute",
                 zIndex: 20,
                 inset: "0 0 180px",
                 bgcolor: backgroundColor,
-                overflow: "hidden"
+                overflow: "hidden",
+                opacity: queueOpen ? 1 : 0,
+                transform: queueOpen ? "translateX(0)" : "translateX(48px)",
+                visibility: queueOpen ? "visible" : "hidden",
+                pointerEvents: queueOpen ? "auto" : "none",
+                transition:
+                  "opacity 240ms ease, transform 300ms cubic-bezier(.22, 1, .36, 1), visibility 0s linear " +
+                  (queueOpen ? "0s" : "300ms")
               }}
             >
               <QueuePanel mobile />
@@ -98,6 +123,7 @@ export const MobilePlayer: React.FC<MobilePlayerProps> = ({ desktopChromeVisible
           )}
           {desktop && (
             <Paper
+              data-testid="expanded-desktop-queue-transition"
               sx={{
                 position: "absolute",
                 zIndex: 8,
@@ -109,7 +135,14 @@ export const MobilePlayer: React.FC<MobilePlayerProps> = ({ desktopChromeVisible
                 borderRadius: "22px",
                 border: "1px solid rgba(255,255,255,.08)",
                 bgcolor: "rgba(27,24,19,.72)",
-                backgroundImage: "none"
+                backgroundImage: "none",
+                opacity: queueOpen ? 1 : 0,
+                transform: queueOpen ? "translateX(0)" : "translateX(48px)",
+                visibility: queueOpen ? "visible" : "hidden",
+                pointerEvents: queueOpen ? "auto" : "none",
+                transition:
+                  "opacity 240ms ease, transform 300ms cubic-bezier(.22, 1, .36, 1), visibility 0s linear " +
+                  (queueOpen ? "0s" : "300ms")
               }}
             >
               <QueuePanel
@@ -165,7 +198,7 @@ function PlayerHeader({
         left: 0,
         right: 0,
         height: 88,
-        px: { xs: 2.5, sm: 2.75 },
+        px: { xs: 2.5, sm: 2.75, lg: 3 },
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
@@ -265,7 +298,7 @@ function ArtistIdentity() {
           display: "flex",
           alignItems: "center",
           gap: 1.25,
-          p: { xs: 0, sm: "6px 16px 6px 6px" },
+          p: { xs: 0, sm: "2px 14px 2px 2px" },
           borderRadius: "999px",
           bgcolor: { xs: "transparent", sm: "rgba(255,255,255,.1)" },
           cursor: "pointer",
@@ -285,15 +318,15 @@ function ArtistIdentity() {
             }
           }}
           sx={{
-            width: 46,
-            height: 46,
+            width: 36,
+            height: 36,
             border: "1px solid rgba(255,255,255,.22)",
             transition: "transform 160ms cubic-bezier(.22, 1, .36, 1)"
           }}
         >
           {artist.slice(0, 1)}
         </Avatar>
-        <Typography sx={{ display: { xs: "none", sm: "block" }, fontWeight: 800 }}>
+        <Typography sx={{ display: { xs: "none", sm: "block" }, fontWeight: 600, fontSize: 14 }}>
           {artist}
         </Typography>
       </Box>
@@ -348,7 +381,7 @@ function ArtistIdentity() {
   );
 }
 
-function AudioPlayerContent({ queueOpen }: { queueOpen: boolean }) {
+function AudioPlayerContent({ queueOpen, visible }: { queueOpen: boolean; visible: boolean }) {
   const playingTrack = useAppSelector((state) => state.player.playingTrack);
 
   return (
@@ -362,7 +395,13 @@ function AudioPlayerContent({ queueOpen }: { queueOpen: boolean }) {
         right: { xs: 0, sm: queueOpen ? "436px" : 0 },
         display: "grid",
         placeItems: "center",
-        transition: "right 280ms ease"
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateX(0)" : "translateX(-28px)",
+        visibility: visible ? "visible" : "hidden",
+        pointerEvents: visible ? "auto" : "none",
+        transition:
+          "right 280ms ease, opacity 220ms ease, transform 280ms cubic-bezier(.22, 1, .36, 1), visibility 0s linear " +
+          (visible ? "0s" : "280ms")
       }}
     >
       <InteractiveAlbumArtwork
@@ -373,7 +412,7 @@ function AudioPlayerContent({ queueOpen }: { queueOpen: boolean }) {
   );
 }
 
-function AudioLyricsContent({ queueOpen }: { queueOpen: boolean }) {
+function AudioLyricsContent({ queueOpen, visible }: { queueOpen: boolean; visible: boolean }) {
   const playingTrack = useAppSelector((state) => state.player.playingTrack);
   return (
     <Box
@@ -382,11 +421,18 @@ function AudioLyricsContent({ queueOpen }: { queueOpen: boolean }) {
         position: "absolute",
         top: { xs: 0, sm: 88 },
         bottom: { xs: 330, sm: 120 },
-        left: 0,
-        right: { xs: 0, sm: queueOpen ? "436px" : 0 },
+        left: { xs: 0, sm: 18 },
+        right: { xs: 0, sm: queueOpen ? "454px" : 18 },
         display: { xs: "block", lg: "grid" },
-        gridTemplateColumns: { lg: "46% 54%" },
-        transition: "right 280ms ease"
+        gridTemplateColumns: { lg: "minmax(0, 46%) minmax(0, 54%)" },
+        gap: { lg: 2 },
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateX(0)" : "translateX(48px)",
+        visibility: visible ? "visible" : "hidden",
+        pointerEvents: visible ? "auto" : "none",
+        transition:
+          "right 280ms ease, opacity 240ms ease, transform 300ms cubic-bezier(.22, 1, .36, 1), visibility 0s linear " +
+          (visible ? "0s" : "300ms")
       }}
     >
       <Box
@@ -395,7 +441,8 @@ function AudioLyricsContent({ queueOpen }: { queueOpen: boolean }) {
           display: { xs: "none", lg: "grid" },
           placeItems: "center",
           minWidth: 0,
-          p: 5
+          p: { lg: 3, xl: 5 },
+          overflow: "hidden"
         }}
       >
         <InteractiveAlbumArtwork
@@ -475,15 +522,21 @@ function InteractiveAlbumArtwork({ src, queueOpen }: { src: string; queueOpen: b
         position: "relative",
         width: {
           xs: "min(calc(100vw - 128px), calc(100dvh - 440px), 42vh)",
-          sm: queueOpen ? "min(58vh, calc(100vw - 520px))" : "min(66vh, 58vw)"
+          sm: queueOpen ? "min(58vh, calc(100vw - 520px))" : "min(66vh, 58vw)",
+          lg: queueOpen
+            ? "min(52vh, calc((100vw - 454px) * .46 - 64px))"
+            : "min(62vh, calc(46vw - 64px))"
         },
         height: {
           xs: "min(calc(100vw - 128px), calc(100dvh - 440px), 42vh)",
-          sm: queueOpen ? "min(58vh, calc(100vw - 520px))" : "min(66vh, 58vw)"
+          sm: queueOpen ? "min(58vh, calc(100vw - 520px))" : "min(66vh, 58vw)",
+          lg: queueOpen
+            ? "min(52vh, calc((100vw - 454px) * .46 - 64px))"
+            : "min(62vh, calc(46vw - 64px))"
         },
         transform: {
           xs: "none",
-          sm: `perspective(1100px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(${
+          sm: `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(${
             pointer.active ? 1.015 : 1
           })`
         },
@@ -491,9 +544,7 @@ function InteractiveAlbumArtwork({ src, queueOpen }: { src: string; queueOpen: b
         transition: pointer.active
           ? "width 280ms ease, height 280ms ease, transform 70ms linear"
           : "width 280ms ease, height 280ms ease, transform 240ms cubic-bezier(.22, 1, .36, 1)",
-        boxShadow: pointer.active
-          ? `${(pointer.x - 50) * -0.22}px ${(pointer.y - 50) * -0.22}px 52px rgba(0,0,0,.38)`
-          : "0 20px 44px rgba(0,0,0,.22)"
+        boxShadow: "0 1px 3px #0000001a, 0 8px 20px #0000001a, 0 16px 48px -8px #0000001f"
       }}
     >
       <Avatar
@@ -539,14 +590,15 @@ function HeaderPill({
         border: 0,
         color: "inherit",
         cursor: disabled ? "default" : onClick ? "pointer" : "default",
-        px: 2.5,
-        height: 48,
+        px: 2.25,
+        height: 40,
         display: "flex",
         alignItems: "center",
         borderRadius: "999px",
         bgcolor: active ? "rgba(255,255,255,.9)" : "rgba(255,255,255,.1)",
         ...(active ? { color: "#171717" } : {}),
-        fontWeight: 800,
+        fontSize: 14,
+        fontWeight: 600,
         opacity: disabled ? 0.34 : 1
       }}
     >

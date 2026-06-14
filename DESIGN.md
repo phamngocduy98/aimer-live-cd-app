@@ -64,6 +64,13 @@ compact desktop/tablet from `sm` through below `lg`, and expanded desktop at
 feature or playback ownership. See the shared component and player guides
 before changing breakpoints.
 
+Scrollable immersive surfaces, including expanded lyrics, must inherit the
+global `::-webkit-scrollbar` styles from
+[`index.css`](src/renderer/src/index.css). Keep the scroll container inset from
+the viewport edge, but do not set `scrollbarColor`, `scrollbarWidth`, or local
+`::-webkit-scrollbar` overrides in feature components. See the player guide for
+lyric alignment, fade-mask, and artwork-column constraints.
+
 ## Dependency Rules
 
 - `app/` composes providers, routing, global store, and shell chrome.
