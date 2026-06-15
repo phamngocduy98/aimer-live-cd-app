@@ -544,9 +544,24 @@ test.describe("GUI expected features", () => {
     await expect(ctx.mainWindow.getByRole("button", { name: "Add" })).toBeVisible();
     await expect(ctx.mainWindow.getByRole("button", { name: "Credits" })).toBeVisible();
     await expect(ctx.mainWindow.getByRole("button", { name: "Share" })).toBeVisible();
-    await expect(ctx.mainWindow.getByRole("button", { name: "More" })).toBeVisible();
+    await expect(ctx.mainWindow.getByRole("button", { name: "More", exact: true })).toBeVisible();
     await expect(ctx.mainWindow.getByText("16-bit, 44.1 kHz")).toBeVisible();
     await expect(ctx.mainWindow.getByRole("table", { name: "video chapters table" })).toBeVisible();
+    await expect(
+      ctx.mainWindow
+        .getByRole("table", { name: "video chapters table" })
+        .getByRole("columnheader", { name: "ARTIST" })
+    ).toBeVisible();
+    await expect(
+      ctx.mainWindow
+        .getByRole("table", { name: "video chapters table" })
+        .getByRole("columnheader", { name: "START" })
+    ).toHaveCount(0);
+    await expect(
+      ctx.mainWindow
+        .getByRole("table", { name: "video chapters table" })
+        .getByRole("button", { name: "More actions" })
+    ).toHaveCount(2);
     await expect(ctx.mainWindow.getByRole("heading", { name: "Chapters" })).toHaveCount(0);
     await expect(ctx.mainWindow.getByText("Released 2026 · 2 chapters")).toBeVisible();
     await expect(ctx.mainWindow.getByText("Genre: E2E Live")).toBeVisible();

@@ -2,19 +2,7 @@ import React from "react";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import {
-  Box,
-  IconButton,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-  tableCellClasses
-} from "@mui/material";
-import { styled } from "@mui/material/styles";
+import { Box, IconButton, TableBody, TableRow, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import type { Song } from "@features/library";
 import { useAppSelector } from "@app/hooks";
@@ -31,6 +19,7 @@ import {
 import type { PlaySource } from "@features/player/types";
 import { isCurrentSourceItem, sourceItemKey } from "@features/player/types";
 import { ArtistLinks } from "./ArtistLinks";
+import { MediaTable, MediaTableCell, MediaTableHead, MediaTableRow } from "./MediaTable";
 
 interface SongTableProps {
   songs: Song[];
@@ -53,7 +42,7 @@ export const SongTable: React.FC<SongTableProps> = ({
   songs,
   ariaLabel,
   onPlayFromIndex,
-  getIndexLabel = (_song, index) => index + 1,
+  getIndexLabel = (_song, index): React.ReactNode => index + 1,
   showArtist = true,
   showAlbum = true,
   showQuality = true,
@@ -64,236 +53,203 @@ export const SongTable: React.FC<SongTableProps> = ({
   mobileSubtitle = "artist",
   getExtraActions,
   playSource
-}) => {
+}): React.ReactElement => {
   const navigate = useNavigate();
   const { playingTrack, currentEntry } = useAppSelector((state) => state.player);
   const [contextSong, setContextSong] = React.useState<Song | null>(null);
   const [playlistSong, setPlaylistSong] = React.useState<Song | null>(null);
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
   const [anchorPosition, setAnchorPosition] = React.useState<ActionMenuPosition | null>(null);
-  const closeActions = () => {
+  const closeActions = (): void => {
     setAnchorEl(null);
     setAnchorPosition(null);
   };
 
   return (
-    <TableContainer
-      sx={{
-        background: "transparent",
-        padding: { xs: "6px 8px", sm: "8px 0" },
-        cursor: "default",
-        userSelect: "none"
-      }}
+    <MediaTable
+      ariaLabel={ariaLabel}
+      after={
+        <>
+          <SongActionsMenu
+            track={contextSong}
+            open={Boolean(anchorEl || anchorPosition)}
+            anchorEl={anchorEl}
+            anchorPosition={anchorPosition}
+            onClose={closeActions}
+            extraActions={contextSong ? (getExtraActions?.(contextSong) ?? []) : []}
+          />
+          <AddToPlaylistDialog
+            open={Boolean(playlistSong)}
+            onClose={() => setPlaylistSong(null)}
+            songIds={playlistSong ? [playlistSong._id] : []}
+          />
+        </>
+      }
     >
-      <Table size="small" aria-label={ariaLabel} sx={{ tableLayout: { xs: "fixed", sm: "auto" } }}>
-        <TableHead sx={{ display: { xs: "none", sm: "table-header-group" } }}>
-          <TableRow>
-            <NoBorderTableCell align="center" width={30}>
-              #
-            </NoBorderTableCell>
-            <NoBorderTableCell>TITLE</NoBorderTableCell>
-            {showArtist && <NoBorderTableCell>ARTIST</NoBorderTableCell>}
-            {showAlbum && <NoBorderTableCell>ALBUM</NoBorderTableCell>}
-            {showQuality && <NoBorderTableCell align="center">QUALITY</NoBorderTableCell>}
-            <NoBorderTableCell align="center">TIME</NoBorderTableCell>
-            {showActions && (
-              <NoBorderTableCell
-                align="center"
-                width={showAddToPlaylist ? 88 : 44}
-              ></NoBorderTableCell>
-            )}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {songs.map((song, index) => {
-            const itemKey = playSource ? sourceItemKey(playSource, song, index) : undefined;
-            const isPlaying = playSource
-              ? isCurrentSourceItem(currentEntry, playSource, song, itemKey)
-              : song._id === playingTrack?._id;
-            const mobileText =
-              mobileSubtitle === "album"
-                ? (song.album?.title ?? "Unknown")
-                : formatArtists(song.artist);
+      <MediaTableHead>
+        <TableRow>
+          <MediaTableCell align="center" width={30}>
+            #
+          </MediaTableCell>
+          <MediaTableCell>TITLE</MediaTableCell>
+          {showArtist && <MediaTableCell>ARTIST</MediaTableCell>}
+          {showAlbum && <MediaTableCell>ALBUM</MediaTableCell>}
+          {showQuality && <MediaTableCell align="center">QUALITY</MediaTableCell>}
+          <MediaTableCell align="center">TIME</MediaTableCell>
+          {showActions && (
+            <MediaTableCell align="center" width={showAddToPlaylist ? 88 : 44}></MediaTableCell>
+          )}
+        </TableRow>
+      </MediaTableHead>
+      <TableBody>
+        {songs.map((song, index) => {
+          const itemKey = playSource ? sourceItemKey(playSource, song, index) : undefined;
+          const isPlaying = playSource
+            ? isCurrentSourceItem(currentEntry, playSource, song, itemKey)
+            : song._id === playingTrack?._id;
+          const mobileText =
+            mobileSubtitle === "album"
+              ? (song.album?.title ?? "Unknown")
+              : formatArtists(song.artist);
 
-            return (
-              <TableRow
-                hover
-                key={song._id}
-                selected={isPlaying}
-                onDoubleClick={() => onPlayFromIndex(index)}
-                onContextMenu={(event) => {
-                  event.preventDefault();
-                  setContextSong(song);
-                  setAnchorEl(null);
-                  setAnchorPosition({ top: event.clientY, left: event.clientX });
-                }}
-                sx={(theme) => ({
-                  transition: `background-color ${theme.design.motion.fast}`,
-                  "&:hover": { backgroundColor: theme.design.color.surfaceHover },
-                  "&:last-child td, &:last-child th": { border: 0 },
-                  "& th": {
-                    borderTopLeftRadius: theme.design.radius.row,
-                    borderBottomLeftRadius: theme.design.radius.row,
-                    border: 1
-                  },
-                  "& td:last-child": {
-                    borderTopRightRadius: theme.design.radius.row,
-                    borderBottomRightRadius: theme.design.radius.row
-                  },
-                  "&.Mui-selected": {
-                    backgroundColor: theme.design.color.nowPlayingBackground,
-                    "& .now-playing-accent": { color: theme.design.color.nowPlaying }
-                  }
-                })}
-              >
-                <NoBorderTableCell align="center" component="th" scope="row" width={30}>
-                  {!isPlaying ? (
-                    <Typography fontSize="14px" fontWeight={500} color="#79777f">
-                      {getIndexLabel(song, index)}
-                    </Typography>
-                  ) : (
-                    <VolumeUpIcon
-                      className="now-playing-accent"
-                      style={{ width: 16, height: 16 }}
+          return (
+            <MediaTableRow
+              hover
+              key={song._id}
+              selected={isPlaying}
+              onDoubleClick={() => onPlayFromIndex(index)}
+              onContextMenu={(event) => {
+                event.preventDefault();
+                setContextSong(song);
+                setAnchorEl(null);
+                setAnchorPosition({ top: event.clientY, left: event.clientX });
+              }}
+            >
+              <MediaTableCell align="center" component="th" scope="row" width={30}>
+                {!isPlaying ? (
+                  <Typography fontSize="14px" fontWeight={500} color="#79777f">
+                    {getIndexLabel(song, index)}
+                  </Typography>
+                ) : (
+                  <VolumeUpIcon className="now-playing-accent" style={{ width: 16, height: 16 }} />
+                )}
+              </MediaTableCell>
+              <MediaTableCell>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
+                  {showArtwork && (
+                    <Box
+                      component="img"
+                      src={apiAssetUrl(`/album/${song.album?._id}/cover`)}
+                      alt=""
+                      sx={{
+                        width: { xs: 52, sm: 44 },
+                        height: { xs: 52, sm: 44 },
+                        borderRadius: 0.75,
+                        objectFit: "cover",
+                        bgcolor: "#181818",
+                        flexShrink: 0
+                      }}
                     />
                   )}
-                </NoBorderTableCell>
-                <NoBorderTableCell>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
-                    {showArtwork && (
-                      <Box
-                        component="img"
-                        src={apiAssetUrl(`/album/${song.album?._id}/cover`)}
-                        alt=""
-                        sx={{
-                          width: { xs: 52, sm: 44 },
-                          height: { xs: 52, sm: 44 },
-                          borderRadius: 0.75,
-                          objectFit: "cover",
-                          bgcolor: "#181818",
-                          flexShrink: 0
-                        }}
-                      />
-                    )}
-                    <Box sx={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-                      <Typography
-                        className={isPlaying ? "now-playing-accent" : undefined}
-                        noWrap
-                        textOverflow="ellipsis"
-                        sx={{
-                          fontSize: { xs: mobileEmphasis ? 17 : 14, sm: 14 },
-                          fontWeight: mobileEmphasis ? 750 : 600
-                        }}
-                      >
-                        {song.title}
-                      </Typography>
-                      <Box sx={{ display: { xs: "block", sm: "none" } }}>
-                        {mobileSubtitle === "artist" ? (
-                          <ArtistLinks
-                            artists={song.artist}
-                            fontSize={mobileEmphasis ? 15 : 14}
-                            color={mobileEmphasis ? "#f2f2f2" : "#919191"}
-                            fontWeight={mobileEmphasis ? 650 : 400}
-                          />
-                        ) : (
-                          <Typography
-                            noWrap
-                            textOverflow="ellipsis"
-                            fontSize={mobileEmphasis ? 15 : 14}
-                            color={mobileEmphasis ? "#f2f2f2" : "#919191"}
-                            fontWeight={mobileEmphasis ? 650 : 400}
-                          >
-                            {mobileText}
-                          </Typography>
-                        )}
-                      </Box>
+                  <Box sx={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+                    <Typography
+                      className={isPlaying ? "now-playing-accent" : undefined}
+                      noWrap
+                      textOverflow="ellipsis"
+                      sx={{
+                        fontSize: { xs: mobileEmphasis ? 17 : 14, sm: 14 },
+                        fontWeight: mobileEmphasis ? 750 : 600
+                      }}
+                    >
+                      {song.title}
+                    </Typography>
+                    <Box sx={{ display: { xs: "block", sm: "none" } }}>
+                      {mobileSubtitle === "artist" ? (
+                        <ArtistLinks
+                          artists={song.artist}
+                          fontSize={mobileEmphasis ? 15 : 14}
+                          color={mobileEmphasis ? "#f2f2f2" : "#919191"}
+                          fontWeight={mobileEmphasis ? 650 : 400}
+                        />
+                      ) : (
+                        <Typography
+                          noWrap
+                          textOverflow="ellipsis"
+                          fontSize={mobileEmphasis ? 15 : 14}
+                          color={mobileEmphasis ? "#f2f2f2" : "#919191"}
+                          fontWeight={mobileEmphasis ? 650 : 400}
+                        >
+                          {mobileText}
+                        </Typography>
+                      )}
                     </Box>
                   </Box>
-                </NoBorderTableCell>
-                {showArtist && (
-                  <NoBorderTableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>
-                    <ArtistLinks artists={song.artist} />
-                  </NoBorderTableCell>
-                )}
-                {showAlbum && (
-                  <NoBorderTableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>
-                    <MetadataLink
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        if (song.album?._id) navigate(`/album/${song.album._id}`);
-                      }}
-                    >
-                      {song.album?.title ?? "Unknown"}
-                    </MetadataLink>
-                  </NoBorderTableCell>
-                )}
-                {showQuality && (
-                  <NoBorderTableCell
-                    align="center"
-                    sx={{ display: { xs: "none", sm: "table-cell" } }}
+                </Box>
+              </MediaTableCell>
+              {showArtist && (
+                <MediaTableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>
+                  <ArtistLinks artists={song.artist} />
+                </MediaTableCell>
+              )}
+              {showAlbum && (
+                <MediaTableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>
+                  <MetadataLink
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      if (song.album?._id) navigate(`/album/${song.album._id}`);
+                    }}
                   >
-                    <SongBitDepth song={song} />
-                  </NoBorderTableCell>
-                )}
-                <NoBorderTableCell
+                    {song.album?.title ?? "Unknown"}
+                  </MetadataLink>
+                </MediaTableCell>
+              )}
+              {showQuality && (
+                <MediaTableCell align="center" sx={{ display: { xs: "none", sm: "table-cell" } }}>
+                  <SongBitDepth song={song} />
+                </MediaTableCell>
+              )}
+              <MediaTableCell align="center" sx={{ display: { xs: "none", sm: "table-cell" } }}>
+                <Typography fontSize="14px" color="#919191">
+                  {formatDuration(song.duration)}
+                </Typography>
+              </MediaTableCell>
+              {showActions && (
+                <MediaTableCell
                   align="center"
-                  sx={{ display: { xs: "none", sm: "table-cell" } }}
+                  width={showAddToPlaylist ? 88 : 44}
+                  sx={{ whiteSpace: "nowrap" }}
                 >
-                  <Typography fontSize="14px" color="#919191">
-                    {formatDuration(song.duration)}
-                  </Typography>
-                </NoBorderTableCell>
-                {showActions && (
-                  <NoBorderTableCell
-                    align="center"
-                    width={showAddToPlaylist ? 88 : 44}
-                    sx={{ whiteSpace: "nowrap" }}
-                  >
-                    {showAddToPlaylist && (
-                      <IconButton
-                        size="small"
-                        aria-label={`Add ${song.title} to playlist`}
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          setPlaylistSong(song);
-                        }}
-                      >
-                        <AddRoundedIcon fontSize="medium" />
-                      </IconButton>
-                    )}
+                  {showAddToPlaylist && (
                     <IconButton
                       size="small"
-                      aria-label="More actions"
+                      aria-label={`Add ${song.title} to playlist`}
                       onClick={(event) => {
                         event.stopPropagation();
-                        setContextSong(song);
-                        setAnchorPosition(null);
-                        setAnchorEl(event.currentTarget);
+                        setPlaylistSong(song);
                       }}
                     >
-                      <MoreHorizIcon fontSize="medium" />
+                      <AddRoundedIcon fontSize="medium" />
                     </IconButton>
-                  </NoBorderTableCell>
-                )}
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-      <SongActionsMenu
-        track={contextSong}
-        open={Boolean(anchorEl || anchorPosition)}
-        anchorEl={anchorEl}
-        anchorPosition={anchorPosition}
-        onClose={closeActions}
-        extraActions={contextSong ? (getExtraActions?.(contextSong) ?? []) : []}
-      />
-      <AddToPlaylistDialog
-        open={Boolean(playlistSong)}
-        onClose={() => setPlaylistSong(null)}
-        songIds={playlistSong ? [playlistSong._id] : []}
-      />
-    </TableContainer>
+                  )}
+                  <IconButton
+                    size="small"
+                    aria-label="More actions"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setContextSong(song);
+                      setAnchorPosition(null);
+                      setAnchorEl(event.currentTarget);
+                    }}
+                  >
+                    <MoreHorizIcon fontSize="medium" />
+                  </IconButton>
+                </MediaTableCell>
+              )}
+            </MediaTableRow>
+          );
+        })}
+      </TableBody>
+    </MediaTable>
   );
 };
 
@@ -317,14 +273,3 @@ const MetadataLink: React.FC<
     {children}
   </Typography>
 );
-
-const NoBorderTableCell = styled(TableCell)(({ theme }) => ({
-  [`&.${tableCellClasses.head}`]: {
-    border: 0,
-    color: theme.design.color.textMuted,
-    fontSize: 12
-  },
-  [`&.${tableCellClasses.body}`]: {
-    border: 0
-  }
-}));

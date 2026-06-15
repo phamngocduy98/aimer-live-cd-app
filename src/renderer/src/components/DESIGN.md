@@ -149,6 +149,12 @@ variants respectively. Resource wrappers retain navigation, playback source,
 favorite behavior, menus, and metadata formatting. Do not introduce another
 card frame for a resource that can map to this presentation contract.
 
+Album-style media tables use the shared `MediaTable`, `MediaTableHead`,
+`MediaTableCell`, and `MediaTableRow` primitives. These own responsive header
+visibility, spacing, borderless cells, rounded rows, hover treatment, and
+now-playing presentation; feature components own columns, row data, playback,
+and action workflows.
+
 **References:** [`media/`](media/),
 [`player/DESIGN.md`](../features/player/DESIGN.md)
 
