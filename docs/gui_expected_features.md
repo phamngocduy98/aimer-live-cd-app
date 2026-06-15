@@ -34,9 +34,10 @@
 
 - Video list: play a video
 - Home and Artist video shelves: open video detail or play within the displayed video collection
-- **Video detail:** video cards open an album-style video page whose chapters
-  are rendered as song-like rows; the explicit card play button starts playback
-  directly from the current collection.
+- **Video detail:** video cards open an album-style video page with artist
+  artwork, release year, audio quality, detail actions, release metadata, and
+  chapters rendered as song-like rows; the explicit card play button starts
+  playback directly from the current collection.
 - **Video player:** play a chapter by loading one video queue entry and seeking
   to its position; Previous/Next traverses chapters before queued media.
 - **Add / edit chapters:** add chapter markers (time + title), edit existing chapters
