@@ -66,7 +66,18 @@ export const VideoShelf: React.FC<VideoShelfProps> = ({
         sx={{
           display: "grid",
           gridAutoFlow: { sm: showAll ? "row" : "column" },
-          gridAutoColumns: { sm: showAll ? "auto" : "minmax(230px, 1fr)" },
+          gridAutoColumns: {
+            sm: showAll
+              ? "auto"
+              : videos.length === 1
+                ? "minmax(230px, calc((100% - 36px) / 3))"
+                : "minmax(230px, 1fr)",
+            lg: showAll
+              ? "auto"
+              : videos.length === 1
+                ? "minmax(230px, calc((100% - 72px) / 5))"
+                : "minmax(230px, 1fr)"
+          },
           gridTemplateColumns: {
             xs: "repeat(2, minmax(0, 1fr))",
             sm: showAll ? "repeat(3, minmax(0, 1fr))" : "none",

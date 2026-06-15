@@ -73,8 +73,16 @@ export const AlbumShelf: React.FC<AlbumShelfProps> = ({
           display: "grid",
           gridAutoFlow: { sm: showAll ? "row" : "column" },
           gridAutoColumns: {
-            sm: showAll ? "auto" : "minmax(178px, 1fr)",
-            lg: showAll ? "auto" : "minmax(196px, 1fr)"
+            sm: showAll
+              ? "auto"
+              : albums.length === 1
+                ? "minmax(178px, calc((100% - 36px) / 3))"
+                : "minmax(178px, 1fr)",
+            lg: showAll
+              ? "auto"
+              : albums.length === 1
+                ? "minmax(196px, calc((100% - 72px) / 5))"
+                : "minmax(196px, 1fr)"
           },
           gridTemplateColumns: {
             xs: "repeat(2, minmax(0, 1fr))",
