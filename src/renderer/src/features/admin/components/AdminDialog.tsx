@@ -151,7 +151,7 @@ export function AdminDialog({ open, onClose }: AdminDialogProps) {
         }}
       >
         <DialogTitle id="admin-dialog-title" sx={{ display: "flex", alignItems: "center", pr: 1 }}>
-          <Typography variant="h6" sx={{ flex: 1 }}>
+          <Typography component="span" variant="h6" sx={{ flex: 1 }}>
             Admin
           </Typography>
           <IconButton aria-label="Close" onClick={onClose}>

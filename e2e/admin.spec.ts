@@ -52,6 +52,47 @@ test.describe("Admin dialog", () => {
     await expect(dialog.getByRole("table", { name: "Admin songs table" })).toBeVisible();
   });
 
+  test("replaces video cover artwork and serves the new image immediately", async () => {
+    const admin = await openAdmin(ctx);
+    await admin.getByRole("button", { name: "Videos" }).click();
+    await admin
+      .getByRole("row", { name: /E2E Video One/ })
+      .getByRole("button", { name: "Edit" })
+      .click();
+
+    const editor = ctx.mainWindow.getByRole("dialog", { name: "Edit video metadata" });
+    const replacementCover = Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=",
+      "base64"
+    );
+    await editor.locator('input[type="file"][accept="image/*"]').setInputFiles({
+      name: "replacement-cover.png",
+      mimeType: "image/png",
+      buffer: replacementCover
+    });
+    await expect(editor.getByText("replacement-cover.png")).toBeVisible();
+    await editor.getByRole("button", { name: "Save changes" }).click();
+    await expect(editor).not.toBeVisible();
+
+    const result = await ctx.mainWindow.evaluate(async (videoId) => {
+      const electronAPI = (window as unknown as { electronAPI: { getPort: () => Promise<number> } })
+        .electronAPI;
+      const port = await electronAPI.getPort();
+      const response = await fetch(`http://localhost:${port}/api/video/${videoId}/cover`, {
+        cache: "reload"
+      });
+      return {
+        cacheControl: response.headers.get("cache-control"),
+        contentType: response.headers.get("content-type"),
+        bytes: Array.from(new Uint8Array(await response.arrayBuffer()))
+      };
+    }, "665000000000000000000301");
+
+    expect(result.cacheControl).toBe("no-cache");
+    expect(result.contentType).toBe("image/png");
+    expect(Buffer.from(result.bytes)).toEqual(replacementCover);
+  });
+
   test("imports Japanese SRT, generates Romaji, edits rows, and saves all languages", async () => {
     let savedPayload: { provenance?: Record<string, { source?: string }> } | undefined;
     await ctx.mainWindow.route("**/api/admin/lyrics/audio/*/tracks", async (route) => {

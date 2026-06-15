@@ -27,6 +27,7 @@ import type { SelectChangeEvent } from "@mui/material/Select";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ImageIcon from "@mui/icons-material/Image";
+import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import { apiAssetUrl } from "@lib/axios";
 import { artistImageUrl } from "@utils/artist";
 import {
@@ -156,6 +157,8 @@ export function VideoEditDialog({
     chapters: [] as NonNullable<AdminVideo["chapters"]>
   });
   const [coverFile, setCoverFile] = React.useState<File | null>(null);
+  const [coverPreviewUrl, setCoverPreviewUrl] = React.useState<string>();
+  const [saveError, setSaveError] = React.useState("");
 
   React.useEffect(() => {
     setDraft({
@@ -166,60 +169,170 @@ export function VideoEditDialog({
       chapters: video?.chapters ?? []
     });
     setCoverFile(null);
+    setSaveError("");
   }, [video]);
 
+  React.useEffect(() => {
+    if (!coverFile) {
+      setCoverPreviewUrl(undefined);
+      return;
+    }
+    const previewUrl = URL.createObjectURL(coverFile);
+    setCoverPreviewUrl(previewUrl);
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [coverFile]);
+
   if (!video) return null;
+  const saving = update.isPending || updateCover.isPending;
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>Edit video metadata</DialogTitle>
-      <DialogContent>
-        <Stack spacing={2} sx={{ mt: 1 }}>
-          <TextField
-            label="Title"
-            value={draft.title}
-            onChange={(event) => setDraft({ ...draft, title: event.target.value })}
-          />
-          <TextField
-            label="Artists"
-            value={draft.artist}
-            helperText="Comma separated"
-            onChange={(event) => setDraft({ ...draft, artist: event.target.value })}
-          />
-          <TextField
-            label="Genres"
-            value={draft.genre}
-            helperText="Comma separated"
-            onChange={(event) => setDraft({ ...draft, genre: event.target.value })}
-          />
-          <TextField
-            label="Release year"
-            type="number"
-            value={draft.year}
-            onChange={(event) => setDraft({ ...draft, year: event.target.value })}
-          />
+    <Dialog
+      open={open}
+      onClose={saving ? undefined : onClose}
+      maxWidth="lg"
+      fullWidth
+      PaperProps={{
+        sx: (theme) => ({
+          backgroundImage: "none",
+          border: `1px solid ${theme.design.color.border}`,
+          maxHeight: "calc(100% - 32px)"
+        })
+      }}
+    >
+      <DialogTitle component="div" sx={{ pb: 1 }}>
+        <Typography variant="overline" color="primary.main">
+          Video library
+        </Typography>
+        <Typography component="h2" variant="h5" fontWeight={850}>
+          Edit video metadata
+        </Typography>
+      </DialogTitle>
+      <DialogContent dividers>
+        <Stack spacing={3}>
+          {saveError && <Alert severity="error">{saveError}</Alert>}
           <Box
-            component="img"
-            src={
-              coverFile
-                ? URL.createObjectURL(coverFile)
-                : video.hasCover
-                  ? apiAssetUrl(`/video/${video._id}/cover`)
-                  : undefined
-            }
-            alt=""
-            sx={{ width: 240, aspectRatio: "16 / 9", objectFit: "cover", bgcolor: "#18181c" }}
-          />
-          <Button component="label" variant="outlined">
-            Change cover
-            <input
-              hidden
-              type="file"
-              accept="image/*"
-              onChange={(event) => setCoverFile(event.target.files?.[0] ?? null)}
-            />
-          </Button>
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Typography fontWeight={700}>Chapters</Typography>
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", md: "minmax(260px, 0.8fr) minmax(0, 1.8fr)" },
+              gap: 3
+            }}
+          >
+            <Stack spacing={1.5}>
+              <Box
+                sx={(theme) => ({
+                  position: "relative",
+                  overflow: "hidden",
+                  aspectRatio: "16 / 9",
+                  borderRadius: `${theme.design.radius.artwork}px`,
+                  border: `1px solid ${theme.design.color.borderStrong}`,
+                  bgcolor: theme.design.color.surfaceRaised,
+                  boxShadow: theme.design.shadow.card
+                })}
+              >
+                <Box
+                  component="img"
+                  src={
+                    coverPreviewUrl ??
+                    (video.hasCover ? apiAssetUrl(`/video/${video._id}/cover`) : undefined)
+                  }
+                  alt={`${draft.title || video.title} cover`}
+                  sx={{ width: 1, height: 1, display: "block", objectFit: "cover" }}
+                />
+                {!coverPreviewUrl && !video.hasCover && (
+                  <Stack
+                    alignItems="center"
+                    justifyContent="center"
+                    spacing={1}
+                    sx={{ position: "absolute", inset: 0, color: "text.secondary" }}
+                  >
+                    <ImageIcon fontSize="large" />
+                    <Typography variant="body2">No cover artwork</Typography>
+                  </Stack>
+                )}
+              </Box>
+              <Button
+                component="label"
+                variant={coverFile ? "contained" : "outlined"}
+                startIcon={<PhotoCameraIcon />}
+                sx={{ minHeight: 44 }}
+              >
+                {coverFile ? "Choose a different cover" : "Change cover"}
+                <input
+                  hidden
+                  type="file"
+                  accept="image/*"
+                  onChange={(event) => setCoverFile(event.target.files?.[0] ?? null)}
+                />
+              </Button>
+              <Box
+                sx={(theme) => ({
+                  minHeight: 58,
+                  px: 1.5,
+                  py: 1.25,
+                  borderRadius: `${theme.design.radius.row}px`,
+                  bgcolor: theme.design.color.surfaceHover
+                })}
+              >
+                <Typography variant="caption" color="text.secondary">
+                  {coverFile ? "Ready to upload" : "Artwork"}
+                </Typography>
+                <Typography variant="body2" noWrap title={coverFile?.name}>
+                  {coverFile?.name ?? "Landscape images work best (16:9)"}
+                </Typography>
+              </Box>
+            </Stack>
+
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "1fr 180px" },
+                gap: 2,
+                alignContent: "start"
+              }}
+            >
+              <TextField
+                label="Title"
+                value={draft.title}
+                onChange={(event) => setDraft({ ...draft, title: event.target.value })}
+                sx={{ gridColumn: { sm: "1 / -1" } }}
+              />
+              <TextField
+                label="Artists"
+                value={draft.artist}
+                helperText="Separate multiple artists with commas"
+                onChange={(event) => setDraft({ ...draft, artist: event.target.value })}
+                sx={{ gridColumn: { sm: "1 / -1" } }}
+              />
+              <TextField
+                label="Genres"
+                value={draft.genre}
+                helperText="Comma separated"
+                onChange={(event) => setDraft({ ...draft, genre: event.target.value })}
+              />
+              <TextField
+                label="Release year"
+                type="number"
+                value={draft.year}
+                onChange={(event) => setDraft({ ...draft, year: event.target.value })}
+              />
+            </Box>
+          </Box>
+
+          <Divider />
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            justifyContent="space-between"
+            alignItems={{ xs: "stretch", sm: "center" }}
+            spacing={1.5}
+          >
+            <Box>
+              <Typography variant="h6" fontWeight={800}>
+                Chapters
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {draft.chapters.length} {draft.chapters.length === 1 ? "marker" : "markers"} in this
+                video
+              </Typography>
+            </Box>
             <Stack direction="row" spacing={1}>
               <Button component="label" size="small" variant="outlined">
                 Import CSV
@@ -236,6 +349,7 @@ export function VideoEditDialog({
               </Button>
               <Button
                 size="small"
+                variant="contained"
                 onClick={() =>
                   setDraft({
                     ...draft,
@@ -247,8 +361,19 @@ export function VideoEditDialog({
               </Button>
             </Stack>
           </Stack>
-          <TableContainer sx={{ maxHeight: 240, border: "1px solid rgba(255,255,255,.1)" }}>
-            <Table size="small" aria-label="Video chapters table" stickyHeader>
+          <TableContainer
+            sx={(theme) => ({
+              maxHeight: 320,
+              border: `1px solid ${theme.design.color.border}`,
+              borderRadius: `${theme.design.radius.card}px`
+            })}
+          >
+            <Table
+              size="small"
+              aria-label="Video chapters table"
+              stickyHeader
+              sx={{ minWidth: 720 }}
+            >
               <TableHead>
                 <TableRow>
                   <TableCell>Time</TableCell>
@@ -321,26 +446,38 @@ export function VideoEditDialog({
           </TableContainer>
         </Stack>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
+      <DialogActions sx={{ px: 3, py: 2 }}>
+        <Button onClick={onClose} disabled={saving}>
+          Cancel
+        </Button>
         <Button
+          variant="contained"
           onClick={async () => {
-            await update.mutateAsync({
-              id: video._id,
-              data: {
-                title: draft.title,
-                artist: splitList(draft.artist),
-                genre: splitList(draft.genre),
-                year: draft.year ? Number(draft.year) : undefined,
-                chapters: draft.chapters
+            setSaveError("");
+            try {
+              await update.mutateAsync({
+                id: video._id,
+                data: {
+                  title: draft.title,
+                  artist: splitList(draft.artist),
+                  genre: splitList(draft.genre),
+                  year: draft.year ? Number(draft.year) : undefined,
+                  chapters: draft.chapters
+                }
+              });
+              if (coverFile) {
+                await updateCover.mutateAsync({ id: video._id, file: coverFile });
               }
-            });
-            if (coverFile) await updateCover.mutateAsync({ id: video._id, file: coverFile });
-            onClose();
+              onClose();
+            } catch (error) {
+              setSaveError(
+                error instanceof Error ? error.message : "Could not save video metadata"
+              );
+            }
           }}
-          disabled={update.isPending || updateCover.isPending}
+          disabled={saving || !draft.title.trim()}
         >
-          Save
+          {saving ? "Saving..." : "Save changes"}
         </Button>
       </DialogActions>
     </Dialog>

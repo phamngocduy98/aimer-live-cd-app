@@ -15,6 +15,7 @@ import { formatPartRanges } from "../utils/stream/partRanges.js";
 import { fail, ok } from "../utils/reqUtils.js";
 import { WithDocument } from "../types/type.js";
 import { createLogger } from "../utils/log.js";
+import { detectImageMimeType } from "../utils/imageMime.js";
 
 const log = createLogger("Metadata");
 
@@ -415,8 +416,13 @@ export async function handleGetVideoCover(req, res) {
   if (req.params.id.length !== 12 && req.params.id.length !== 24)
     return fail(res, "Invalid request");
   const video = await Video.findById(req.params.id, { cover: 1 }).exec();
-  res.setHeader("Cache-Control", "public, max-age=86400");
+  // Admins can replace artwork at this stable URL. Revalidate so clients do not
+  // keep showing the previous cover after a successful metadata save.
+  res.setHeader("Cache-Control", "no-cache");
   if (video?.cover) {
+    const contentType = detectImageMimeType(video.cover);
+    if (!contentType) return fail(res, "Unsupported cover image", 415);
+    res.setHeader("Content-Type", contentType);
     Readable.from(video.cover).pipe(res);
   } else {
     fail(res, "No cover image", 404);

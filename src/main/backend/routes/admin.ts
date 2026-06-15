@@ -16,6 +16,7 @@ import { DbDocument, WithDocument } from "../types/type.js";
 import { Aes } from "../utils/crypto/aes.js";
 import { fail, ok } from "../utils/reqUtils.js";
 import { createLogger } from "../utils/log.js";
+import { detectImageMimeType } from "../utils/imageMime.js";
 import {
   normalizeVideoChapters,
   syncDefaultVideoChapterTitle
@@ -264,7 +265,7 @@ export async function handleAdminUpdateVideo(req, res) {
 export async function handleAdminUpdateVideoCover(req, res) {
   if (!isValidId(req.params.id)) return fail(res, "Invalid request");
   if (!req.file) return fail(res, "Cover image is required", 400);
-  if (!req.file.mimetype.startsWith("image/")) return fail(res, "Cover must be an image", 400);
+  if (!detectImageMimeType(req.file.buffer)) return fail(res, "Cover must be a raster image", 400);
   const video = await Video.findByIdAndUpdate(req.params.id, { cover: req.file.buffer });
   if (!video) return fail(res, "Video not found", 404);
   ok(res);
