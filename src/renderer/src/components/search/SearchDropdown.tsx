@@ -4,6 +4,7 @@ import { router } from "@app/router";
 import { playContext } from "@features/player/store/playerSlice";
 import type { SearchResult } from "@renderer/types/shared";
 import type { Album, Song, Video } from "@features/library";
+import { playVideoChapter } from "@features/player/thunks/playVideoChapter";
 import { apiAssetUrl } from "@lib/axios";
 
 import Box from "@mui/material/Box";
@@ -55,13 +56,22 @@ export const SearchDropdown: React.FC<SearchDropdownProps> = ({
     dispatch(playContext({ items: [video], playFrom: playSource }));
   };
 
+  const handleChapterClick = (video: Video, chapterIndex: number): void => {
+    onClose();
+    dispatch(playVideoChapter(video, playSource, chapterIndex));
+  };
+
   const handleViewAll = (): void => {
     onClose();
     onNavigate(query);
   };
 
   const hasResults =
-    result && (result.songs.length > 0 || result.albums.length > 0 || result.videos.length > 0);
+    result &&
+    (result.songs.length > 0 ||
+      result.albums.length > 0 ||
+      result.videos.length > 0 ||
+      result.chapters.length > 0);
 
   return (
     <Paper
@@ -173,6 +183,22 @@ export const SearchDropdown: React.FC<SearchDropdownProps> = ({
             </>
           )}
 
+          {result.chapters.length > 0 && (
+            <>
+              <SectionHeader title="Chapters" count={result.chapters.length} />
+              {result.chapters.slice(0, 5).map(({ video, chapter, chapterIndex }) => (
+                <ResultRow
+                  key={`${video._id}-${chapter.time}-${chapterIndex}`}
+                  onClick={() => handleChapterClick(video, chapterIndex)}
+                  primary={chapter.title}
+                  secondary={chapter.subTitle || video.title}
+                  artists={video.artist}
+                  onArtistNavigate={onClose}
+                />
+              ))}
+            </>
+          )}
+
           <Divider sx={{ borderColor: "rgba(255,255,255,0.08)" }} />
           <Box
             onClick={handleViewAll}
@@ -217,11 +243,13 @@ function SectionHeader({ title, count }: { title: string; count: number }): Reac
 
 function ResultRow({
   primary,
+  secondary,
   artists,
   onArtistNavigate,
   onClick
 }: {
   primary: string;
+  secondary?: string;
   artists?: string[];
   onArtistNavigate?: () => void;
   onClick: () => void;
@@ -243,6 +271,11 @@ function ResultRow({
         <Typography variant="body2" noWrap textOverflow="ellipsis">
           {primary}
         </Typography>
+        {secondary && (
+          <Typography variant="caption" noWrap textOverflow="ellipsis" color="text.secondary">
+            {secondary}
+          </Typography>
+        )}
         {artists && (
           <ArtistLinks
             artists={artists}

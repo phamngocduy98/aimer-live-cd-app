@@ -167,6 +167,13 @@ test.describe("GUI expected features", () => {
     await waitForHome(ctx.mainWindow);
 
     const search = ctx.mainWindow.getByPlaceholder("Search");
+    await search.fill("Intro");
+    await expect(ctx.mainWindow.getByText("E2E Intro")).toBeVisible();
+    await ctx.mainWindow.getByText("E2E Intro", { exact: true }).click();
+    await expect(
+      ctx.mainWindow.getByTestId("player-control-shell").getByText("E2E Intro")
+    ).toBeVisible();
+
     await search.fill("Ballad");
     await expect(ctx.mainWindow.getByText("E2E Search Ballad")).toBeVisible();
     await ctx.mainWindow.getByText("More results").click();
@@ -175,11 +182,39 @@ test.describe("GUI expected features", () => {
     await expect(ctx.mainWindow.getByRole("table", { name: "search songs table" })).toBeVisible();
     await expect(ctx.mainWindow.getByText("E2E Search Ballad")).toBeVisible();
 
+    await ctx.mainWindow.getByLabel("Search library").fill("Chorus");
+    await ctx.mainWindow.keyboard.press("Enter");
+    const chaptersTable = ctx.mainWindow.getByRole("table", { name: "search chapters table" });
+    await expect(chaptersTable).toBeVisible();
+    await expect(chaptersTable.getByText("E2E Chorus")).toBeVisible();
+    await chaptersTable.getByRole("row", { name: /E2E Chorus/ }).click();
+    await expect(
+      chaptersTable.locator('[aria-current="true"]').filter({ hasText: "E2E Chorus" })
+    ).toBeVisible();
+
+    await ctx.mainWindow.getByLabel("Search library").fill("Ballad");
+    await ctx.mainWindow.keyboard.press("Enter");
+    await expect(ctx.mainWindow.getByRole("table", { name: "search songs table" })).toBeVisible();
     await ctx.mainWindow
       .getByRole("table", { name: "search songs table" })
       .getByText("E2E Album Beta")
       .click();
     await expect(ctx.mainWindow.getByText("E2E Search Ballad")).toBeVisible();
+  });
+
+  test("search page input works at mobile width", async () => {
+    await waitForHome(ctx.mainWindow);
+    await ctx.electronApp
+      .browserWindow(ctx.mainWindow)
+      .then((win) => win.evaluate((browserWindow) => browserWindow.setSize(390, 760)));
+
+    await ctx.mainWindow.getByRole("link", { name: "Search", exact: true }).click();
+    await ctx.mainWindow.getByLabel("Search library").fill("Intro");
+    await ctx.mainWindow.keyboard.press("Enter");
+
+    const chaptersTable = ctx.mainWindow.getByRole("table", { name: "search chapters table" });
+    await expect(chaptersTable).toBeVisible();
+    await expect(chaptersTable.getByText("E2E Intro")).toBeVisible();
   });
 
   test("create playlist dialog resets inputs after close", async () => {

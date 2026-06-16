@@ -16,6 +16,7 @@ import { fail, ok } from "../utils/reqUtils.js";
 import { WithDocument } from "../types/type.js";
 import { createLogger } from "../utils/log.js";
 import { detectImageMimeType } from "../utils/imageMime.js";
+import { findMatchingVideoChapters } from "./searchLogic.js";
 
 const log = createLogger("Metadata");
 
@@ -499,13 +500,13 @@ export async function handleGetArtistImage(req, res) {
 export async function handleSearch(req, res) {
   const q = (req.query.q as string)?.trim();
   if (!q) {
-    return res.json({ songs: [], albums: [], videos: [] });
+    return res.json({ songs: [], albums: [], videos: [], chapters: [] });
   }
 
   const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const regex = new RegExp(escaped, "i");
 
-  const [albums, songs, videos] = await Promise.all([
+  const [albums, songs, videos, chapterVideos] = await Promise.all([
     Album.find(
       {
         $and: [
@@ -529,9 +530,18 @@ export async function handleSearch(req, res) {
     )
       .sort({ year: -1, title: 1 })
       .limit(20)
+      .lean(),
+    Video.find(
+      { $or: [{ "chapters.title": regex }, { "chapters.subTitle": regex }] },
+      { cover: 0, iv: 0, hostingList: 0 }
+    )
+      .sort({ year: -1, title: 1 })
+      .limit(20)
       .lean()
   ]);
 
-  res.json({ songs, albums, videos });
+  const chapters = findMatchingVideoChapters(chapterVideos, regex, 20);
+
+  res.json({ songs, albums, videos, chapters });
   res.end();
 }
