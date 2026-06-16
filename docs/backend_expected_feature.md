@@ -49,7 +49,17 @@ test planning.
 - **YouTube video:** multipart `/api/videos/youtube` accepts required text field
   `metadata` containing JSON with `title`, `artists`, `youtubeUrl`, `duration`,
   optional `year`, `genres`, and `chapters`, plus optional image field `cover`.
-  It creates or updates an independent video and returns `{ id, type: "video" }`.
+  It creates or updates an independent video by canonical YouTube URL and returns
+  `{ id, type: "video" }`.
+- **YouTube metadata preview:** `/api/videos/youtube/metadata` accepts a YouTube
+  URL, loads metadata through `YT_DLP_PATH` or `yt-dlp` on `PATH`, and returns an
+  editable draft with title, channel artist, canonical URL, duration, chapters,
+  codec/container metadata, subtitle tracks, and optional cover bytes.
+- **YouTube lyrics import:** saving a YouTube video imports Japanese captions as
+  synchronized lyrics when available, generates Romaji locally, and merges
+  available English and Vietnamese captions onto the same timed rows.
+- **YouTube lyrics preview:** `/api/videos/youtube/lyrics-preview` previews those
+  caption-derived lyric rows before the admin persists the YouTube video.
 - **YouTube validation:** malformed or missing metadata, invalid chapter/year/
   duration values, and non-image covers return HTTP 400.
 - **Video chapters:** every video persists at least one chapter. Empty chapter

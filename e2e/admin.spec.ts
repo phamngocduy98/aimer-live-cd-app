@@ -52,6 +52,72 @@ test.describe("Admin dialog", () => {
     await expect(dialog.getByRole("table", { name: "Admin songs table" })).toBeVisible();
   });
 
+  test("adds a YouTube video from loaded metadata", async () => {
+    await ctx.mainWindow.route("**/api/videos/youtube/metadata", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          title: "E2E YouTube Import",
+          artists: ["E2E Channel"],
+          youtubeUrl: "https://www.youtube.com/watch?v=e2e-import",
+          duration: 186,
+          videoCodecRaw: "avc1.640028",
+          audioCodecRaw: "mp4a.40.2",
+          audioSampleRate: 44100,
+          bitrate: 256000,
+          fileExtension: "mp4",
+          chapters: [
+            { time: 0, title: "Cold open", subTitle: "" },
+            { time: 60, title: "Main part", subTitle: "" }
+          ],
+          subtitles: [{ language: "en", ext: "vtt", automatic: false }],
+          cover: {
+            mimeType: "image/png",
+            base64:
+              "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII="
+          }
+        })
+      });
+    });
+    await ctx.mainWindow.route("**/api/videos/youtube/lyrics-preview", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          rows: [
+            {
+              startMs: 0,
+              endMs: 2000,
+              ja: "映像の歌詞",
+              romaji: "romaji preview 1",
+              en: "Video lyrics",
+              vi: "Lời video"
+            }
+          ]
+        })
+      });
+    });
+
+    const admin = await openAdmin(ctx);
+    await admin.getByRole("button", { name: "Videos" }).click();
+    await admin.getByRole("button", { name: "Add YouTube video" }).click();
+
+    const dialog = ctx.mainWindow.getByRole("dialog", { name: "Add YouTube video" });
+    await dialog.getByLabel("YouTube URL").fill("https://youtu.be/e2e-import");
+    await dialog.getByRole("button", { name: "Load" }).click();
+    await expect(dialog.getByText("Metadata loaded.")).toBeVisible();
+    await expect(dialog.getByLabel("Title")).toHaveValue("E2E YouTube Import");
+    await expect(dialog.getByLabel("Video codec")).toHaveValue("avc1.640028");
+    await expect(dialog.getByText("en .vtt")).toBeVisible();
+    await expect(dialog.getByRole("table", { name: "YouTube lyrics preview table" })).toBeVisible();
+    await expect(dialog.getByText("映像の歌詞")).toBeVisible();
+    await dialog.getByLabel("Genres").fill("Live, Imported");
+    await dialog.getByRole("button", { name: "Save YouTube video" }).click();
+    await expect(dialog).not.toBeVisible();
+    await expect(admin.getByRole("row", { name: /E2E YouTube Import/ })).toBeVisible();
+  });
+
   test("replaces video cover artwork and serves the new image immediately", async () => {
     const admin = await openAdmin(ctx);
     await admin.getByRole("button", { name: "Videos" }).click();

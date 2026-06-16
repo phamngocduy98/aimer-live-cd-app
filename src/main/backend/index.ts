@@ -55,6 +55,8 @@ import {
 } from "./routes/playlist.js";
 import {
   handleYoutubeVideoUpload,
+  handleYoutubeVideoMetadata,
+  handleYoutubeLyricsPreview,
   handleFileUpload,
   handleAlbumUpload,
   handleVideoChapters,
@@ -111,6 +113,8 @@ app.use(webdav.extensions.express("/webdav", webdavServer.server));
 
 const upload = multer();
 
+app.post("/api/videos/youtube/metadata", handleYoutubeVideoMetadata);
+app.post("/api/videos/youtube/lyrics-preview", handleYoutubeLyricsPreview);
 app.post("/api/videos/youtube", upload.single("cover"), handleYoutubeVideoUpload);
 
 app.post("/api/upload/:hostId?", upload.single("audio"), handleFileUpload);

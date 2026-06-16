@@ -11,7 +11,13 @@ describe("YouTube video upload metadata", () => {
           year: 2026,
           genres: ["Live"],
           youtubeUrl: "https://youtube.com/watch?v=1",
-          duration: 120
+          duration: 120,
+          videoCodecRaw: "avc1",
+          audioCodecRaw: "mp4a",
+          audioSampleRate: 44100,
+          bitrate: 256000,
+          fileExtension: "mp4",
+          subtitles: [{ language: "en", ext: "vtt", automatic: false }]
         })
       )
     ).toEqual({
@@ -21,14 +27,20 @@ describe("YouTube video upload metadata", () => {
       genre: ["Live"],
       youtubeUrl: "https://youtube.com/watch?v=1",
       duration: 120,
-      chapters: [{ time: 0, title: "Concert", subTitle: "" }]
+      videoCodecRaw: "avc1",
+      audioCodecRaw: "mp4a",
+      audioSampleRate: 44100,
+      bitrate: 256000,
+      fileExtension: "mp4",
+      chapters: [{ time: 0, title: "Concert", subTitle: "" }],
+      subtitles: [{ language: "en", ext: "vtt", url: undefined, name: undefined, automatic: false }]
     });
   });
 
   it("rejects invalid metadata and non-image covers", () => {
     expect(() => parseYoutubeVideoMetadata("{}")).toThrow("title is required");
-    expect(() =>
-      validateImageUpload({ mimetype: "text/plain" } as Express.Multer.File)
-    ).toThrow("cover must be an image");
+    expect(() => validateImageUpload({ mimetype: "text/plain" } as Express.Multer.File)).toThrow(
+      "cover must be an image"
+    );
   });
 });

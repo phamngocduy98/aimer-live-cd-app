@@ -541,6 +541,9 @@ test.describe("GUI expected features", () => {
     await openSidebarPage(ctx.mainWindow, "Videos");
     await ctx.mainWindow.getByTitle("E2E Video One").click();
     await expect(ctx.mainWindow.getByRole("heading", { name: "E2E Video One" })).toBeVisible();
+    await openSidebarPage(ctx.mainWindow, "Videos");
+    await ctx.mainWindow.getByTitle("E2E Video One").click();
+    await expect(ctx.mainWindow.getByRole("heading", { name: "E2E Video One" })).toBeVisible();
     await expect(ctx.mainWindow.getByRole("button", { name: "Add" })).toBeVisible();
     await expect(ctx.mainWindow.getByRole("button", { name: "Credits" })).toBeVisible();
     await expect(ctx.mainWindow.getByRole("button", { name: "Share" })).toBeVisible();

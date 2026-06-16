@@ -159,6 +159,7 @@ export async function handleAdminSaveLyrics(req, res) {
       "manual",
       "manual-srt",
       "lrclib",
+      "youtube",
       "kuroshiro",
       "mymemory",
       "libretranslate"

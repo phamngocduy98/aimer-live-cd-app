@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient } from "@lib/queryClient";
 import {
+  createYoutubeVideo,
   createAdminHost,
   deleteAdminAlbum,
   deleteAdminHost,
@@ -12,6 +13,8 @@ import {
   listAdminSongs,
   listAdminUploads,
   listAdminVideos,
+  loadYoutubeVideoMetadata,
+  previewYoutubeLyrics,
   renameAdminArtist,
   updateAdminAlbum,
   updateAdminAlbumCover,
@@ -23,6 +26,7 @@ import {
   uploadAdminMedia
 } from "../api/admin";
 import type { AdminAlbum, AdminHost, AdminSong, AdminVideo } from "../types";
+import type { YoutubeVideoMetadataPreview } from "../types";
 
 export const adminKeys = {
   all: ["admin"] as const,
@@ -75,6 +79,49 @@ export const useUpdateAdminVideoCover = () =>
     onSuccess: invalidateAdmin
   });
 
+export const useLoadYoutubeVideoMetadata = () =>
+  useMutation({
+    mutationFn: ({ youtubeUrl }: { youtubeUrl: string }) => loadYoutubeVideoMetadata(youtubeUrl)
+  });
+
+export const useCreateYoutubeVideo = () =>
+  useMutation({
+    mutationFn: ({
+      metadata,
+      cover
+    }: {
+      metadata: {
+        title: string;
+        artists: string[];
+        genres?: string[];
+        year?: number;
+        youtubeUrl: string;
+        duration: number;
+        videoCodecRaw?: string;
+        audioCodecRaw?: string;
+        audioSampleRate?: number;
+        bitrate?: number;
+        fileExtension?: string;
+        chapters?: { time: number; title: string; subTitle?: string }[];
+        subtitles?: {
+          language: string;
+          name?: string;
+          ext?: string;
+          url?: string;
+          automatic?: boolean;
+        }[];
+      };
+      cover?: File;
+    }) => createYoutubeVideo(metadata, cover),
+    onSuccess: invalidateAdmin
+  });
+
+export const usePreviewYoutubeLyrics = () =>
+  useMutation({
+    mutationFn: ({ subtitles }: { subtitles: YoutubeVideoMetadataPreview["subtitles"] }) =>
+      previewYoutubeLyrics(subtitles)
+  });
+
 export const useUpdateAdminAlbum = () =>
   useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<AdminAlbum> }) =>
@@ -90,8 +137,13 @@ export const useUpdateAdminAlbumCover = () =>
 
 export const useSaveAdminHost = () =>
   useMutation({
-    mutationFn: ({ id, data }: { id?: string; data: Partial<AdminHost> & { ftpCredential?: unknown } }) =>
-      id ? updateAdminHost(id, data) : createAdminHost(data),
+    mutationFn: ({
+      id,
+      data
+    }: {
+      id?: string;
+      data: Partial<AdminHost> & { ftpCredential?: unknown };
+    }) => (id ? updateAdminHost(id, data) : createAdminHost(data)),
     onSuccess: invalidateAdmin
   });
 
@@ -112,13 +164,21 @@ export const useRenameAdminArtist = () =>
 
 export const useUpdateAdminArtistImage = () =>
   useMutation({
-    mutationFn: ({ name, file }: { name: string; file: File }) => updateAdminArtistImage(name, file),
+    mutationFn: ({ name, file }: { name: string; file: File }) =>
+      updateAdminArtistImage(name, file),
     onSuccess: invalidateAdmin
   });
 
 export const useUploadAdminMedia = () =>
   useMutation({
-    mutationFn: ({ hostId, file, progressId }: { hostId: string; file: File; progressId?: string }) =>
-      uploadAdminMedia(hostId, file, progressId),
+    mutationFn: ({
+      hostId,
+      file,
+      progressId
+    }: {
+      hostId: string;
+      file: File;
+      progressId?: string;
+    }) => uploadAdminMedia(hostId, file, progressId),
     onSuccess: invalidateAdmin
   });

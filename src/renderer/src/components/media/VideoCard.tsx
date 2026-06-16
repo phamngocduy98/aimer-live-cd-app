@@ -3,9 +3,9 @@ import FavoriteBorderRoundedIcon from "@mui/icons-material/FavoriteBorderRounded
 import FavoriteRoundedIcon from "@mui/icons-material/FavoriteRounded";
 import VideocamIcon from "@mui/icons-material/Videocam";
 import { Box, IconButton } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import type { Video } from "@features/library";
 import { ArtistLinks } from "./ArtistLinks";
-import { router } from "@app/router";
 import { MediaCard } from "./MediaCard";
 import { mediaArtworkUrl } from "@utils/mediaArtwork";
 
@@ -15,6 +15,7 @@ interface VideoCardProps {
 }
 
 export const VideoCard: React.FC<VideoCardProps> = ({ video, onPlay }) => {
+  const navigate = useNavigate();
   const coverUrl = mediaArtworkUrl(video);
   const [favorite, setFavorite] = React.useState(false);
 
@@ -22,7 +23,7 @@ export const VideoCard: React.FC<VideoCardProps> = ({ video, onPlay }) => {
     <MediaCard
       title={video.title}
       aspect="landscape"
-      onOpen={() => router.navigate(`/video/${video._id}`)}
+      onOpen={() => navigate(`/video/${video._id}`)}
       onPlay={() => onPlay(video)}
       artwork={
         coverUrl ? (

@@ -15,6 +15,11 @@ import { fail, ok } from "../utils/reqUtils.js";
 import { DbDocument, WithDocument } from "../types/type.js";
 import { createLogger } from "../utils/log.js";
 import { normalizeVideoChapters } from "../utils/videoLibrary.js";
+import {
+  importYoutubeSubtitleLyrics,
+  previewYoutubeSubtitleLyrics
+} from "../services/youtubeLyrics.js";
+import { fetchYoutubeMetadataPreview } from "../services/youtubeMetadata.js";
 import { parseYoutubeVideoMetadata, validateImageUpload } from "./videoUploadLogic.js";
 
 const log = createLogger("Upload");
@@ -48,7 +53,7 @@ export async function handleYoutubeVideoUpload(req, res) {
     const data = parseYoutubeVideoMetadata(req.body?.metadata);
     const video =
       (await Video.findOne({
-        title: data.title,
+        youtubeUrl: data.youtubeUrl,
         format: "youtube"
       })) ??
       new Video({
@@ -56,11 +61,15 @@ export async function handleYoutubeVideoUpload(req, res) {
         cover: req.file?.buffer,
         hostingList: [],
         fileCount: 0,
-        bitrate: 0,
+        bitrate: data.bitrate ?? 0,
         size: 0,
         format: "youtube",
         audioLossless: false,
-        fileExtension: "mp4",
+        audioSampleRate: data.audioSampleRate ?? 0,
+        audioBitsPerSample: 0,
+        audioCodecRaw: data.audioCodecRaw ?? "",
+        videoCodecRaw: data.videoCodecRaw ?? "",
+        fileExtension: data.fileExtension ?? "mp4",
         chapters: data.chapters
       });
 
@@ -70,12 +79,42 @@ export async function handleYoutubeVideoUpload(req, res) {
     video.year = data.year;
     video.youtubeUrl = data.youtubeUrl;
     video.duration = data.duration;
+    video.videoCodecRaw = data.videoCodecRaw ?? video.videoCodecRaw;
+    video.audioCodecRaw = data.audioCodecRaw ?? video.audioCodecRaw;
+    video.audioSampleRate = data.audioSampleRate ?? video.audioSampleRate;
+    video.bitrate = data.bitrate ?? video.bitrate;
+    video.fileExtension = data.fileExtension ?? video.fileExtension;
     video.chapters = data.chapters;
     if (req.file) video.cover = req.file.buffer;
     const vid = await video.save();
+    try {
+      await importYoutubeSubtitleLyrics(vid._id, data.subtitles);
+    } catch (lyricsError) {
+      log.warn({ err: lyricsError }, "YouTube subtitle lyrics import skipped");
+    }
     res.json({ id: vid.id, type: "video" });
   } catch (e) {
     log.error({ err: e }, "YouTube video upload failed");
+    fail(res, e instanceof Error ? e.message : String(e), 400);
+  }
+}
+
+// POST /api/videos/youtube/metadata
+export async function handleYoutubeVideoMetadata(req, res) {
+  try {
+    res.json(await fetchYoutubeMetadataPreview(req.body?.youtubeUrl));
+  } catch (e) {
+    log.error({ err: e }, "YouTube video metadata load failed");
+    fail(res, e instanceof Error ? e.message : String(e), 400);
+  }
+}
+
+// POST /api/videos/youtube/lyrics-preview
+export async function handleYoutubeLyricsPreview(req, res) {
+  try {
+    res.json((await previewYoutubeSubtitleLyrics(req.body?.subtitles ?? [])) ?? { rows: [] });
+  } catch (e) {
+    log.error({ err: e }, "YouTube subtitle lyrics preview failed");
     fail(res, e instanceof Error ? e.message : String(e), 400);
   }
 }

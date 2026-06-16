@@ -1,4 +1,5 @@
 import { apiAssetUrl, apiClient } from "@lib/axios";
+import type { LyricsRow } from "@features/lyrics";
 import type {
   AdminAlbum,
   AdminArtist,
@@ -6,7 +7,8 @@ import type {
   AdminSong,
   AdminUpload,
   AdminVideo,
-  UploadResult
+  UploadResult,
+  YoutubeVideoMetadataPreview
 } from "../types";
 
 export const listAdminUploads = async (): Promise<AdminUpload[]> =>
@@ -40,6 +42,48 @@ export const updateAdminVideoCover = async (id: string, file: File): Promise<voi
   form.append("cover", file);
   await apiClient.put(`/admin/videos/${id}/cover`, form);
 };
+
+export const loadYoutubeVideoMetadata = async (
+  youtubeUrl: string
+): Promise<YoutubeVideoMetadataPreview> =>
+  (await apiClient.post<YoutubeVideoMetadataPreview>("/videos/youtube/metadata", { youtubeUrl }))
+    .data;
+
+export const createYoutubeVideo = async (
+  metadata: {
+    title: string;
+    artists: string[];
+    genres?: string[];
+    year?: number;
+    youtubeUrl: string;
+    duration: number;
+    videoCodecRaw?: string;
+    audioCodecRaw?: string;
+    audioSampleRate?: number;
+    bitrate?: number;
+    fileExtension?: string;
+    chapters?: { time: number; title: string; subTitle?: string }[];
+    subtitles?: {
+      language: string;
+      name?: string;
+      ext?: string;
+      url?: string;
+      automatic?: boolean;
+    }[];
+  },
+  cover?: File
+): Promise<UploadResult> => {
+  const form = new FormData();
+  form.append("metadata", JSON.stringify(metadata));
+  if (cover) form.append("cover", cover);
+  return (await apiClient.post<UploadResult>("/videos/youtube", form)).data;
+};
+
+export const previewYoutubeLyrics = async (
+  subtitles: YoutubeVideoMetadataPreview["subtitles"]
+): Promise<{ rows: LyricsRow[] }> =>
+  (await apiClient.post<{ rows: LyricsRow[] }>("/videos/youtube/lyrics-preview", { subtitles }))
+    .data;
 
 export const updateAdminAlbum = async (id: string, data: Partial<AdminAlbum>): Promise<void> => {
   await apiClient.put(`/admin/albums/${id}`, data);

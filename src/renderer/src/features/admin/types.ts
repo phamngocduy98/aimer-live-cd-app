@@ -35,10 +35,40 @@ export interface AdminVideo {
   hasCover?: boolean;
   duration?: number;
   format?: string;
+  videoCodecRaw?: string;
+  audioCodecRaw?: string;
+  audioSampleRate?: number;
+  bitrate?: number;
   fileExtension?: string;
   fileCount?: number;
   hostingList?: AdminHostSummary[];
   chapters?: { time: number; title: string; subTitle?: string }[];
+}
+
+export interface YoutubeVideoSubtitle {
+  language: string;
+  name?: string;
+  ext?: string;
+  url?: string;
+  automatic?: boolean;
+}
+
+export interface YoutubeVideoMetadataPreview {
+  title: string;
+  artists: string[];
+  youtubeUrl: string;
+  duration: number;
+  videoCodecRaw?: string;
+  audioCodecRaw?: string;
+  audioSampleRate?: number;
+  bitrate?: number;
+  fileExtension?: string;
+  chapters: { time: number; title: string; subTitle?: string }[];
+  subtitles: YoutubeVideoSubtitle[];
+  cover?: {
+    mimeType: string;
+    base64: string;
+  };
 }
 
 export interface AdminAlbum {

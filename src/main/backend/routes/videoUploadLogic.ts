@@ -1,4 +1,5 @@
 import type { IVideoChapter } from "../models/Video.js";
+import type { YoutubeSubtitleTrack } from "../services/youtubeMetadata.js";
 import { normalizeVideoChapters } from "../utils/videoLibrary.js";
 
 export interface YoutubeVideoMetadata {
@@ -8,7 +9,13 @@ export interface YoutubeVideoMetadata {
   genre: string[];
   youtubeUrl: string;
   duration: number;
+  videoCodecRaw?: string;
+  audioCodecRaw?: string;
+  audioSampleRate?: number;
+  bitrate?: number;
+  fileExtension?: string;
   chapters: IVideoChapter[];
+  subtitles: YoutubeSubtitleTrack[];
 }
 
 function optionalNumber(value: unknown): number | undefined {
@@ -20,6 +27,25 @@ function optionalNumber(value: unknown): number | undefined {
 function stringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return [...new Set(value.map((item) => String(item).trim()).filter(Boolean))];
+}
+
+function optionalString(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  return trimmed || undefined;
+}
+
+function subtitleArray(value: unknown): YoutubeSubtitleTrack[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((subtitle: any) => ({
+      language: optionalString(subtitle?.language) ?? "",
+      name: optionalString(subtitle?.name),
+      ext: optionalString(subtitle?.ext),
+      url: optionalString(subtitle?.url),
+      automatic: Boolean(subtitle?.automatic)
+    }))
+    .filter((subtitle) => subtitle.language);
 }
 
 export function parseYoutubeVideoMetadata(value: unknown): YoutubeVideoMetadata {
@@ -40,6 +66,12 @@ export function parseYoutubeVideoMetadata(value: unknown): YoutubeVideoMetadata 
   const duration = optionalNumber(parsed.duration);
   const year = optionalNumber(parsed.year);
   const genre = stringArray(parsed.genres ?? parsed.genre);
+  const videoCodecRaw = optionalString(parsed.videoCodecRaw);
+  const audioCodecRaw = optionalString(parsed.audioCodecRaw);
+  const audioSampleRate = optionalNumber(parsed.audioSampleRate);
+  const bitrate = optionalNumber(parsed.bitrate);
+  const fileExtension = optionalString(parsed.fileExtension);
+  const subtitles = subtitleArray(parsed.subtitles);
 
   if (!title) throw new Error("title is required");
   if (artist.length === 0) throw new Error("artists must contain at least one artist");
@@ -47,6 +79,12 @@ export function parseYoutubeVideoMetadata(value: unknown): YoutubeVideoMetadata 
   if (duration == null || duration < 0) throw new Error("duration must be a non-negative number");
   if (year != null && (!Number.isInteger(year) || year < 0)) {
     throw new Error("year must be a non-negative integer");
+  }
+  if (audioSampleRate != null && audioSampleRate < 0) {
+    throw new Error("audioSampleRate must be a non-negative number");
+  }
+  if (bitrate != null && bitrate < 0) {
+    throw new Error("bitrate must be a non-negative number");
   }
   if (parsed.chapters != null && !Array.isArray(parsed.chapters)) {
     throw new Error("chapters must be an array");
@@ -58,9 +96,7 @@ export function parseYoutubeVideoMetadata(value: unknown): YoutubeVideoMetadata 
     subTitle: typeof chapter?.subTitle === "string" ? chapter.subTitle.trim() : ""
   }));
   if (
-    chapters.some(
-      (chapter) => !Number.isFinite(chapter.time) || chapter.time < 0 || !chapter.title
-    )
+    chapters.some((chapter) => !Number.isFinite(chapter.time) || chapter.time < 0 || !chapter.title)
   ) {
     throw new Error("chapters require a non-negative time and title");
   }
@@ -72,7 +108,13 @@ export function parseYoutubeVideoMetadata(value: unknown): YoutubeVideoMetadata 
     genre,
     youtubeUrl,
     duration,
-    chapters: normalizeVideoChapters(title, chapters)
+    videoCodecRaw,
+    audioCodecRaw,
+    audioSampleRate,
+    bitrate,
+    fileExtension,
+    chapters: normalizeVideoChapters(title, chapters),
+    subtitles
   };
 }
 

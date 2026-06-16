@@ -1,4 +1,5 @@
 import { Avatar, Button, Chip, Stack, Typography } from "@mui/material";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { artistImageUrl } from "@utils/artist";
 import type {
@@ -106,46 +107,56 @@ export function SongsSection({
 export function VideosSection({
   rows,
   loading,
+  onAddYoutube,
   onEdit,
   onLyrics,
   onDelete
 }: {
   rows: AdminVideo[];
   loading: boolean;
+  onAddYoutube: () => void;
   onEdit: (video: AdminVideo) => void;
   onLyrics: (video: AdminVideo) => void;
   onDelete: (video: AdminVideo) => void;
 }) {
   return (
-    <AdminTable
-      ariaLabel="Admin videos table"
-      loading={loading}
-      rows={rows}
-      columns={[
-        { key: "title", label: "Title", render: (row) => row.title },
-        { key: "artist", label: "Artist", render: (row) => joinArtists(row.artist) },
-        { key: "year", label: "Year", width: 80, render: (row) => row.year ?? "" },
-        { key: "format", label: "Format", width: 100, render: (row) => row.format ?? "" },
-        {
-          key: "hosts",
-          label: "HA",
-          width: 80,
-          render: (row) => `x${row.hostingList?.length ?? 0}`
-        },
-        {
-          key: "actions",
-          label: "",
-          width: 132,
-          render: (row) => (
-            <AdminActions
-              onEdit={() => onEdit(row)}
-              onLyrics={() => onLyrics(row)}
-              onDelete={() => onDelete(row)}
-            />
-          )
-        }
-      ]}
-    />
+    <Stack sx={{ height: "100%" }} spacing={1.5}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center">
+        <Typography variant="h6">Videos</Typography>
+        <Button startIcon={<AddCircleOutlineIcon />} variant="contained" onClick={onAddYoutube}>
+          Add YouTube video
+        </Button>
+      </Stack>
+      <AdminTable
+        ariaLabel="Admin videos table"
+        loading={loading}
+        rows={rows}
+        columns={[
+          { key: "title", label: "Title", render: (row) => row.title },
+          { key: "artist", label: "Artist", render: (row) => joinArtists(row.artist) },
+          { key: "year", label: "Year", width: 80, render: (row) => row.year ?? "" },
+          { key: "format", label: "Format", width: 100, render: (row) => row.format ?? "" },
+          {
+            key: "hosts",
+            label: "HA",
+            width: 80,
+            render: (row) => `x${row.hostingList?.length ?? 0}`
+          },
+          {
+            key: "actions",
+            label: "",
+            width: 132,
+            render: (row) => (
+              <AdminActions
+                onEdit={() => onEdit(row)}
+                onLyrics={() => onLyrics(row)}
+                onDelete={() => onDelete(row)}
+              />
+            )
+          }
+        ]}
+      />
+    </Stack>
   );
 }
 

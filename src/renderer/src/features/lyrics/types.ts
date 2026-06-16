@@ -28,6 +28,7 @@ export type LyricSource =
   | "manual"
   | "manual-srt"
   | "lrclib"
+  | "youtube"
   | "kuroshiro"
   | "mymemory"
   | "libretranslate";

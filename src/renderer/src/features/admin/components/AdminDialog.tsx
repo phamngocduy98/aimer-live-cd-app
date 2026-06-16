@@ -29,7 +29,8 @@ import {
   HostEditDialog,
   SongEditDialog,
   UploadMediaDialog,
-  VideoEditDialog
+  VideoEditDialog,
+  YoutubeVideoCreateDialog
 } from "./AdminEditDialogs";
 import { AdminNavigation, ConfirmDialog } from "./AdminPrimitives";
 import {
@@ -75,6 +76,7 @@ export function AdminDialog({ open, onClose }: AdminDialogProps) {
   const [artistEdit, setArtistEdit] = React.useState<AdminArtist | null>(null);
   const [hostEdit, setHostEdit] = React.useState<AdminHost | null | undefined>(undefined);
   const [uploadOpen, setUploadOpen] = React.useState(false);
+  const [youtubeOpen, setYoutubeOpen] = React.useState(false);
   const [deleteTarget, setDeleteTarget] = React.useState<DeleteTarget | null>(null);
 
   const albumRows = albums.data ?? [];
@@ -101,6 +103,7 @@ export function AdminDialog({ open, onClose }: AdminDialogProps) {
       <VideosSection
         rows={videos.data ?? []}
         loading={videos.isLoading}
+        onAddYoutube={() => setYoutubeOpen(true)}
         onEdit={setVideoEdit}
         onLyrics={(media) => setLyricsTarget({ mediaType: "video", media })}
         onDelete={(item) => setDeleteTarget({ type: "video", item })}
@@ -212,6 +215,7 @@ export function AdminDialog({ open, onClose }: AdminDialogProps) {
           else setVideoEdit(media as AdminVideo);
         }}
       />
+      <YoutubeVideoCreateDialog open={youtubeOpen} onClose={() => setYoutubeOpen(false)} />
       <ConfirmDialog
         open={Boolean(deleteTarget)}
         title="Confirm delete"
