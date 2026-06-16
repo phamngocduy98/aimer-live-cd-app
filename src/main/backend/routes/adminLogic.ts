@@ -24,6 +24,7 @@ export interface AdminUploadRow {
   healthy: boolean;
   health: "healthy" | "missing-parts" | "unknown";
   ha: number;
+  fileCount: number;
   missingParts: number[];
   hosts: { id: string; name: string; parts: number[] }[];
 }
@@ -86,12 +87,15 @@ export function buildUploadRows(
         healthy,
         health: media ? (healthy ? "healthy" : "missing-parts") : "unknown",
         ha: hostFiles.filter((hostFile) => hostFile.partNumbers.length > 0).length,
+        fileCount: media?.fileCount ?? 0,
         missingParts,
-        hosts: hostFiles.map((hostFile) => ({
-          id: hostFile.hostId,
-          name: hostFile.hostName,
-          parts: hostFile.partNumbers
-        }))
+        hosts: hostFiles
+          .filter((hostFile) => hostFile.partNumbers.length > 0)
+          .map((hostFile) => ({
+            id: hostFile.hostId,
+            name: hostFile.hostName,
+            parts: hostFile.partNumbers
+          }))
       } satisfies AdminUploadRow;
     })
     .sort((left, right) => left.name.localeCompare(right.name));

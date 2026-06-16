@@ -108,7 +108,9 @@ export interface AdminUpload {
   healthy: boolean;
   health: "healthy" | "missing-parts" | "unknown";
   ha: number;
+  fileCount: number;
   missingParts: number[];
+  hosts: { id: string; name: string; parts: number[] }[];
 }
 
 export interface UploadResult {

@@ -21,6 +21,12 @@ describe("adminLogic", () => {
           hostName: "Host B",
           available: true,
           files: [{ fileName: "song-1", partNumbers: [1] }]
+        },
+        {
+          hostId: "host-c",
+          hostName: "Host C",
+          available: true,
+          files: [{ fileName: "song-1", partNumbers: [] }]
         }
       ],
       new Map([
@@ -34,6 +40,11 @@ describe("adminLogic", () => {
         healthy: true,
         health: "healthy",
         ha: 2,
+        fileCount: 3,
+        hosts: [
+          { id: "host-a", name: "Host A", parts: [0, 2] },
+          { id: "host-b", name: "Host B", parts: [1] }
+        ],
         missingParts: []
       })
     ]);
@@ -84,10 +95,22 @@ describe("adminLogic", () => {
     );
 
     expect(rows.find((row) => row.id === "song-1")).toEqual(
-      expect.objectContaining({ healthy: false, health: "missing-parts", missingParts: [1] })
+      expect.objectContaining({
+        healthy: false,
+        health: "missing-parts",
+        fileCount: 2,
+        missingParts: [1],
+        hosts: [{ id: "host-a", name: "Host A", parts: [0] }]
+      })
     );
     expect(rows.find((row) => row.id === "orphan")).toEqual(
-      expect.objectContaining({ healthy: false, health: "unknown", name: "Unknown" })
+      expect.objectContaining({
+        healthy: false,
+        health: "unknown",
+        name: "Unknown",
+        fileCount: 0,
+        hosts: [{ id: "host-a", name: "Host A", parts: [0] }]
+      })
     );
   });
 

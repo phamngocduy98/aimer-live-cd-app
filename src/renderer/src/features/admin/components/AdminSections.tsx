@@ -1,4 +1,4 @@
-import { Avatar, Button, Chip, Stack, Typography } from "@mui/material";
+import { Avatar, Button, Chip, Stack, Tooltip, Typography } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { artistImageUrl } from "@utils/artist";
@@ -12,6 +12,25 @@ import type {
 } from "../types";
 import { joinArtists } from "../utils/adminFormatting";
 import { AdminActions, AdminTable } from "./AdminPrimitives";
+
+function formatPartRanges(parts: number[]): string {
+  if (parts.length === 0) return "";
+  const sorted = [...parts].sort((a, b) => a - b);
+  const ranges: string[] = [];
+  let start = sorted[0];
+  let end = sorted[0];
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i] === end + 1) {
+      end = sorted[i];
+    } else {
+      ranges.push(start === end ? `${start + 1}` : `${start + 1}-${end + 1}`);
+      start = sorted[i];
+      end = sorted[i];
+    }
+  }
+  ranges.push(start === end ? `${start + 1}` : `${start + 1}-${end + 1}`);
+  return ranges.join(", ");
+}
 
 export function UploadsSection({
   rows,
@@ -41,17 +60,43 @@ export function UploadsSection({
             key: "health",
             label: "Health",
             width: 150,
-            render: (row) => (
-              <Chip
-                size="small"
-                label={
-                  row.healthy ? "Healthy" : row.health === "unknown" ? "Unknown" : "Missing parts"
-                }
-                color={row.healthy ? "success" : "warning"}
-              />
-            )
+            render: (row) => {
+              if (row.healthy) return <Chip size="small" label="Healthy" color="success" />;
+              if (row.health === "unknown")
+                return <Chip size="small" label="Unknown" color="warning" />;
+              return (
+                <Tooltip title={`Missing: ${formatPartRanges(row.missingParts)}`} arrow>
+                  <Chip
+                    size="small"
+                    label={`${row.fileCount - row.missingParts.length}/${row.fileCount}`}
+                    color="warning"
+                  />
+                </Tooltip>
+              );
+            }
           },
-          { key: "ha", label: "HA", width: 90, render: (row) => `x${row.ha}` }
+          {
+            key: "ha",
+            label: "Hostings",
+            width: 140,
+            render: (row) => {
+              if (row.hosts.length === 0) return "—";
+              const [first, ...rest] = row.hosts;
+              if (rest.length === 0) return first.name;
+              return (
+                <Tooltip title={row.hosts.map((h) => h.name).join(", ")} arrow>
+                  <span>
+                    {first.name}
+                    <Chip
+                      size="small"
+                      label={`+${rest.length}`}
+                      sx={{ ml: 0.5, height: 18, fontSize: 11 }}
+                    />
+                  </span>
+                </Tooltip>
+              );
+            }
+          }
         ]}
       />
     </Stack>
@@ -85,7 +130,14 @@ export function SongsSection({
           key: "hosts",
           label: "HA",
           width: 80,
-          render: (row) => `x${row.hostingList?.length ?? 0}`
+          render: (row) => (
+            <Chip
+              size="small"
+              label={(row.hostingList?.length ?? 0) > 0 ? "A" : "U"}
+              color={(row.hostingList?.length ?? 0) > 0 ? "success" : "error"}
+              sx={{ minWidth: 36, fontWeight: 700 }}
+            />
+          )
         },
         {
           key: "actions",
@@ -140,7 +192,14 @@ export function VideosSection({
             key: "hosts",
             label: "HA",
             width: 80,
-            render: (row) => `x${row.hostingList?.length ?? 0}`
+            render: (row) => (
+              <Chip
+                size="small"
+                label={(row.hostingList?.length ?? 0) > 0 ? "A" : "U"}
+                color={(row.hostingList?.length ?? 0) > 0 ? "success" : "error"}
+                sx={{ minWidth: 36, fontWeight: 700 }}
+              />
+            )
           },
           {
             key: "actions",

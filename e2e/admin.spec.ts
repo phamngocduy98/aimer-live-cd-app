@@ -49,7 +49,11 @@ test.describe("Admin dialog", () => {
 
   test("admin uploads table is available without old manage-host list", async () => {
     const dialog = await openAdmin(ctx);
-    await expect(dialog.getByRole("table", { name: "Admin songs table" })).toBeVisible();
+    await dialog.getByRole("button", { name: "Uploads" }).click();
+    const uploadsTable = dialog.getByRole("table", { name: "Admin uploads table" });
+    await expect(uploadsTable).toBeVisible();
+    await expect(uploadsTable.getByRole("columnheader", { name: "Health" })).toBeVisible();
+    await expect(uploadsTable.getByRole("columnheader", { name: "Hostings" })).toBeVisible();
   });
 
   test("adds a YouTube video from loaded metadata", async () => {
