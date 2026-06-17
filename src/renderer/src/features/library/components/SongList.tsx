@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { playContext } from "@features/player/store/playerSlice";
-import { useAppDispatch } from "@app/hooks";
+import { usePlaybackGate } from "@features/auth";
 import { SongTable } from "@components/media/SongTable";
 import { CollectionHeader } from "@components/view/CollectionHeader";
 import { PageScaffold } from "@components/view/PageScaffold";
@@ -9,7 +8,7 @@ import { formatArtists } from "@utils/artist";
 import { useSongs } from "../hooks/useLibrary";
 
 export const Songs: React.FC = () => {
-  const dispatch = useAppDispatch();
+  const play = usePlaybackGate();
   const { data: songs = [] } = useSongs();
   const [filter, setFilter] = useState("");
 
@@ -26,12 +25,12 @@ export const Songs: React.FC = () => {
 
   const onPlayAll = () => {
     if (songs.length === 0) return;
-    dispatch(playContext({ items: songs, playFrom: playSource }));
+    play({ items: songs, playFrom: playSource });
   };
 
   const onPlayShuffleAll = () => {
     if (songs.length === 0) return;
-    dispatch(playContext({ items: songs, playFrom: playSource, shuffle: true }));
+    play({ items: songs, playFrom: playSource, shuffle: true });
   };
 
   return (
@@ -58,7 +57,7 @@ export const Songs: React.FC = () => {
           showAddToPlaylist
           playSource={playSource}
           onPlayFromIndex={(idx) =>
-            dispatch(playContext({ items: visibleSongs, playFrom: playSource, startIndex: idx }))
+            play({ items: visibleSongs, playFrom: playSource, startIndex: idx })
           }
         />
       </CollectionContent>

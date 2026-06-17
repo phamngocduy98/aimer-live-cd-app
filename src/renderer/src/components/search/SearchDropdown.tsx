@@ -1,11 +1,11 @@
 import React from "react";
 import { useAppDispatch } from "@app/hooks";
 import { router } from "@app/router";
-import { playContext } from "@features/player/store/playerSlice";
 import type { SearchResult } from "@renderer/types/shared";
 import type { Album, Song, Video } from "@features/library";
 import { playVideoChapter } from "@features/player/thunks/playVideoChapter";
 import { apiAssetUrl } from "@lib/axios";
+import { usePlaybackGate } from "@features/auth";
 
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
@@ -32,6 +32,7 @@ export const SearchDropdown: React.FC<SearchDropdownProps> = ({
   onNavigate
 }) => {
   const dispatch = useAppDispatch();
+  const play = usePlaybackGate();
   const playSource = {
     type: "search" as const,
     id: query,
@@ -43,7 +44,7 @@ export const SearchDropdown: React.FC<SearchDropdownProps> = ({
 
   const handleSongClick = (song: Song): void => {
     onClose();
-    dispatch(playContext({ items: [song], playFrom: playSource }));
+    play({ items: [song], playFrom: playSource });
   };
 
   const handleAlbumClick = (album: Album): void => {
@@ -53,7 +54,7 @@ export const SearchDropdown: React.FC<SearchDropdownProps> = ({
 
   const handleVideoClick = (video: Video): void => {
     onClose();
-    dispatch(playContext({ items: [video], playFrom: playSource }));
+    play({ items: [video], playFrom: playSource });
   };
 
   const handleChapterClick = (video: Video, chapterIndex: number): void => {

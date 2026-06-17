@@ -1,4 +1,13 @@
-export type AdminTab = "uploads" | "songs" | "videos" | "albums" | "artists" | "hosts";
+import type { PublicUser, SubscriptionStatus, UserRole } from "@features/auth";
+
+export type AdminTab =
+  | "uploads"
+  | "songs"
+  | "videos"
+  | "albums"
+  | "artists"
+  | "hosts"
+  | "users";
 
 export interface AdminAlbumSummary {
   _id: string;
@@ -116,4 +125,19 @@ export interface AdminUpload {
 export interface UploadResult {
   id: string;
   type: "song" | "video";
+}
+
+export type AdminUser = PublicUser;
+
+export interface AdminUserPayload {
+  username?: string;
+  displayName?: string;
+  password?: string;
+  role: UserRole;
+  enabled: boolean;
+  subscription: {
+    plan: string;
+    status: SubscriptionStatus;
+    currentPeriodEnd?: string;
+  };
 }

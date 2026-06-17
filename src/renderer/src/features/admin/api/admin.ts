@@ -6,6 +6,8 @@ import type {
   AdminHost,
   AdminSong,
   AdminUpload,
+  AdminUser,
+  AdminUserPayload,
   AdminVideo,
   UploadResult,
   YoutubeVideoMetadataPreview
@@ -28,6 +30,17 @@ export const listAdminArtists = async (): Promise<AdminArtist[]> =>
 
 export const listAdminHosts = async (): Promise<AdminHost[]> =>
   (await apiClient.get<AdminHost[]>("/admin/hosts")).data;
+
+export const listAdminUsers = async (): Promise<AdminUser[]> =>
+  (await apiClient.get<AdminUser[]>("/admin/users")).data;
+
+export const createAdminUser = async (data: AdminUserPayload): Promise<AdminUser> =>
+  (await apiClient.post<AdminUser>("/admin/users", data)).data;
+
+export const updateAdminUser = async (
+  id: string,
+  data: Partial<AdminUserPayload>
+): Promise<AdminUser> => (await apiClient.put<AdminUser>(`/admin/users/${id}`, data)).data;
 
 export const updateAdminSong = async (id: string, data: Partial<AdminSong>): Promise<void> => {
   await apiClient.put(`/admin/songs/${id}`, data);

@@ -1,13 +1,12 @@
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useAppDispatch } from "@app/hooks";
 import type { Album } from "@features/library";
-import { playContext } from "@features/player/store/playerSlice";
+import { usePlaybackGate } from "@features/auth";
 import { getAlbum } from "../api/album";
 import { albumDetailKey } from "./useAlbum";
 
 export const usePlayAlbum = (): ((album: Album) => Promise<void>) => {
-  const dispatch = useAppDispatch();
+  const play = usePlaybackGate();
   const queryClient = useQueryClient();
 
   return useCallback(
@@ -19,18 +18,16 @@ export const usePlayAlbum = (): ((album: Album) => Promise<void>) => {
 
       if (detail.trackList.length === 0) return;
 
-      dispatch(
-        playContext({
-          items: detail.trackList,
-          playFrom: {
-            type: "album",
-            id: detail._id,
-            label: detail.title,
-            route: `/album/${detail._id}`
-          }
-        })
-      );
+      play({
+        items: detail.trackList,
+        playFrom: {
+          type: "album",
+          id: detail._id,
+          label: detail.title,
+          route: `/album/${detail._id}`
+        }
+      });
     },
-    [dispatch, queryClient]
+    [play, queryClient]
   );
 };

@@ -1,12 +1,11 @@
 import { Fragment } from "react";
 
-import { playContext } from "@features/player/store/playerSlice";
 import type { AlbumDetail } from "../types";
-import { useAppDispatch } from "@app/hooks";
 import { SongTable } from "@components/media/SongTable";
+import { usePlaybackGate } from "@features/auth";
 
 export const SongListTable: React.FC<{ album: AlbumDetail }> = ({ album }) => {
-  const dispatch = useAppDispatch();
+  const play = usePlaybackGate();
   const playSource = {
     type: "album" as const,
     id: album._id,
@@ -26,7 +25,7 @@ export const SongListTable: React.FC<{ album: AlbumDetail }> = ({ album }) => {
         mobileEmphasis
         playSource={playSource}
         onPlayFromIndex={(idx) =>
-          dispatch(playContext({ items: album.trackList, playFrom: playSource, startIndex: idx }))
+          play({ items: album.trackList, playFrom: playSource, startIndex: idx })
         }
       />
     </Fragment>

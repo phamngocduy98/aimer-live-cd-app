@@ -8,6 +8,7 @@ import { mediaType, sourceItemKey } from "../types";
 type MSong = Song | Video;
 
 interface PlayerSlice {
+  canAccessPaidMedia: boolean;
   currentEntry: QueueEntry | null;
   playingTrack: MSong | null;
   queue: QueueEntry[];
@@ -20,9 +21,14 @@ interface PlayerSlice {
   favoriteTrackIds: string[];
 }
 
+function isEntryPlayable(entry: QueueEntry, canAccessPaidMedia: boolean): boolean {
+  return canAccessPaidMedia || (isVideo(entry.media) && Boolean(entry.media.youtubeUrl));
+}
+
 const playerSlice = createSlice({
   name: "player",
   initialState: {
+    canAccessPaidMedia: false,
     currentEntry: null,
     playingTrack: null,
     queue: [],
@@ -35,6 +41,23 @@ const playerSlice = createSlice({
     favoriteTrackIds: []
   } satisfies PlayerSlice as PlayerSlice,
   reducers: {
+    setPlaybackAccess(state, action: PayloadAction<{ canAccessPaidMedia: boolean }>) {
+      state.canAccessPaidMedia = action.payload.canAccessPaidMedia;
+      if (state.canAccessPaidMedia) return;
+      if (state.currentEntry && !isEntryPlayable(state.currentEntry, state.canAccessPaidMedia)) {
+        const nextPlayableIndex = state.queue.findIndex((entry) =>
+          isEntryPlayable(entry, state.canAccessPaidMedia)
+        );
+        state.currentEntry = nextPlayableIndex >= 0 ? state.queue[nextPlayableIndex] : null;
+        state.playingTrack = state.currentEntry?.media ?? null;
+        state.queue = nextPlayableIndex >= 0 ? state.queue.slice(nextPlayableIndex + 1) : [];
+        state.chapters = isVideo(state.playingTrack) ? (state.playingTrack.chapters ?? []) : [];
+      }
+      state.queue = state.queue.filter((entry) => isEntryPlayable(entry, state.canAccessPaidMedia));
+      state.history = state.history.filter((entry) =>
+        isEntryPlayable(entry, state.canAccessPaidMedia)
+      );
+    },
     playContext(state, action: PayloadAction<PlayContextPayload>) {
       const { items, playFrom, startIndex = 0, shuffle = false, sourceItemKeys } = action.payload;
       const entries = items.map((item, index) => {
@@ -46,7 +69,7 @@ const playerSlice = createSlice({
           playFrom,
           sourceItemKey: sourceItemKeys?.[index] ?? sourceItemKey(playFrom, media, index)
         };
-      });
+      }).filter((entry) => isEntryPlayable(entry, state.canAccessPaidMedia));
       const ordered = shuffle ? shuffleArray(entries) : entries;
       const selectedIndex = shuffle ? 0 : Math.min(Math.max(startIndex, 0), ordered.length - 1);
 
@@ -88,13 +111,13 @@ const playerSlice = createSlice({
         media,
         playFrom,
         sourceItemKey: sourceItemKey(playFrom, media, index)
-      }));
+      })).filter((entry) => isEntryPlayable(entry, state.canAccessPaidMedia));
       const history = (payload.payload.history ?? []).map((media, index) => ({
         queueEntryId: nanoid(),
         media,
         playFrom,
         sourceItemKey: sourceItemKey(playFrom, media, index)
-      }));
+      })).filter((entry) => isEntryPlayable(entry, state.canAccessPaidMedia));
 
       state.currentEntry = entries[0] ?? null;
       state.playingTrack = state.currentEntry?.media ?? null;
@@ -204,6 +227,7 @@ const playerSlice = createSlice({
 });
 
 export const {
+  setPlaybackAccess,
   playContext,
   nextTrack,
   prevTrack,

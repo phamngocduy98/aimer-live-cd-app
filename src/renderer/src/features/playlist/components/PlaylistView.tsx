@@ -15,9 +15,7 @@ import {
 } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { useAppDispatch } from "@app/hooks";
 import { PageScaffold } from "@components/view/PageScaffold";
-import { playContext } from "@features/player/store/playerSlice";
 import { formatArtists } from "@utils/artist";
 import { formatDuration } from "@utils/formatDuration";
 import { EditPlaylistDialog } from "./EditPlaylistDialog";
@@ -31,9 +29,10 @@ import {
   PrimaryActionGroup
 } from "@components/view/designSystem";
 import { mediaArtworkUrl } from "@utils/mediaArtwork";
+import { usePlaybackGate } from "@features/auth";
 
 export const PlaylistView: React.FC = () => {
-  const dispatch = useAppDispatch();
+  const playMedia = usePlaybackGate();
   const navigate = useNavigate();
   const { id = "" } = useParams();
   const { data: playlist } = usePlaylist(id);
@@ -75,14 +74,12 @@ export const PlaylistView: React.FC = () => {
 
   const play = (shuffle = false): void => {
     if (visibleItems.length === 0) return;
-    dispatch(
-      playContext({
-        items: visibleItems.map((item) => item.media),
-        sourceItemKeys: visibleItems.map((item) => item._id),
-        playFrom: playSource,
-        shuffle
-      })
-    );
+    playMedia({
+      items: visibleItems.map((item) => item.media),
+      sourceItemKeys: visibleItems.map((item) => item._id),
+      playFrom: playSource,
+      shuffle
+    });
   };
 
   const sharePlaylist = async (): Promise<void> => {
@@ -225,14 +222,12 @@ export const PlaylistView: React.FC = () => {
             items={visibleItems}
             playSource={playSource}
             onPlay={(index) =>
-              dispatch(
-                playContext({
-                  items: visibleItems.map((item) => item.media),
-                  sourceItemKeys: visibleItems.map((item) => item._id),
-                  playFrom: playSource,
-                  startIndex: index
-                })
-              )
+              playMedia({
+                items: visibleItems.map((item) => item.media),
+                sourceItemKeys: visibleItems.map((item) => item._id),
+                playFrom: playSource,
+                startIndex: index
+              })
             }
             onRemove={handleRemoveItem}
           />

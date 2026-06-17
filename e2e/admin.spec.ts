@@ -30,7 +30,15 @@ test.describe("Admin dialog", () => {
   test("admin dialog shows sections and hosting provider table", async () => {
     const dialog = await openAdmin(ctx);
     await expect(dialog.getByRole("navigation", { name: "Admin sections" })).toBeVisible();
-    for (const section of ["Uploads", "Songs", "Videos", "Albums", "Artists", "Hosting Provider"]) {
+    for (const section of [
+      "Uploads",
+      "Songs",
+      "Videos",
+      "Albums",
+      "Artists",
+      "Hosting Provider",
+      "Users"
+    ]) {
       await expect(dialog.getByRole("button", { name: section })).toBeVisible();
     }
 
@@ -39,6 +47,23 @@ test.describe("Admin dialog", () => {
       dialog.getByRole("table", { name: "Admin hosting providers table" })
     ).toBeVisible();
     await expect(dialog.getByText("E2E Fixture Host")).toBeVisible();
+  });
+
+  test("admin creates a paid member from the Users section", async () => {
+    const dialog = await openAdmin(ctx);
+    await dialog.getByRole("button", { name: "Users" }).click();
+    await expect(dialog.getByRole("table", { name: "Admin users table" })).toBeVisible();
+    await dialog.getByRole("button", { name: "Add user" }).click();
+    const editor = ctx.mainWindow.getByRole("dialog", { name: "Create user" });
+    await editor.getByLabel("Username").fill("newpaid");
+    await editor.getByLabel("Display name").fill("New Paid");
+    await editor.getByLabel("Password").fill("new-paid-password");
+    await editor.getByLabel("Plan").fill("plus");
+    await editor.getByLabel("Status").click();
+    await ctx.mainWindow.getByRole("option", { name: "active" }).click();
+    await editor.getByRole("button", { name: "Save user" }).click();
+    await expect(editor).not.toBeVisible();
+    await expect(dialog.getByRole("row", { name: /newpaid/ })).toBeVisible();
   });
 
   test("admin dialog can be closed", async () => {
@@ -239,6 +264,16 @@ test.describe("Admin dialog", () => {
 
 async function openAdmin(ctx: ElectronTestContext) {
   await ctx.mainWindow.getByRole("button", { name: "User menu" }).click();
+  const loginMenu = ctx.mainWindow.getByRole("menuitem", { name: "Login" });
+  if (await loginMenu.isVisible()) {
+    await loginMenu.click();
+    const login = ctx.mainWindow.getByRole("dialog", { name: "Login" });
+    await login.getByLabel("Username").fill("admin");
+    await login.getByLabel("Password").fill("admin-password");
+    await login.getByRole("button", { name: "Login" }).click();
+    await expect(login).not.toBeVisible();
+    await ctx.mainWindow.getByRole("button", { name: "User menu" }).click();
+  }
   await ctx.mainWindow.getByRole("menuitem", { name: "Admin" }).click();
   return ctx.mainWindow.getByRole("dialog", { name: "Admin" });
 }

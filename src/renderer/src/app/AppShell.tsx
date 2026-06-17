@@ -5,6 +5,7 @@ import { Sidebar } from "@components/layout/Sidebar";
 import { TopNavBar } from "@components/layout/TopNavBar";
 import { ErrorBoundary } from "@components/common/ErrorBoundary";
 import { LoadingFallback } from "@components/common/LoadingFallback";
+import { LoginDialog, SubscriptionRequiredDialog, useLogout, useSession } from "@features/auth";
 import { Player } from "@features/player";
 import { CreatePlaylistDialog } from "@features/playlist";
 
@@ -21,8 +22,11 @@ export function AppShell() {
   const isHome = location.pathname === "/";
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [isAdminDialogOpen, setIsAdminDialogOpen] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isCreatePlaylistOpen, setIsCreatePlaylistOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => !desktopUp);
+  const { session } = useSession();
+  const logout = useLogout();
 
   React.useEffect(() => {
     setIsSidebarCollapsed(!desktopUp || !mediumUp);
@@ -63,16 +67,21 @@ export function AppShell() {
         anchorEl={anchorEl}
         onMenuOpen={(event) => setAnchorEl(event.currentTarget)}
         onMenuClose={() => setAnchorEl(null)}
+        session={session}
         onAdminClick={() => setIsAdminDialogOpen(true)}
+        onLoginClick={() => setIsLoginOpen(true)}
+        onLogoutClick={() => logout.mutate()}
         onBackClick={() => navigate("/")}
         onSearch={(query) => navigate(query ? `/search?q=${encodeURIComponent(query)}` : "/")}
       />
       <Player />
-      {isAdminDialogOpen && (
+      {session.canAccessAdmin && isAdminDialogOpen && (
         <Suspense fallback={null}>
           <AdminDialog open={isAdminDialogOpen} onClose={() => setIsAdminDialogOpen(false)} />
         </Suspense>
       )}
+      <LoginDialog open={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+      <SubscriptionRequiredDialog />
       <CreatePlaylistDialog
         open={isCreatePlaylistOpen}
         onClose={() => setIsCreatePlaylistOpen(false)}

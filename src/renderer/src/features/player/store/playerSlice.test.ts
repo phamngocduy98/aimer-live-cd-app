@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import reducer, { deleteTrack, nextTrack, playContext, prevTrack } from "./playerSlice";
+import reducer, {
+  deleteTrack,
+  nextTrack,
+  playContext,
+  prevTrack,
+  setPlaybackAccess
+} from "./playerSlice";
 import type { Song, Video } from "@features/library/types";
 import { mediaSourcePath } from "../types";
 
@@ -39,10 +45,11 @@ const video = (id: string): Video => ({
 
 describe("player queue", () => {
   const source = { type: "playlist" as const, id: "p1", label: "Mix", route: "/playlist/p1" };
+  const paidState = () => reducer(undefined, setPlaybackAccess({ canAccessPaidMedia: true }));
 
   it("builds a mixed queue with unique occurrence identity and context", () => {
     const state = reducer(
-      undefined,
+      paidState(),
       playContext({
         items: [song("same"), video("video"), song("same")],
         playFrom: source,
@@ -63,7 +70,7 @@ describe("player queue", () => {
 
   it("moves through mixed entries and removes a single occurrence", () => {
     let state = reducer(
-      undefined,
+      paidState(),
       playContext({ items: [song("same"), video("video"), song("same")], playFrom: source })
     );
     const lastId = state.queue[1].queueEntryId;
@@ -86,5 +93,16 @@ describe("player queue", () => {
     const youtubeVideo = { ...video("youtube-video"), youtubeUrl: "https://youtu.be/example" };
 
     expect(mediaSourcePath(youtubeVideo)).toBe("https://youtu.be/example");
+  });
+
+  it("filters restricted media from a guest queue", () => {
+    const youtubeVideo = { ...video("youtube-video"), youtubeUrl: "https://youtu.be/example" };
+    const state = reducer(
+      undefined,
+      playContext({ items: [song("song"), video("local-video"), youtubeVideo], playFrom: source })
+    );
+
+    expect(state.playingTrack?._id).toBe("youtube-video");
+    expect(state.queue).toHaveLength(0);
   });
 });

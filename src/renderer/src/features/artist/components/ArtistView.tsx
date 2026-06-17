@@ -11,8 +11,7 @@ import { SongTable } from "@components/media/SongTable";
 import { PageScaffold } from "@components/view/PageScaffold";
 import { PlayShuffleActions } from "@components/view/PlayShuffleActions";
 import { SectionHeader } from "@components/view/SectionHeader";
-import { useAppDispatch } from "@app/hooks";
-import { playContext } from "@features/player/store/playerSlice";
+import { usePlaybackGate } from "@features/auth";
 import { apiAssetUrl } from "@lib/axios";
 import { artistImageUrl } from "@utils/artist";
 import { useArtist } from "../hooks/useArtist";
@@ -21,7 +20,7 @@ import { usePlayAlbum } from "@features/album";
 const FEATURED_TRACK_COUNT = 4;
 
 export const ArtistView: React.FC = () => {
-  const dispatch = useAppDispatch();
+  const play = usePlaybackGate();
   const playAlbum = usePlayAlbum();
   const { name } = useParams();
   const artistName = decodeURIComponent(name ?? "");
@@ -54,12 +53,12 @@ export const ArtistView: React.FC = () => {
 
   const playAll = () => {
     if (songs.length === 0) return;
-    dispatch(playContext({ items: songs, playFrom: playSource }));
+    play({ items: songs, playFrom: playSource });
   };
 
   const shuffleAll = () => {
     if (songs.length === 0) return;
-    dispatch(playContext({ items: songs, playFrom: playSource, shuffle: true }));
+    play({ items: songs, playFrom: playSource, shuffle: true });
   };
 
   const copyArtistLink = async () => {
@@ -235,7 +234,7 @@ export const ArtistView: React.FC = () => {
           mobileSubtitle="album"
           playSource={playSource}
           onPlayFromIndex={(idx) =>
-            dispatch(playContext({ items: visibleSongs, playFrom: playSource, startIndex: idx }))
+            play({ items: visibleSongs, playFrom: playSource, startIndex: idx })
           }
         />
       </Box>
@@ -250,7 +249,7 @@ export const ArtistView: React.FC = () => {
           videos={videos}
           sx={{ mt: albums.length > 0 ? 5 : 0 }}
           onPlay={(_video, index) =>
-            dispatch(playContext({ items: videos, playFrom: playSource, startIndex: index }))
+            play({ items: videos, playFrom: playSource, startIndex: index })
           }
         />
       </Box>

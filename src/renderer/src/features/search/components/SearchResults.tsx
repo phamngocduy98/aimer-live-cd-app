@@ -23,17 +23,17 @@ import { VideoCard } from "@components/media/VideoCard";
 import { SectionHeader } from "@components/view/SectionHeader";
 import { PageScaffold } from "@components/view/PageScaffold";
 import { useAppDispatch, useAppSelector } from "@app/hooks";
-import { playContext } from "@features/player/store/playerSlice";
 import { useSearch } from "../hooks/useSearch";
 import { usePlayAlbum } from "@features/album";
 import { playVideoChapter } from "@features/player/thunks/playVideoChapter";
 import { formatDuration } from "@utils/formatDuration";
 import type { SearchChapterResult } from "@renderer/types/shared";
+import { usePlaybackGate } from "@features/auth";
 
 export const SearchResults: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
+  const play = usePlaybackGate();
   const playAlbum = usePlayAlbum();
   const q = searchParams.get("q") ?? "";
   const [searchInput, setSearchInput] = React.useState(q);
@@ -134,7 +134,7 @@ export const SearchResults: React.FC = () => {
             ariaLabel="search songs table"
             playSource={playSource}
             onPlayFromIndex={(idx) =>
-              dispatch(playContext({ items: result.songs, playFrom: playSource, startIndex: idx }))
+              play({ items: result.songs, playFrom: playSource, startIndex: idx })
             }
           />
         </ResultSection>
@@ -166,9 +166,7 @@ export const SearchResults: React.FC = () => {
                 <VideoCard
                   video={video}
                   onPlay={() =>
-                    dispatch(
-                      playContext({ items: result.videos, playFrom: playSource, startIndex: idx })
-                    )
+                    play({ items: result.videos, playFrom: playSource, startIndex: idx })
                   }
                 />
               </Grid>

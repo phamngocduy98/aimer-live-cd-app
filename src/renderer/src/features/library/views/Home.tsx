@@ -9,13 +9,12 @@ import { SectionHeader } from "@components/view/SectionHeader";
 import { artistImageUrl, artistPath } from "@utils/artist";
 import { apiAssetUrl } from "@lib/axios";
 import { useAlbums, useSongs, useVideos } from "../hooks/useLibrary";
-import { useAppDispatch } from "@app/hooks";
-import { playContext } from "@features/player/store/playerSlice";
 import { usePlayAlbum } from "@features/album";
+import { usePlaybackGate } from "@features/auth";
 
 export const Home: React.FC = () => {
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
+  const play = usePlaybackGate();
   const { data: albums = [] } = useAlbums(0, 12);
   const { data: songs = [] } = useSongs(0, 12);
   const { data: videos = [] } = useVideos(0, 12);
@@ -77,13 +76,11 @@ export const Home: React.FC = () => {
           onAction={() => navigate("/videos")}
           sx={{ mt: 5 }}
           onPlay={(_video, index) =>
-            dispatch(
-              playContext({
-                items: videos,
-                playFrom: { type: "videos", label: "Featured videos", route: "/" },
-                startIndex: index
-              })
-            )
+            play({
+              items: videos,
+              playFrom: { type: "videos", label: "Featured videos", route: "/" },
+              startIndex: index
+            })
           }
         />
 

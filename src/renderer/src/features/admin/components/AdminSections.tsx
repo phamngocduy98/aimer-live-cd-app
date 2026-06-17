@@ -8,6 +8,7 @@ import type {
   AdminHost,
   AdminSong,
   AdminUpload,
+  AdminUser,
   AdminVideo
 } from "../types";
 import { joinArtists } from "../utils/adminFormatting";
@@ -342,6 +343,56 @@ export function HostsSection({
             render: (row) => (
               <AdminActions onEdit={() => onEdit(row)} onDelete={() => onDelete(row)} />
             )
+          }
+        ]}
+      />
+    </Stack>
+  );
+}
+
+export function UsersSection({
+  rows,
+  loading,
+  onAdd,
+  onEdit
+}: {
+  rows: AdminUser[];
+  loading: boolean;
+  onAdd: () => void;
+  onEdit: (user: AdminUser) => void;
+}) {
+  return (
+    <Stack sx={{ height: "100%" }} spacing={1.5}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center">
+        <Typography variant="h6">Users</Typography>
+        <Button variant="contained" onClick={onAdd}>
+          Add user
+        </Button>
+      </Stack>
+      <AdminTable
+        ariaLabel="Admin users table"
+        loading={loading}
+        rows={rows}
+        columns={[
+          { key: "username", label: "Username", render: (row) => row.username },
+          { key: "displayName", label: "Display name", render: (row) => row.displayName },
+          { key: "role", label: "Role", width: 100, render: (row) => row.role },
+          {
+            key: "subscription",
+            label: "Subscription",
+            render: (row) => `${row.subscription.plan} / ${row.subscription.status}`
+          },
+          {
+            key: "enabled",
+            label: "Enabled",
+            width: 90,
+            render: (row) => (row.enabled ? "Yes" : "No")
+          },
+          {
+            key: "actions",
+            label: "",
+            width: 64,
+            render: (row) => <AdminActions onEdit={() => onEdit(row)} />
           }
         ]}
       />

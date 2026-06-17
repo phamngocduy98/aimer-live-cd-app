@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import mongoose, { Types } from "mongoose";
+import { hashPassword } from "../../src/main/backend/services/authService.js";
 
 dotenv.config();
 
@@ -13,6 +14,10 @@ export const testIds = {
   songTwo: new Types.ObjectId("665000000000000000000202"),
   songThree: new Types.ObjectId("665000000000000000000203"),
   videoOne: new Types.ObjectId("665000000000000000000301"),
+  videoYoutube: new Types.ObjectId("665000000000000000000302"),
+  adminUser: new Types.ObjectId("665000000000000000000501"),
+  paidUser: new Types.ObjectId("665000000000000000000502"),
+  freeUser: new Types.ObjectId("665000000000000000000503"),
   playlistSeed: new Types.ObjectId("665000000000000000000401")
 };
 
@@ -63,7 +68,53 @@ export async function seedE2eDatabase(): Promise<void> {
     db.collection("videos").deleteMany({}),
     db.collection("playlists").deleteMany({}),
     db.collection("hostings").deleteMany({}),
-    db.collection("lyrics").deleteMany({})
+    db.collection("lyrics").deleteMany({}),
+    db.collection("users").deleteMany({})
+  ]);
+
+  const [adminPassword, paidPassword, freePassword] = await Promise.all([
+    hashPassword("admin-password"),
+    hashPassword("paid-password"),
+    hashPassword("free-password")
+  ]);
+
+  await db.collection("users").insertMany([
+    {
+      _id: testIds.adminUser,
+      username: "admin",
+      displayName: "E2E Admin",
+      passwordHash: adminPassword.hash,
+      passwordSalt: adminPassword.salt,
+      role: "admin",
+      enabled: true,
+      subscription: { plan: "admin", status: "active" },
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      _id: testIds.paidUser,
+      username: "paid",
+      displayName: "E2E Paid",
+      passwordHash: paidPassword.hash,
+      passwordSalt: paidPassword.salt,
+      role: "member",
+      enabled: true,
+      subscription: { plan: "plus", status: "active" },
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      _id: testIds.freeUser,
+      username: "free",
+      displayName: "E2E Free",
+      passwordHash: freePassword.hash,
+      passwordSalt: freePassword.salt,
+      role: "member",
+      enabled: true,
+      subscription: { plan: "free", status: "none" },
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
   ]);
 
   await db.collection("hostings").insertOne({
@@ -192,6 +243,32 @@ export async function seedE2eDatabase(): Promise<void> {
       { time: 0, title: "E2E Intro", subTitle: "Opening" },
       { time: 5, title: "E2E Chorus", subTitle: "Main part" }
     ],
+    iv: "00000000000000000000000000000000"
+  });
+
+  await db.collection("videos").insertOne({
+    _id: testIds.videoYoutube,
+    cover: tinyPng,
+    title: "E2E YouTube Video",
+    artist: ["E2E Channel"],
+    genre: ["E2E"],
+    year: 2026,
+    size: 0,
+    duration: 10,
+    videoWidth: 1280,
+    videoHeight: 720,
+    videoCodecRaw: "youtube",
+    audioLossless: false,
+    audioSampleRate: 0,
+    audioBitsPerSample: 0,
+    audioCodecRaw: "",
+    format: "youtube",
+    bitrate: 0,
+    fileExtension: "mp4",
+    hostingList: [],
+    fileCount: 0,
+    youtubeUrl: "https://www.youtube.com/watch?v=e2e-youtube",
+    chapters: [{ time: 0, title: "E2E YouTube Video", subTitle: "" }],
     iv: "00000000000000000000000000000000"
   });
 

@@ -1,11 +1,18 @@
 import React from "react";
 import {
   Box,
+  Button,
+  Checkbox,
   Dialog,
+  DialogActions,
   DialogContent,
   DialogTitle,
   Divider,
+  FormControlLabel,
   IconButton,
+  MenuItem,
+  Stack,
+  TextField,
   Typography
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
@@ -15,13 +22,24 @@ import {
   useAdminHosts,
   useAdminSongs,
   useAdminUploads,
+  useAdminUsers,
   useAdminVideos,
   useDeleteAdminAlbum,
   useDeleteAdminHost,
   useDeleteAdminSong,
-  useDeleteAdminVideo
+  useDeleteAdminVideo,
+  useSaveAdminUser
 } from "../hooks/useAdmin";
-import type { AdminAlbum, AdminArtist, AdminHost, AdminSong, AdminTab, AdminVideo } from "../types";
+import type {
+  AdminAlbum,
+  AdminArtist,
+  AdminHost,
+  AdminSong,
+  AdminTab,
+  AdminUser,
+  AdminUserPayload,
+  AdminVideo
+} from "../types";
 import {
   AlbumEditDialog,
   AlbumMediaDialog,
@@ -39,6 +57,7 @@ import {
   HostsSection,
   SongsSection,
   UploadsSection,
+  UsersSection,
   VideosSection
 } from "./AdminSections";
 import { SynchronizedLyricsDialog } from "./SynchronizedLyricsDialog";
@@ -62,6 +81,7 @@ export function AdminDialog({ open, onClose }: AdminDialogProps) {
   const albums = useAdminAlbums();
   const artists = useAdminArtists();
   const hosts = useAdminHosts();
+  const users = useAdminUsers();
   const deleteSong = useDeleteAdminSong();
   const deleteVideo = useDeleteAdminVideo();
   const deleteAlbum = useDeleteAdminAlbum();
@@ -75,6 +95,7 @@ export function AdminDialog({ open, onClose }: AdminDialogProps) {
   const [albumMedia, setAlbumMedia] = React.useState<AdminAlbum | null>(null);
   const [artistEdit, setArtistEdit] = React.useState<AdminArtist | null>(null);
   const [hostEdit, setHostEdit] = React.useState<AdminHost | null | undefined>(undefined);
+  const [userEdit, setUserEdit] = React.useState<AdminUser | null | undefined>(undefined);
   const [uploadOpen, setUploadOpen] = React.useState(false);
   const [youtubeOpen, setYoutubeOpen] = React.useState(false);
   const [deleteTarget, setDeleteTarget] = React.useState<DeleteTarget | null>(null);
@@ -132,6 +153,14 @@ export function AdminDialog({ open, onClose }: AdminDialogProps) {
         onAdd={() => setHostEdit(null)}
         onEdit={setHostEdit}
         onDelete={(item) => setDeleteTarget({ type: "host", item })}
+      />
+    ),
+    users: (
+      <UsersSection
+        rows={users.data ?? []}
+        loading={users.isLoading}
+        onAdd={() => setUserEdit(null)}
+        onEdit={setUserEdit}
       />
     )
   };
@@ -206,6 +235,11 @@ export function AdminDialog({ open, onClose }: AdminDialogProps) {
         open={hostEdit !== undefined}
         onClose={() => setHostEdit(undefined)}
       />
+      <UserEditDialog
+        user={userEdit ?? null}
+        open={userEdit !== undefined}
+        onClose={() => setUserEdit(undefined)}
+      />
       <UploadMediaDialog
         open={uploadOpen}
         hosts={hostRows}
@@ -238,6 +272,160 @@ export function AdminDialog({ open, onClose }: AdminDialogProps) {
           if (deleteTarget.type === "host") deleteHost.mutate(deleteTarget.item._id, { onSuccess });
         }}
       />
+    </Dialog>
+  );
+}
+
+function UserEditDialog({
+  user,
+  open,
+  onClose
+}: {
+  user: AdminUser | null;
+  open: boolean;
+  onClose: () => void;
+}) {
+  const save = useSaveAdminUser();
+  const [draft, setDraft] = React.useState<AdminUserPayload>({
+    username: "",
+    displayName: "",
+    password: "",
+    role: "member",
+    enabled: true,
+    subscription: { plan: "free", status: "none", currentPeriodEnd: "" }
+  });
+
+  React.useEffect(() => {
+    setDraft({
+      username: user?.username ?? "",
+      displayName: user?.displayName ?? "",
+      password: "",
+      role: user?.role ?? "member",
+      enabled: user?.enabled ?? true,
+      subscription: {
+        plan: user?.subscription.plan ?? "free",
+        status: user?.subscription.status ?? "none",
+        currentPeriodEnd: user?.subscription.currentPeriodEnd?.slice(0, 10) ?? ""
+      }
+    });
+  }, [user, open]);
+
+  const submit = () => {
+    const payload: AdminUserPayload = {
+      ...draft,
+      displayName: draft.displayName || draft.username,
+      subscription: {
+        ...draft.subscription,
+        currentPeriodEnd: draft.subscription.currentPeriodEnd || undefined
+      }
+    };
+    if (user && !payload.password) delete payload.password;
+    save.mutate(
+      { id: user?._id, data: payload },
+      {
+        onSuccess: onClose
+      }
+    );
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle>{user ? "Edit user" : "Create user"}</DialogTitle>
+      <DialogContent>
+        <Stack spacing={2} sx={{ pt: 1 }}>
+          <TextField
+            label="Username"
+            value={draft.username}
+            disabled={Boolean(user)}
+            onChange={(event) => setDraft({ ...draft, username: event.target.value })}
+          />
+          <TextField
+            label="Display name"
+            value={draft.displayName}
+            onChange={(event) => setDraft({ ...draft, displayName: event.target.value })}
+          />
+          <TextField
+            label={user ? "New password" : "Password"}
+            type="password"
+            value={draft.password}
+            helperText={user ? "Leave blank to keep the current password." : undefined}
+            onChange={(event) => setDraft({ ...draft, password: event.target.value })}
+          />
+          <TextField
+            select
+            label="Role"
+            value={draft.role}
+            onChange={(event) => setDraft({ ...draft, role: event.target.value as "admin" | "member" })}
+          >
+            <MenuItem value="admin">Admin</MenuItem>
+            <MenuItem value="member">Member</MenuItem>
+          </TextField>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+            <TextField
+              label="Plan"
+              value={draft.subscription.plan}
+              onChange={(event) =>
+                setDraft({
+                  ...draft,
+                  subscription: { ...draft.subscription, plan: event.target.value }
+                })
+              }
+              fullWidth
+            />
+            <TextField
+              select
+              label="Status"
+              value={draft.subscription.status}
+              onChange={(event) =>
+                setDraft({
+                  ...draft,
+                  subscription: {
+                    ...draft.subscription,
+                    status: event.target.value as AdminUserPayload["subscription"]["status"]
+                  }
+                })
+              }
+              fullWidth
+            >
+              {["none", "trialing", "active", "past_due", "canceled"].map((status) => (
+                <MenuItem key={status} value={status}>
+                  {status}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Stack>
+          <TextField
+            label="Current period end"
+            type="date"
+            value={draft.subscription.currentPeriodEnd ?? ""}
+            InputLabelProps={{ shrink: true }}
+            onChange={(event) =>
+              setDraft({
+                ...draft,
+                subscription: { ...draft.subscription, currentPeriodEnd: event.target.value }
+              })
+            }
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={draft.enabled}
+                onChange={(event) => setDraft({ ...draft, enabled: event.target.checked })}
+              />
+            }
+            label="Enabled"
+          />
+        </Stack>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button
+          onClick={submit}
+          disabled={!draft.username || (!user && !draft.password) || save.isPending}
+        >
+          Save user
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 }

@@ -2,6 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient } from "@lib/queryClient";
 import {
   createYoutubeVideo,
+  createAdminUser,
   createAdminHost,
   deleteAdminAlbum,
   deleteAdminHost,
@@ -12,6 +13,7 @@ import {
   listAdminHosts,
   listAdminSongs,
   listAdminUploads,
+  listAdminUsers,
   listAdminVideos,
   loadYoutubeVideoMetadata,
   previewYoutubeLyrics,
@@ -21,11 +23,12 @@ import {
   updateAdminArtistImage,
   updateAdminHost,
   updateAdminSong,
+  updateAdminUser,
   updateAdminVideo,
   updateAdminVideoCover,
   uploadAdminMedia
 } from "../api/admin";
-import type { AdminAlbum, AdminHost, AdminSong, AdminVideo } from "../types";
+import type { AdminAlbum, AdminHost, AdminSong, AdminUserPayload, AdminVideo } from "../types";
 import type { YoutubeVideoMetadataPreview } from "../types";
 
 export const adminKeys = {
@@ -35,7 +38,8 @@ export const adminKeys = {
   videos: ["admin", "videos"] as const,
   albums: ["admin", "albums"] as const,
   artists: ["admin", "artists"] as const,
-  hosts: ["admin", "hosts"] as const
+  hosts: ["admin", "hosts"] as const,
+  users: ["admin", "users"] as const
 };
 
 const invalidateAdmin = async () => {
@@ -58,6 +62,7 @@ export const useAdminAlbums = () =>
 export const useAdminArtists = () =>
   useQuery({ queryKey: adminKeys.artists, queryFn: listAdminArtists });
 export const useAdminHosts = () => useQuery({ queryKey: adminKeys.hosts, queryFn: listAdminHosts });
+export const useAdminUsers = () => useQuery({ queryKey: adminKeys.users, queryFn: listAdminUsers });
 
 export const useUpdateAdminSong = () =>
   useMutation({
@@ -180,5 +185,12 @@ export const useUploadAdminMedia = () =>
       file: File;
       progressId?: string;
     }) => uploadAdminMedia(hostId, file, progressId),
+    onSuccess: invalidateAdmin
+  });
+
+export const useSaveAdminUser = () =>
+  useMutation({
+    mutationFn: ({ id, data }: { id?: string; data: AdminUserPayload | Partial<AdminUserPayload> }) =>
+      id ? updateAdminUser(id, data) : createAdminUser(data as AdminUserPayload),
     onSuccess: invalidateAdmin
   });

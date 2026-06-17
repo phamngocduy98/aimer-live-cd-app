@@ -4,8 +4,7 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import IosShareOutlinedIcon from "@mui/icons-material/IosShareOutlined";
 import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
 import { Box, Menu, Snackbar, Typography } from "@mui/material";
-import { useAppDispatch } from "@app/hooks";
-import { playContext } from "@features/player/store/playerSlice";
+import { usePlaybackGate } from "@features/auth";
 import { AddToPlaylistDialog } from "@features/playlist";
 import type { AlbumDetail } from "../types";
 import { AlbumActionsMenu } from "@components/media/MediaActionsMenu";
@@ -16,7 +15,7 @@ import {
 } from "@components/view/designSystem";
 
 export const AlbumControlButton: React.FC<{ album: AlbumDetail }> = ({ album }) => {
-  const dispatch = useAppDispatch();
+  const playMedia = usePlaybackGate();
   const [addToPlaylistOpen, setAddToPlaylistOpen] = useState(false);
   const [creditsAnchor, setCreditsAnchor] = useState<HTMLElement | null>(null);
   const [moreAnchor, setMoreAnchor] = useState<HTMLElement | null>(null);
@@ -32,7 +31,7 @@ export const AlbumControlButton: React.FC<{ album: AlbumDetail }> = ({ album }) 
 
   const play = (shuffle = false) => {
     if (playableItems.length === 0) return;
-    dispatch(playContext({ items: playableItems, playFrom: playSource, shuffle }));
+    playMedia({ items: playableItems, playFrom: playSource, shuffle });
   };
 
   const copyAlbumLink = async () => {

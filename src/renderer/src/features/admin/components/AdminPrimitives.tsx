@@ -22,6 +22,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import DnsIcon from "@mui/icons-material/Dns";
 import EditIcon from "@mui/icons-material/Edit";
 import GroupsIcon from "@mui/icons-material/Groups";
+import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
 import LyricsIcon from "@mui/icons-material/Lyrics";
 import MovieIcon from "@mui/icons-material/Movie";
@@ -41,7 +42,8 @@ const tabs: { id: AdminTab; label: string; icon: React.ReactNode }[] = [
   { id: "videos", label: "Videos", icon: <MovieIcon /> },
   { id: "albums", label: "Albums", icon: <AlbumIcon /> },
   { id: "artists", label: "Artists", icon: <GroupsIcon /> },
-  { id: "hosts", label: "Hosting Provider", icon: <DnsIcon /> }
+  { id: "hosts", label: "Hosting Provider", icon: <DnsIcon /> },
+  { id: "users", label: "Users", icon: <ManageAccountsIcon /> }
 ];
 
 export function AdminTable<T extends { _id?: string; id?: string }>({

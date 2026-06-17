@@ -10,6 +10,8 @@ import pinoHttp from "pino-http";
 import { dbClient } from "./db/Mongo.js";
 import { WebdavServer } from "./webdav/webdav.js";
 import { createLogger, getRootLogger, requestContext, randomReqId } from "./utils/log.js";
+import { attachSession, requireAdmin, requirePaidMedia } from "./middleware/auth.js";
+import { seedFirstAdmin } from "./services/authService.js";
 
 import {
   handleGetHosts,
@@ -87,6 +89,15 @@ import {
   handleAdminUpdateVideo,
   handleAdminUpdateVideoCover
 } from "./routes/admin.js";
+import {
+  handleAdminCreateUser,
+  handleAdminListUsers,
+  handleAdminUpdateUser,
+  handleLogin,
+  handleLogout,
+  handleMe,
+  handleRefresh
+} from "./routes/auth.js";
 
 const rootDir = path.resolve();
 const webdavServer = new WebdavServer();
@@ -105,7 +116,8 @@ app.use(
 app.use((req, _res, next) => {
   requestContext.run({ requestId: String(req.id) }, () => next());
 });
-app.use(cors());
+app.use(cors({ credentials: true, origin: true }));
+app.use(attachSession);
 const staticPath = path.join(rootDir, "src", "client");
 createLogger("Status").info(`Serve static at ${staticPath}`);
 app.use("/", express.static(staticPath));
@@ -113,52 +125,65 @@ app.use(webdav.extensions.express("/webdav", webdavServer.server));
 
 const upload = multer();
 
-app.post("/api/videos/youtube/metadata", handleYoutubeVideoMetadata);
-app.post("/api/videos/youtube/lyrics-preview", handleYoutubeLyricsPreview);
-app.post("/api/videos/youtube", upload.single("cover"), handleYoutubeVideoUpload);
+app.post("/api/auth/login", handleLogin);
+app.post("/api/auth/logout", handleLogout);
+app.post("/api/auth/refresh", handleRefresh);
+app.get("/api/auth/me", handleMe);
 
-app.post("/api/upload/:hostId?", upload.single("audio"), handleFileUpload);
-app.get("/api/upload-progress/:id", handleUploadProgress);
+app.post("/api/videos/youtube/metadata", requireAdmin, handleYoutubeVideoMetadata);
+app.post("/api/videos/youtube/lyrics-preview", requireAdmin, handleYoutubeLyricsPreview);
+app.post("/api/videos/youtube", requireAdmin, upload.single("cover"), handleYoutubeVideoUpload);
 
-app.post("/api/upload-album/:hostId?", upload.array("audios"), handleAlbumUpload);
+app.post("/api/upload/:hostId?", requireAdmin, upload.single("audio"), handleFileUpload);
+app.get("/api/upload-progress/:id", requireAdmin, handleUploadProgress);
 
-app.post("/api/videos/:videoId/chapters", bodyParser.text({ type: "*/*" }), handleVideoChapters);
+app.post("/api/upload-album/:hostId?", requireAdmin, upload.array("audios"), handleAlbumUpload);
 
-app.get("/api/admin/uploads", handleAdminGetUploads);
-app.get("/api/admin/songs", handleAdminGetSongs);
-app.get("/api/admin/videos", handleAdminGetVideos);
-app.get("/api/admin/albums", handleAdminGetAlbums);
-app.get("/api/admin/artists", handleAdminGetArtists);
-app.get("/api/admin/artists/:name/image", handleAdminGetArtistImage);
-app.get("/api/admin/hosts", handleAdminGetHosts);
-app.post("/api/admin/hosts", handleAdminCreateHost);
-app.put("/api/admin/songs/:id", handleAdminUpdateSong);
-app.put("/api/admin/videos/:id", handleAdminUpdateVideo);
-app.put("/api/admin/videos/:id/cover", upload.single("cover"), handleAdminUpdateVideoCover);
-app.put("/api/admin/lyrics/:mediaType/:mediaId/tracks", handleAdminSaveLyrics);
-app.get("/api/admin/lyrics/providers", handleAdminGetLyricsProviders);
-app.post("/api/admin/lyrics/preview-srt", upload.single("subtitle"), handleAdminPreviewSrt);
-app.post("/api/admin/lyrics/:mediaType/:mediaId/search", handleAdminSearchLyrics);
-app.post("/api/admin/lyrics/:mediaType/:mediaId/import", handleAdminImportLyrics);
-app.post("/api/admin/lyrics/romanize", handleAdminRomanizeLyrics);
-app.post("/api/admin/lyrics/translate", handleAdminTranslateLyrics);
-app.put("/api/admin/albums/:id", handleAdminUpdateAlbum);
-app.put("/api/admin/albums/:id/cover", upload.single("cover"), handleAdminUpdateAlbumCover);
-app.put("/api/admin/hosts/:id", handleAdminUpdateHost);
-app.put("/api/admin/artists/:name", handleAdminRenameArtist);
-app.put("/api/admin/artists/:name/image", upload.single("image"), handleAdminUpdateArtistImage);
-app.delete("/api/admin/songs/:id", handleAdminDeleteSong);
-app.delete("/api/admin/videos/:id", handleAdminDeleteVideo);
-app.delete("/api/admin/albums/:id", handleAdminDeleteAlbum);
-app.delete("/api/admin/hosts/:id", handleAdminDeleteHost);
+app.post(
+  "/api/videos/:videoId/chapters",
+  requireAdmin,
+  bodyParser.text({ type: "*/*" }),
+  handleVideoChapters
+);
+
+app.get("/api/admin/uploads", requireAdmin, handleAdminGetUploads);
+app.get("/api/admin/songs", requireAdmin, handleAdminGetSongs);
+app.get("/api/admin/videos", requireAdmin, handleAdminGetVideos);
+app.get("/api/admin/albums", requireAdmin, handleAdminGetAlbums);
+app.get("/api/admin/artists", requireAdmin, handleAdminGetArtists);
+app.get("/api/admin/artists/:name/image", requireAdmin, handleAdminGetArtistImage);
+app.get("/api/admin/hosts", requireAdmin, handleAdminGetHosts);
+app.get("/api/admin/users", requireAdmin, handleAdminListUsers);
+app.post("/api/admin/users", requireAdmin, handleAdminCreateUser);
+app.put("/api/admin/users/:id", requireAdmin, handleAdminUpdateUser);
+app.post("/api/admin/hosts", requireAdmin, handleAdminCreateHost);
+app.put("/api/admin/songs/:id", requireAdmin, handleAdminUpdateSong);
+app.put("/api/admin/videos/:id", requireAdmin, handleAdminUpdateVideo);
+app.put("/api/admin/videos/:id/cover", requireAdmin, upload.single("cover"), handleAdminUpdateVideoCover);
+app.put("/api/admin/lyrics/:mediaType/:mediaId/tracks", requireAdmin, handleAdminSaveLyrics);
+app.get("/api/admin/lyrics/providers", requireAdmin, handleAdminGetLyricsProviders);
+app.post("/api/admin/lyrics/preview-srt", requireAdmin, upload.single("subtitle"), handleAdminPreviewSrt);
+app.post("/api/admin/lyrics/:mediaType/:mediaId/search", requireAdmin, handleAdminSearchLyrics);
+app.post("/api/admin/lyrics/:mediaType/:mediaId/import", requireAdmin, handleAdminImportLyrics);
+app.post("/api/admin/lyrics/romanize", requireAdmin, handleAdminRomanizeLyrics);
+app.post("/api/admin/lyrics/translate", requireAdmin, handleAdminTranslateLyrics);
+app.put("/api/admin/albums/:id", requireAdmin, handleAdminUpdateAlbum);
+app.put("/api/admin/albums/:id/cover", requireAdmin, upload.single("cover"), handleAdminUpdateAlbumCover);
+app.put("/api/admin/hosts/:id", requireAdmin, handleAdminUpdateHost);
+app.put("/api/admin/artists/:name", requireAdmin, handleAdminRenameArtist);
+app.put("/api/admin/artists/:name/image", requireAdmin, upload.single("image"), handleAdminUpdateArtistImage);
+app.delete("/api/admin/songs/:id", requireAdmin, handleAdminDeleteSong);
+app.delete("/api/admin/videos/:id", requireAdmin, handleAdminDeleteVideo);
+app.delete("/api/admin/albums/:id", requireAdmin, handleAdminDeleteAlbum);
+app.delete("/api/admin/hosts/:id", requireAdmin, handleAdminDeleteHost);
 
 app.get("/api/hosts", handleGetHosts);
 
-app.post("/api/hosts", handleCreateHost);
+app.post("/api/hosts", requireAdmin, handleCreateHost);
 
-app.delete("/api/hosts/:id", handleDeleteHost);
+app.delete("/api/hosts/:id", requireAdmin, handleDeleteHost);
 
-app.get("/api/hosts/:id/files", handleListHostFiles);
+app.get("/api/hosts/:id/files", requireAdmin, handleListHostFiles);
 
 app.get("/api/albums", handleGetAlbums);
 
@@ -166,9 +191,9 @@ app.get("/api/album/:id", handleGetAlbum);
 
 app.get("/api/album/:id/backup", handleGetAlbumBackup);
 
-app.post("/api/album/:id/backup/:hostid", handleAlbumBackup);
+app.post("/api/album/:id/backup/:hostid", requireAdmin, handleAlbumBackup);
 
-app.post("/api/album/:id/backup2/:hostid", handleAlbumBackup2);
+app.post("/api/album/:id/backup2/:hostid", requireAdmin, handleAlbumBackup2);
 
 app.get("/api/album/:id/cover", handleGetAlbumCover);
 
@@ -183,11 +208,11 @@ app.get("/api/song/:id", handleGetSong);
 
 app.get("/api/stream/:id", handleDeprecatedStream);
 
-app.get("/api/part/:id/:fileName", handleGetPart);
+app.get("/api/part/:id/:fileName", requirePaidMedia, handleGetPart);
 
-app.get("/api/stream/audio/:id", handleStreamAudio);
+app.get("/api/stream/audio/:id", requirePaidMedia, handleStreamAudio);
 
-app.get("/api/stream/video/:id", handleStreamVideo);
+app.get("/api/stream/video/:id", requirePaidMedia, handleStreamVideo);
 
 app.get("/api/song/:id/cover", handleGetSongCover);
 
@@ -219,6 +244,7 @@ export async function startServer(port: number): Promise<http.Server> {
   const log = createLogger("Status");
   await dbClient.connect();
   log.info("DB connected");
+  await seedFirstAdmin();
   await webdavServer.init();
   log.info("Webdav served at /webdav");
 

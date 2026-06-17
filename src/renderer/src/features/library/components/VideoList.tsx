@@ -1,15 +1,14 @@
-import { useAppDispatch } from "@app/hooks";
+import { usePlaybackGate } from "@features/auth";
 import { VideoCard } from "@components/media/VideoCard";
 import { CollectionHeader } from "@components/view/CollectionHeader";
 import { PageScaffold } from "@components/view/PageScaffold";
 import { CollectionContent, PageState } from "@components/view/designSystem";
-import { playContext } from "@features/player/store/playerSlice";
 import Grid from "@mui/material/Grid";
 import React, { useMemo, useState } from "react";
 import { useVideos } from "../hooks/useLibrary";
 
 export const Videos: React.FC = () => {
-  const dispatch = useAppDispatch();
+  const play = usePlaybackGate();
   const { data: videos = [] } = useVideos();
   const [filter, setFilter] = useState("");
 
@@ -26,12 +25,12 @@ export const Videos: React.FC = () => {
 
   const onPlayAll = () => {
     if (videos.length === 0) return;
-    dispatch(playContext({ items: videos, playFrom: playSource }));
+    play({ items: videos, playFrom: playSource });
   };
 
   const onPlayShuffleAll = () => {
     if (videos.length === 0) return;
-    dispatch(playContext({ items: videos, playFrom: playSource, shuffle: true }));
+    play({ items: videos, playFrom: playSource, shuffle: true });
   };
 
   return (
@@ -55,9 +54,7 @@ export const Videos: React.FC = () => {
               <VideoCard
                 video={video}
                 onPlay={() =>
-                  dispatch(
-                    playContext({ items: visibleVideos, playFrom: playSource, startIndex: idx })
-                  )
+                  play({ items: visibleVideos, playFrom: playSource, startIndex: idx })
                 }
               />
             </Grid>

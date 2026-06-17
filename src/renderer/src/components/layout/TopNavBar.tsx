@@ -9,6 +9,7 @@ import { InputAdornment, InputBase } from "@mui/material";
 import { SearchDropdown } from "@components/search/SearchDropdown";
 import type { SearchResult } from "@renderer/types/shared";
 import { search } from "@features/search";
+import type { SessionState } from "@features/auth";
 import { BrandMark } from "./BrandMark";
 
 const BootstrapInput = styled(InputBase)({
@@ -52,9 +53,12 @@ interface TopNavBarProps {
   isMenuOpen: boolean;
   isHome: boolean;
   anchorEl: HTMLElement | null;
+  session: SessionState;
   onMenuOpen: (event: React.MouseEvent<HTMLElement>) => void;
   onMenuClose: () => void;
   onAdminClick: () => void;
+  onLoginClick: () => void;
+  onLogoutClick: () => void;
   onBackClick: () => void;
   onSearch: (query: string) => void;
 }
@@ -64,9 +68,12 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
   isMenuOpen,
   isHome,
   anchorEl,
+  session,
   onMenuOpen,
   onMenuClose,
   onAdminClick,
+  onLoginClick,
+  onLogoutClick,
   onBackClick,
   onSearch
 }) => {
@@ -216,14 +223,35 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
         </Grid>
       </Box>
       <Menu anchorEl={anchorEl} open={isMenuOpen} onClose={onMenuClose}>
-        <MenuItem
-          onClick={() => {
-            onMenuClose();
-            onAdminClick();
-          }}
-        >
-          Admin
-        </MenuItem>
+        {session.canAccessAdmin && (
+          <MenuItem
+            onClick={() => {
+              onMenuClose();
+              onAdminClick();
+            }}
+          >
+            Admin
+          </MenuItem>
+        )}
+        {session.user ? (
+          <MenuItem
+            onClick={() => {
+              onMenuClose();
+              onLogoutClick();
+            }}
+          >
+            Logout {session.user.displayName}
+          </MenuItem>
+        ) : (
+          <MenuItem
+            onClick={() => {
+              onMenuClose();
+              onLoginClick();
+            }}
+          >
+            Login
+          </MenuItem>
+        )}
       </Menu>
     </>
   );
