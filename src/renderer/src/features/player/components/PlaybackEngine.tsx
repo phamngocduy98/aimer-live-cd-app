@@ -3,7 +3,7 @@ import ReactPlayer from "react-player";
 import { Box } from "@mui/material";
 import { useGlobalAudioPlayer } from "react-use-audio-player";
 import { useAppDispatch, useAppSelector } from "@app/hooks";
-import { apiAssetUrl } from "@lib/axios";
+import { streamAssetUrl } from "@lib/axios";
 import { isVideo } from "@features/library";
 import { nextTrack } from "../store/playerSlice";
 import { showView } from "../store/playerGuiSlice";
@@ -76,7 +76,7 @@ export function PlaybackEngine() {
 
     const video = isVideo(playingTrack);
     const sourcePath = mediaSourcePath(playingTrack);
-    const nextSource = sourcePath.startsWith("/") ? apiAssetUrl(sourcePath) : sourcePath;
+    const nextSource = sourcePath.startsWith("/") ? streamAssetUrl(sourcePath) : sourcePath;
 
     if (video) {
       if (playing) stop();

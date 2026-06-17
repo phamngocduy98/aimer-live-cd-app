@@ -19,8 +19,7 @@ export default defineConfig({
     build: {
       rollupOptions: {
         input: {
-          main: "./src/renderer/index.html",
-          password: "./src/renderer/password.html"
+          main: "./src/renderer/index.html"
         }
       }
     },

@@ -170,10 +170,11 @@ test.describe("Admin dialog", () => {
     await expect(editor).not.toBeVisible();
 
     const result = await ctx.mainWindow.evaluate(async (videoId) => {
-      const electronAPI = (window as unknown as { electronAPI: { getPort: () => Promise<number> } })
-        .electronAPI;
-      const port = await electronAPI.getPort();
-      const response = await fetch(`http://localhost:${port}/api/video/${videoId}/cover`, {
+      const electronAPI = (
+        window as unknown as { electronAPI: { getApiBaseUrl: () => Promise<string> } }
+      ).electronAPI;
+      const apiBaseUrl = await electronAPI.getApiBaseUrl();
+      const response = await fetch(`${apiBaseUrl}/video/${videoId}/cover`, {
         cache: "reload"
       });
       return {

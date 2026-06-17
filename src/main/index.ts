@@ -2,12 +2,9 @@ import { app, shell, BrowserWindow, ipcMain, dialog, safeStorage } from "electro
 import { join } from "path";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import icon from "../../resources/icon.png?asset";
-import getPort from "get-port";
 import Store from "electron-store";
-import type { Server } from "node:http";
+import { createLogger, getRootLogger, initLogger } from "./utils/log.js";
 
-let httpServer: Server | null = null;
-let isShuttingDown = false;
 let isInitializing = true;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -15,11 +12,7 @@ let log: any = { info: () => {}, error: () => {} };
 
 // Định nghĩa interface cho cấu hình
 interface AppConfig {
-  MONGO_DB_HOST?: string;
-  MONGO_DB_USER?: string;
-  MONGO_DB_PW?: string;
   AES_PW?: string;
-  DB_STORE_PW?: string;
 }
 // Khởi tạo store - sử dụng any tạm thời để tránh lỗi TypeScript
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -43,124 +36,60 @@ function decryptValue(encryptedValue: string): string {
   return safeStorage.decryptString(buffer);
 }
 
-function createPasswordWindow(): Promise<AppConfig | null> {
-  return new Promise((resolve) => {
-    const passwordWindow = new BrowserWindow({
-      width: 360,
-      height: 450,
-      webPreferences: {
-        nodeIntegration: false,
-        contextIsolation: true,
-        preload: join(__dirname, "../preload/index.cjs")
-      },
-      resizable: false,
-      minimizable: false,
-      maximizable: false,
-      parent: BrowserWindow.getFocusedWindow() || undefined,
-      modal: true,
-      autoHideMenuBar: true,
-      useContentSize: true
-    });
+function getEncryptedConfig(): Record<string, string> {
+  return (store.get("config") as Record<string, string>) || {};
+}
 
-    // Load password input HTML
-    if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
-      passwordWindow.loadURL(`${process.env["ELECTRON_RENDERER_URL"]}/password.html`);
-    } else {
-      passwordWindow.loadFile(join(__dirname, "../renderer/password.html"));
-    }
+function getApiBaseUrl(): string {
+  return (
+    process.env.API_BASE_URL ||
+    process.env.VITE_API_BASE_URL ||
+    (is.dev ? "http://localhost:3001/api" : "https://music.btxa.io.vn/api")
+  );
+}
 
-    if (is.dev && !process.env.DISABLE_DEVTOOLS) {
-      passwordWindow.webContents.on("did-finish-load", () => {
-        passwordWindow.webContents.openDevTools();
-      });
-    }
+function getStreamBaseUrl(): string {
+  return process.env.STREAM_BASE_URL || process.env.VITE_STREAM_BASE_URL || getApiBaseUrl();
+}
 
-    // Handle password submission
-    ipcMain.once("submit-password", (_, configData: string) => {
-      try {
-        const config = JSON.parse(configData);
-        log.info("Received configuration");
-        resolve(config);
-        passwordWindow.close();
-      } catch (error) {
-        log.error({ err: error }, "Error parsing configuration");
-        resolve(null);
-        passwordWindow.close();
-      }
-    });
+function storeAesPassword(password: string): void {
+  if (!password.trim()) {
+    throw new Error("AES password is required");
+  }
+  const config = getEncryptedConfig();
+  config.AES_PW = encryptValue(password);
+  store.set("config", config);
+  process.env.AES_PW = password;
+}
 
-    // Handle window close
-    passwordWindow.on("closed", () => {
-      resolve(null);
-    });
-  });
+function hasStoredAesPassword(): boolean {
+  return Boolean(getEncryptedConfig().AES_PW);
+}
+
+function loadStoredAesPassword(): void {
+  const encrypted = getEncryptedConfig().AES_PW;
+  if (encrypted) {
+    process.env.AES_PW = decryptValue(encrypted);
+  }
+}
+
+function clearStoredAesPassword(): void {
+  const config = getEncryptedConfig();
+  delete config.AES_PW;
+  store.set("config", config);
+  delete process.env.AES_PW;
 }
 
 async function initializeApp(): Promise<void> {
-  const port = await getPort({ port: 3000 });
-
-  // Init logger before any backend modules load
-  const { initLogger, createLogger } = await import("./backend/utils/log.js");
   initLogger({ logDir: join(app.getPath("userData"), "logs") });
   log = createLogger("Main");
 
-  // Check if configuration exists
-  const hasConfig = store.get("config") !== undefined;
-  if (!hasConfig) {
-    // If not, display configuration window
-    const config = await createPasswordWindow();
-    if (config) {
-      try {
-        // Set environment variables
-        Object.entries(config).forEach(([key, value]) => {
-          if (typeof value === "string") {
-            process.env[key] = value;
-          }
-        });
-
-        // Encrypt sensitive data
-        const encryptedData: Record<string, string> = {};
-        for (const [key, value] of Object.entries(config)) {
-          encryptedData[key] = encryptValue(value);
-        }
-
-        // Save configuration
-        store.set("config", encryptedData);
-      } catch (error) {
-        log.error({ err: error }, "Error processing configuration");
-        await dialog.showErrorBox("Error", "Unable to save configuration. Please try again.");
-        app.quit();
-        return;
-      }
-    } else {
-      // User canceled
-      app.quit();
-      return;
-    }
-  } else {
-    log.info("Configuration exists, loading from store");
-    // Load existing configuration from store
-    const config = (store.get("config") as Record<string, string>) || {};
-
-    // Set environment variables for public data
-    const decryptedConfig: Record<string, string> = {};
-    for (const [key, value] of Object.entries(config)) {
-      if (value) {
-        decryptedConfig[key] = decryptValue(value);
-      }
-    }
-    log.info("Configuration decrypted successfully");
-    Object.assign(process.env, decryptedConfig);
-    log.info("Configuration assigned to process.env");
-  }
-
   try {
-    const { startServer } = await import("./backend/index.js");
-    httpServer = await startServer(port);
+    loadStoredAesPassword();
   } catch (error: unknown) {
-    log.error({ err: error }, "Failed to start server");
+    log.error({ err: error }, "Failed to load encrypted app configuration");
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    dialog.showErrorBox("Error", `Failed to start server: ${errorMessage}`);
+    dialog.showErrorBox("Error", `Failed to load app configuration: ${errorMessage}`);
     app.quit();
     return;
   }
@@ -175,8 +104,11 @@ async function initializeApp(): Promise<void> {
     optimizer.watchWindowShortcuts(window);
   });
 
-  // create handle for get port
-  ipcMain.handle("get-port", () => port);
+  ipcMain.handle("get-api-base-url", () => getApiBaseUrl());
+  ipcMain.handle("get-stream-base-url", () => getStreamBaseUrl());
+  ipcMain.handle("store-aes-password", (_event, password: string) => storeAesPassword(password));
+  ipcMain.handle("has-stored-aes-password", () => hasStoredAesPassword());
+  ipcMain.handle("clear-stored-aes-password", () => clearStoredAesPassword());
   createWindow();
   isInitializing = false;
 
@@ -226,23 +158,7 @@ function createWindow(): void {
 }
 
 async function gracefulShutdown(): Promise<void> {
-  if (httpServer) {
-    log.info("Closing HTTP server...");
-    await new Promise<void>((resolve) => {
-      const timeout = setTimeout(() => {
-        log.warn("HTTP server close timed out, forcing shutdown");
-        resolve();
-      }, 10000);
-      httpServer!.close(() => {
-        clearTimeout(timeout);
-        log.info("HTTP server closed");
-        resolve();
-      });
-    });
-  }
-
   try {
-    const { getRootLogger } = await import("./backend/utils/log.js");
     getRootLogger().flush();
     log.info("Logger flushed");
   } catch (err) {
@@ -251,13 +167,10 @@ async function gracefulShutdown(): Promise<void> {
 }
 
 app.on("before-quit", (event) => {
-  if (!isShuttingDown) {
-    event.preventDefault();
-    isShuttingDown = true;
-    gracefulShutdown().finally(() => {
-      app.quit();
-    });
-  }
+  event.preventDefault();
+  gracefulShutdown().finally(() => {
+    app.exit();
+  });
 });
 
 // This method will be called when Electron has finished

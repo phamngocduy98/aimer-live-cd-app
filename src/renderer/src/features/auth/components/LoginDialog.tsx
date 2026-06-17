@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   Button,
@@ -15,13 +15,31 @@ export function LoginDialog({ open, onClose }: { open: boolean; onClose: () => v
   const login = useLogin();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [aesPassword, setAesPassword] = useState("");
+  const [showAesPassword, setShowAesPassword] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    if (!window.electronAPI) return;
+    window.electronAPI.hasStoredAesPassword().then((stored) => {
+      if (mounted) setShowAesPassword(!stored);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [open]);
 
   const submit = () => {
     login.mutate(
       { username, password },
       {
-        onSuccess: () => {
+        onSuccess: async () => {
+          if (showAesPassword && aesPassword) {
+            await window.electronAPI?.storeAesPassword(aesPassword);
+            setShowAesPassword(false);
+          }
           setPassword("");
+          setAesPassword("");
           onClose();
         }
       }
@@ -49,6 +67,17 @@ export function LoginDialog({ open, onClose }: { open: boolean; onClose: () => v
               if (event.key === "Enter" && username && password) submit();
             }}
           />
+          {showAesPassword && (
+            <TextField
+              label="Media key"
+              type="password"
+              value={aesPassword}
+              onChange={(event) => setAesPassword(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && username && password) submit();
+              }}
+            />
+          )}
         </Stack>
       </DialogContent>
       <DialogActions>

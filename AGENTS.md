@@ -36,19 +36,19 @@ mechanics.
 
 - `src/main/index.ts` — main process
 - `src/preload/index.ts` — preload
-- `src/renderer/` — React frontend (`/index.html`, `/password.html`, `src/`)
+- `src/renderer/` — React frontend (`/index.html`, `src/`)
   - `app/` — providers, router, Redux store, and application shell
   - `features/` — domain APIs, hooks, types, and components
   - `components/` — shared layout, media, view, search, and common UI
   - `lib/` — Axios and TanStack Query clients
 - `src/main/backend/` — layered backend (`config/`, `models/`, `db/`, `routes/`, `services/`, `utils/`, `types/`, `scripts/`, `webdav/`)
-- Client API calls: `src/renderer/src/core/api.ts`
+- Client API calls: feature-owned API modules using `src/renderer/src/lib/axios.ts`
 - `docs` — where all markdown documents are placed.
 
 ## Config & Env
 
-- No `.env` file: vars stored in encrypted `electron-store`; set on startup via `src/main/index.ts`
-- First run shows password window for `AES_PW` (64-char hex for AES-256-CTR) and `MONGO_DB_HOST/USER/PW`
+- Electron stores only desktop-local secrets such as `AES_PW` in encrypted `electron-store` after login
+- Electron no longer stores MongoDB credentials or shows a first-run env setup window
 - Standalone server (`dev:server`) reads `.env` directly via `dotenv/config`
 - Built output: `./out/`; electron-builder config: `electron-builder.yml`
 - Electron-Vite v3; typecheck uses `tsconfig.node.json`, `tsconfig.web.json`, and `tsconfig.e2e.json` (e2e)
@@ -61,11 +61,11 @@ mechanics.
   - `types.ts` — `ElectronApp`, `ElectronTestContext`, `LaunchOptions`
   - `temp-dir.ts` — `createTempDir`, `cleanupTempDir`
   - `electron-app.ts` — `launchApp` (Electron lifecycle, window detection, resize)
-  - `first-setup-dialog.ts` — first-run config auto-fill from `.env`
   - `test-data.ts` — deterministic MongoDB seed data for E2E runs
 - `playwright.config.ts` (workers: 1, sequential); isolated temp dirs per suite
 - Typechecked via `tsconfig.e2e.json` (`pnpm typecheck:e2e`)
 - E2E launch uses built Electron output from `out/main/index.js`; run `pnpm build` after source changes before E2E
+- E2E Electron calls the standalone backend via `API_BASE_URL`/`STREAM_BASE_URL` (default `http://localhost:3001/api`)
 - E2E seeds MongoDB per spec run; default `MONGO_DB_NAME=musicbtxa_e2e`, and seeding refuses DB names that do not end with `_e2e` or `_test`
 - E2E launches Electron with `E2E_TEST_MODE=true`; backend stream routes return deterministic local fixture media in this mode
 - Run single file: `pnpm test:e2e -- e2e/gui.spec.ts`

@@ -37,6 +37,23 @@ interface SessionPayload {
 export const authCookieName = SESSION_COOKIE;
 export const refreshCookieName = REFRESH_COOKIE;
 
+function cookieAttributes(maxAgeSeconds: number): string {
+  const sameSite =
+    process.env.AUTH_COOKIE_SAMESITE ?? (process.env.NODE_ENV === "production" ? "None" : "Lax");
+  const secure =
+    process.env.AUTH_COOKIE_SECURE === "true" ||
+    (process.env.AUTH_COOKIE_SECURE !== "false" && sameSite.toLowerCase() === "none");
+  return [
+    "HttpOnly",
+    "Path=/",
+    `SameSite=${sameSite}`,
+    `Max-Age=${maxAgeSeconds}`,
+    secure ? "Secure" : ""
+  ]
+    .filter(Boolean)
+    .join("; ");
+}
+
 function getSessionSecret(): string {
   const secret = process.env.AUTH_SESSION_SECRET ?? process.env.DB_STORE_PW;
   if (!secret) throw new Error("Missing AUTH_SESSION_SECRET or DB_STORE_PW");
@@ -162,13 +179,13 @@ export function parseCookies(cookieHeader: string | undefined): Record<string, s
 }
 
 export function buildSessionCookie(token: string): string {
-  return `${SESSION_COOKIE}=${encodeURIComponent(
-    token
-  )}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${SESSION_MAX_AGE_SECONDS}`;
+  return `${SESSION_COOKIE}=${encodeURIComponent(token)}; ${cookieAttributes(
+    SESSION_MAX_AGE_SECONDS
+  )}`;
 }
 
 export function buildExpiredSessionCookie(): string {
-  return `${SESSION_COOKIE}=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0`;
+  return `${SESSION_COOKIE}=; ${cookieAttributes(0)}`;
 }
 
 function hashRefreshToken(token: string): string {
@@ -180,13 +197,13 @@ export function createRefreshToken(): string {
 }
 
 export function buildRefreshCookie(token: string): string {
-  return `${REFRESH_COOKIE}=${encodeURIComponent(
-    token
-  )}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${REFRESH_MAX_AGE_SECONDS}`;
+  return `${REFRESH_COOKIE}=${encodeURIComponent(token)}; ${cookieAttributes(
+    REFRESH_MAX_AGE_SECONDS
+  )}`;
 }
 
 export function buildExpiredRefreshCookie(): string {
-  return `${REFRESH_COOKIE}=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0`;
+  return `${REFRESH_COOKIE}=; ${cookieAttributes(0)}`;
 }
 
 export function buildAuthCookies(sessionToken: string, refreshToken: string): string[] {

@@ -2,7 +2,6 @@ import { type Page, _electron as electron } from "@playwright/test";
 import { join } from "path";
 import { fileURLToPath } from "url";
 import type { ElectronApp, ElectronTestContext, LaunchOptions } from "./types.js";
-import { fillFormWithEnvInfoAndSubmit } from "./first-setup-dialog.js";
 import { E2E_DB_NAME } from "./test-data.js";
 
 export type { ElectronTestContext, LaunchOptions };
@@ -24,7 +23,9 @@ export async function launchApp(
       APPDATA: testUserDataDir,
       DISABLE_DEVTOOLS: "true",
       E2E_TEST_MODE: "true",
-      MONGO_DB_NAME: process.env.MONGO_DB_NAME || E2E_DB_NAME
+      MONGO_DB_NAME: process.env.MONGO_DB_NAME || E2E_DB_NAME,
+      API_BASE_URL: process.env.API_BASE_URL || "http://localhost:3001/api",
+      STREAM_BASE_URL: process.env.STREAM_BASE_URL || "http://localhost:3001/api"
     },
     timeout: 60000
   });
@@ -35,19 +36,6 @@ export async function launchApp(
       timeout: options?.windowTimeout ?? 30000
     });
     await window.waitForLoadState("domcontentloaded");
-
-    const windowTitle = await window.title();
-    if (windowTitle.includes("Cấu hình")) {
-      const mainWindowPromise = electronApp.waitForEvent("window", {
-        predicate: (page: Page) =>
-          page.title().then((title) => !title.includes("Cấu hình") && !title.includes("DevTools")),
-        timeout: options?.windowTimeout ?? 30000
-      });
-      await fillFormWithEnvInfoAndSubmit(window);
-      window = await mainWindowPromise;
-      await window.waitForLoadState("domcontentloaded");
-      await window.waitForTimeout(2000);
-    }
 
     if (options?.windowSize) {
       const [width, height] = options.windowSize;

@@ -2,7 +2,10 @@
 
 interface Window {
   electronAPI?: {
-    getPort: () => Promise<number>
-    submitPassword: (password: string) => void
+    getApiBaseUrl: () => Promise<string>
+    getStreamBaseUrl: () => Promise<string>
+    storeAesPassword: (password: string) => Promise<void>
+    hasStoredAesPassword: () => Promise<boolean>
+    clearStoredAesPassword: () => Promise<void>
   }
 }

@@ -1,6 +1,7 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios"
 
 export const apiClient = axios.create({ withCredentials: true })
+let streamBaseUrl = import.meta.env.VITE_STREAM_BASE_URL || import.meta.env.VITE_API_BASE_URL || "/api"
 
 interface RetryableRequestConfig extends InternalAxiosRequestConfig {
   _retryAfterRefresh?: boolean
@@ -30,15 +31,21 @@ apiClient.interceptors.response.use(
   }
 )
 
-export function configureApiBaseUrl(): void {
+export async function configureApiBaseUrl(): Promise<void> {
   if (window.electronAPI) {
-    window.electronAPI.getPort().then((port) => {
-      apiClient.defaults.baseURL = `http://localhost:${port}/api`
-    })
-  } else {
-    apiClient.defaults.baseURL = "/api"
+    const [apiBaseUrl, electronStreamBaseUrl] = await Promise.all([
+      window.electronAPI.getApiBaseUrl(),
+      window.electronAPI.getStreamBaseUrl()
+    ])
+    apiClient.defaults.baseURL = apiBaseUrl
+    streamBaseUrl = electronStreamBaseUrl
+    return
   }
+  apiClient.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || "/api"
+  streamBaseUrl = import.meta.env.VITE_STREAM_BASE_URL || apiClient.defaults.baseURL
 }
 
 export const apiAssetUrl = (path: string): string =>
   `${apiClient.defaults.baseURL ?? "/api"}${path}`
+
+export const streamAssetUrl = (path: string): string => `${streamBaseUrl}${path}`
