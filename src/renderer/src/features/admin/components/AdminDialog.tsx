@@ -75,13 +75,9 @@ type DeleteTarget =
 
 export function AdminDialog({ open, onClose }: AdminDialogProps) {
   const [tab, setTab] = React.useState<AdminTab>("songs");
-  const uploads = useAdminUploads();
-  const songs = useAdminSongs();
-  const videos = useAdminVideos();
-  const albums = useAdminAlbums();
-  const artists = useAdminArtists();
-  const hosts = useAdminHosts();
-  const users = useAdminUsers();
+  const [visitedTabs, setVisitedTabs] = React.useState<ReadonlySet<AdminTab>>(
+    () => new Set(["songs"])
+  );
   const deleteSong = useDeleteAdminSong();
   const deleteVideo = useDeleteAdminVideo();
   const deleteAlbum = useDeleteAdminAlbum();
@@ -100,69 +96,96 @@ export function AdminDialog({ open, onClose }: AdminDialogProps) {
   const [youtubeOpen, setYoutubeOpen] = React.useState(false);
   const [deleteTarget, setDeleteTarget] = React.useState<DeleteTarget | null>(null);
 
+  React.useEffect(() => {
+    if (!open) return;
+    setVisitedTabs((current) => {
+      if (current.has(tab)) return current;
+      return new Set([...current, tab]);
+    });
+  }, [open, tab]);
+
+  const uploads = useAdminUploads(open && visitedTabs.has("uploads"));
+  const songs = useAdminSongs(open && visitedTabs.has("songs"));
+  const videos = useAdminVideos(open && visitedTabs.has("videos"));
+  const albums = useAdminAlbums(open && (visitedTabs.has("albums") || Boolean(songEdit)));
+  const artists = useAdminArtists(open && visitedTabs.has("artists"));
+  const hosts = useAdminHosts(open && (visitedTabs.has("hosts") || uploadOpen));
+  const users = useAdminUsers(open && visitedTabs.has("users"));
+
   const albumRows = albums.data ?? [];
   const hostRows = hosts.data ?? [];
 
-  const content: Record<AdminTab, React.ReactNode> = {
-    uploads: (
-      <UploadsSection
-        rows={uploads.data ?? []}
-        loading={uploads.isLoading}
-        onUpload={() => setUploadOpen(true)}
-      />
-    ),
-    songs: (
-      <SongsSection
-        rows={songs.data ?? []}
-        loading={songs.isLoading}
-        onEdit={setSongEdit}
-        onLyrics={(media) => setLyricsTarget({ mediaType: "audio", media })}
-        onDelete={(item) => setDeleteTarget({ type: "song", item })}
-      />
-    ),
-    videos: (
-      <VideosSection
-        rows={videos.data ?? []}
-        loading={videos.isLoading}
-        onAddYoutube={() => setYoutubeOpen(true)}
-        onEdit={setVideoEdit}
-        onLyrics={(media) => setLyricsTarget({ mediaType: "video", media })}
-        onDelete={(item) => setDeleteTarget({ type: "video", item })}
-      />
-    ),
-    albums: (
-      <AlbumsSection
-        rows={albumRows}
-        loading={albums.isLoading}
-        onEdit={setAlbumEdit}
-        onViewMedia={setAlbumMedia}
-        onDelete={(item) => setDeleteTarget({ type: "album", item })}
-      />
-    ),
-    artists: (
-      <ArtistsSection
-        rows={artists.data ?? []}
-        loading={artists.isLoading}
-        onEdit={setArtistEdit}
-      />
-    ),
-    hosts: (
-      <HostsSection
-        rows={hostRows}
-        loading={hosts.isLoading}
-        onAdd={() => setHostEdit(null)}
-        onEdit={setHostEdit}
-        onDelete={(item) => setDeleteTarget({ type: "host", item })}
-      />
-    ),
-    users: (
-      <UsersSection
-        rows={users.data ?? []}
-        loading={users.isLoading}
-        onAdd={() => setUserEdit(null)}
-        onEdit={setUserEdit}
-      />
-    )
+  const renderContent = (): React.ReactNode => {
+    switch (tab) {
+      case "uploads":
+        return (
+          <UploadsSection
+            rows={uploads.data ?? []}
+            loading={uploads.isLoading}
+            onUpload={() => setUploadOpen(true)}
+          />
+        );
+      case "songs":
+        return (
+          <SongsSection
+            rows={songs.data ?? []}
+            loading={songs.isLoading}
+            onEdit={setSongEdit}
+            onLyrics={(media) => setLyricsTarget({ mediaType: "audio", media })}
+            onDelete={(item) => setDeleteTarget({ type: "song", item })}
+          />
+        );
+      case "videos":
+        return (
+          <VideosSection
+            rows={videos.data ?? []}
+            loading={videos.isLoading}
+            onAddYoutube={() => setYoutubeOpen(true)}
+            onEdit={setVideoEdit}
+            onLyrics={(media) => setLyricsTarget({ mediaType: "video", media })}
+            onDelete={(item) => setDeleteTarget({ type: "video", item })}
+          />
+        );
+      case "albums":
+        return (
+          <AlbumsSection
+            rows={albumRows}
+            loading={albums.isLoading}
+            onEdit={setAlbumEdit}
+            onViewMedia={setAlbumMedia}
+            onDelete={(item) => setDeleteTarget({ type: "album", item })}
+          />
+        );
+      case "artists":
+        return (
+          <ArtistsSection
+            rows={artists.data ?? []}
+            loading={artists.isLoading}
+            onEdit={setArtistEdit}
+          />
+        );
+      case "hosts":
+        return (
+          <HostsSection
+            rows={hostRows}
+            loading={hosts.isLoading}
+            onAdd={() => setHostEdit(null)}
+            onEdit={setHostEdit}
+            onDelete={(item) => setDeleteTarget({ type: "host", item })}
+          />
+        );
+      case "users":
+        return (
+          <UsersSection
+            rows={users.data ?? []}
+            loading={users.isLoading}
+            onAdd={() => setUserEdit(null)}
+            onEdit={setUserEdit}
+          />
+        );
+      default:
+        return null;
+    }
   };
 
   const deleteMessage =
@@ -194,7 +217,7 @@ export function AdminDialog({ open, onClose }: AdminDialogProps) {
         <Box sx={{ display: "flex", minHeight: 0, flex: 1 }}>
           <AdminNavigation value={tab} onChange={setTab} />
           <DialogContent sx={{ p: 2, minWidth: 0, flex: 1, height: "100%" }}>
-            {content[tab]}
+            {renderContent()}
           </DialogContent>
         </Box>
       </Box>
@@ -355,7 +378,9 @@ function UserEditDialog({
             select
             label="Role"
             value={draft.role}
-            onChange={(event) => setDraft({ ...draft, role: event.target.value as "admin" | "member" })}
+            onChange={(event) =>
+              setDraft({ ...draft, role: event.target.value as "admin" | "member" })
+            }
           >
             <MenuItem value="admin">Admin</MenuItem>
             <MenuItem value="member">Member</MenuItem>

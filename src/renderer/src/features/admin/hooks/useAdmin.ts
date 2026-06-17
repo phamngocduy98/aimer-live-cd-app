@@ -52,17 +52,20 @@ const invalidateAdmin = async () => {
   ]);
 };
 
-export const useAdminUploads = () =>
-  useQuery({ queryKey: adminKeys.uploads, queryFn: listAdminUploads });
-export const useAdminSongs = () => useQuery({ queryKey: adminKeys.songs, queryFn: listAdminSongs });
-export const useAdminVideos = () =>
-  useQuery({ queryKey: adminKeys.videos, queryFn: listAdminVideos });
-export const useAdminAlbums = () =>
-  useQuery({ queryKey: adminKeys.albums, queryFn: listAdminAlbums });
-export const useAdminArtists = () =>
-  useQuery({ queryKey: adminKeys.artists, queryFn: listAdminArtists });
-export const useAdminHosts = () => useQuery({ queryKey: adminKeys.hosts, queryFn: listAdminHosts });
-export const useAdminUsers = () => useQuery({ queryKey: adminKeys.users, queryFn: listAdminUsers });
+export const useAdminUploads = (enabled = true) =>
+  useQuery({ queryKey: adminKeys.uploads, queryFn: listAdminUploads, enabled });
+export const useAdminSongs = (enabled = true) =>
+  useQuery({ queryKey: adminKeys.songs, queryFn: listAdminSongs, enabled });
+export const useAdminVideos = (enabled = true) =>
+  useQuery({ queryKey: adminKeys.videos, queryFn: listAdminVideos, enabled });
+export const useAdminAlbums = (enabled = true) =>
+  useQuery({ queryKey: adminKeys.albums, queryFn: listAdminAlbums, enabled });
+export const useAdminArtists = (enabled = true) =>
+  useQuery({ queryKey: adminKeys.artists, queryFn: listAdminArtists, enabled });
+export const useAdminHosts = (enabled = true) =>
+  useQuery({ queryKey: adminKeys.hosts, queryFn: listAdminHosts, enabled });
+export const useAdminUsers = (enabled = true) =>
+  useQuery({ queryKey: adminKeys.users, queryFn: listAdminUsers, enabled });
 
 export const useUpdateAdminSong = () =>
   useMutation({
@@ -190,7 +193,12 @@ export const useUploadAdminMedia = () =>
 
 export const useSaveAdminUser = () =>
   useMutation({
-    mutationFn: ({ id, data }: { id?: string; data: AdminUserPayload | Partial<AdminUserPayload> }) =>
-      id ? updateAdminUser(id, data) : createAdminUser(data as AdminUserPayload),
+    mutationFn: ({
+      id,
+      data
+    }: {
+      id?: string;
+      data: AdminUserPayload | Partial<AdminUserPayload>;
+    }) => (id ? updateAdminUser(id, data) : createAdminUser(data as AdminUserPayload)),
     onSuccess: invalidateAdmin
   });
