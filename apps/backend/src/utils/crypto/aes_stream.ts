@@ -1,7 +1,7 @@
 // base on https://github.com/wangsijie/aes-encrypt-stream/blob/master/src/index.ts
 
 import * as crypto from "crypto";
-import { Transform, Stream, Writable, Readable } from "stream";
+import { Readable } from "stream";
 
 export class AesStream {
   password: Buffer;

@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import mongoose, { Types } from "mongoose";
-import { hashPassword } from "../../src/main/backend/services/authService.js";
+import { hashPassword } from "../../apps/backend/src/services/authService.js";
 
 dotenv.config();
 

@@ -19,6 +19,9 @@
 | File storage     | FTP-based, split into encrypted parts           |
 | Encryption       | AES-256-CTR (per-file IV)                       |
 
+The backend is deployed as a standalone Node app from `apps/backend/src`.
+Electron does not import backend modules or connect to MongoDB directly.
+
 ### Renderer Folder Structure
 
 The renderer uses a feature-based layout:

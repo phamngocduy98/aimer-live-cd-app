@@ -1,5 +1,6 @@
 import path from "node:path";
 import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import { Types } from "mongoose";
 import { PARTSIZE } from "../config/const.js";
 import { Album } from "../models/Album.js";
@@ -31,7 +32,8 @@ import {
 } from "./adminLogic.js";
 
 const log = createLogger("Admin");
-const rootDir = path.resolve();
+const routeDir = path.dirname(fileURLToPath(import.meta.url));
+const phpAssetDir = path.resolve(routeDir, "..", "scripts", "php");
 
 function isValidId(id: string): boolean {
   return id.length === 12 || id.length === 24;
@@ -363,12 +365,12 @@ export async function handleAdminCreateHost(req, res) {
   try {
     await uploader.ftpClient?.mkdir(`${ftpRoot}${uploadPath}`);
     await uploader.uploadFile(
-      await readFile(path.join(rootDir, "src", "php", "sync.php")),
+      await readFile(path.join(phpAssetDir, "sync.php")),
       () => "sync.php",
       ""
     );
     await uploader.uploadFile(
-      await readFile(path.join(rootDir, "src", "php", "status.php")),
+      await readFile(path.join(phpAssetDir, "status.php")),
       () => "status.php",
       ""
     );

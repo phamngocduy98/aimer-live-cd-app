@@ -1,6 +1,7 @@
 import path from "node:path";
 import { Readable } from "node:stream";
 import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import { PARTSIZE } from "../config/const.js";
 import { Aes } from "../utils/crypto/aes.js";
 import { Album } from "../models/Album.js";
@@ -20,7 +21,8 @@ import { findMatchingVideoChapters } from "./searchLogic.js";
 
 const log = createLogger("Metadata");
 
-const rootDir = path.resolve();
+const routeDir = path.dirname(fileURLToPath(import.meta.url));
+const phpAssetDir = path.resolve(routeDir, "..", "scripts", "php");
 
 // GET /api/hosts
 export async function handleGetHosts(_req, res) {
@@ -111,12 +113,12 @@ export async function handleCreateHost(req, res) {
     await up.ftpClient?.mkdir(`${ftpRoot}${ftpPath}`);
 
     await up.uploadFile(
-      await readFile(path.join(rootDir, "src", "php", "sync.php")),
+      await readFile(path.join(phpAssetDir, "sync.php")),
       () => "sync.php",
       ""
     );
     await up.uploadFile(
-      await readFile(path.join(rootDir, "src", "php", "status.php")),
+      await readFile(path.join(phpAssetDir, "status.php")),
       () => "status.php",
       ""
     );

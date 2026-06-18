@@ -13,7 +13,7 @@ export function removeStreamPadding(input: Readable, part: StreamFilePart) {
   let pos = 0; // position to place next chunk (null)
   return input.pipe(
     new Transform({
-      transform(chunk, encoding, callback) {
+      transform(chunk, _encoding, callback) {
         const len = chunk.length;
         prePos = pos;
         pos += len;

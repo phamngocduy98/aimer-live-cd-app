@@ -11,7 +11,7 @@ class StreamCache {
     maxSize: 1024 * 1024 * 400,
     maxEntrySize: 1024 * 1024 * 50,
     noDisposeOnSet: true,
-    dispose: (value: CacheValue, key: string): void => {
+    dispose: (_value: CacheValue, key: string): void => {
       log.debug(`${key}: REMOVE Cache`);
       delete this._promiseCachedMap[key];
     }

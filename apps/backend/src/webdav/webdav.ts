@@ -1,5 +1,5 @@
 import { v2 as webdav } from "webdav-server";
-import { StreamFSSerializer, StreamFileSystem } from "./StreamFileSystem.js";
+import { StreamFileSystem } from "./StreamFileSystem.js";
 
 export class WebdavServer {
   server = new webdav.WebDAVServer();

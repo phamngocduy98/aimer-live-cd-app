@@ -107,7 +107,7 @@ export class StreamFileSystem extends FileSystem {
     };
   }
 
-  protected _create(path: Path, ctx: CreateInfo, _callback: SimpleCallback): void {
+  protected _create(_path: Path, _ctx: CreateInfo, _callback: SimpleCallback): void {
     log.debug("CREATE");
     // const { realPath } = this.getRealPath(path);
 
@@ -133,7 +133,7 @@ export class StreamFileSystem extends FileSystem {
     // }
   }
 
-  protected _delete(path: Path, ctx: DeleteInfo, _callback: SimpleCallback): void {
+  protected _delete(_path: Path, _ctx: DeleteInfo, _callback: SimpleCallback): void {
     log.debug("DELETE");
     // const { realPath } = this.getRealPath(path);
 
@@ -176,9 +176,9 @@ export class StreamFileSystem extends FileSystem {
   }
 
   protected _openWriteStream(
-    path: Path,
-    ctx: OpenWriteStreamInfo,
-    callback: ReturnCallback<Writable>
+    _path: Path,
+    _ctx: OpenWriteStreamInfo,
+    _callback: ReturnCallback<Writable>
   ): void {
     log.debug("WRITE");
     // const { realPath, resource } = this.getRealPath(path);
@@ -195,7 +195,7 @@ export class StreamFileSystem extends FileSystem {
 
   protected _openReadStream(
     path: Path,
-    ctx: OpenReadStreamInfo,
+    _ctx: OpenReadStreamInfo,
     callback: ReturnCallback<Readable>
   ): void {
     const { songId } = this.getRealPath(path);
@@ -231,10 +231,10 @@ export class StreamFileSystem extends FileSystem {
   }
 
   protected _move(
-    pathFrom: Path,
-    pathTo: Path,
-    ctx: MoveInfo,
-    callback: ReturnCallback<boolean>
+    _pathFrom: Path,
+    _pathTo: Path,
+    _ctx: MoveInfo,
+    _callback: ReturnCallback<boolean>
   ): void {
     log.debug("MOVE");
     // const { realPath: realPathFrom } = this.getRealPath(pathFrom);
@@ -266,7 +266,7 @@ export class StreamFileSystem extends FileSystem {
     return Song.findById(songId);
   }
 
-  protected _size(path: Path, ctx: SizeInfo, callback: ReturnCallback<number>): void {
+  protected _size(path: Path, _ctx: SizeInfo, callback: ReturnCallback<number>): void {
     const { albumId, songId } = this.getRealPath(path);
     // console.log("SIZE", path.toString());
 
@@ -294,7 +294,7 @@ export class StreamFileSystem extends FileSystem {
    */
   protected getPropertyFromResource(
     path: Path,
-    ctx: any,
+    _ctx: any,
     propertyName: string,
     callback: ReturnCallback<any>
   ): void {
@@ -370,7 +370,7 @@ export class StreamFileSystem extends FileSystem {
 
   protected _readDir(
     path: Path,
-    ctx: ReadDirInfo,
+    _ctx: ReadDirInfo,
     callback: ReturnCallback<string[] | Path[]>
   ): void {
     const { albumId } = this.getRealPath(path);
@@ -398,22 +398,22 @@ export class StreamFileSystem extends FileSystem {
   }
 
   protected _creationDate(
-    path: Path,
-    ctx: CreationDateInfo,
+    _path: Path,
+    _ctx: CreationDateInfo,
     callback: ReturnCallback<number>
   ): void {
     callback(undefined, 1);
   }
 
   protected _lastModifiedDate(
-    path: Path,
-    ctx: LastModifiedDateInfo,
+    _path: Path,
+    _ctx: LastModifiedDateInfo,
     callback: ReturnCallback<number>
   ): void {
     callback(undefined, 1);
   }
 
-  protected _type(path: Path, ctx: TypeInfo, callback: ReturnCallback<ResourceType>): void {
+  protected _type(path: Path, _ctx: TypeInfo, callback: ReturnCallback<ResourceType>): void {
     // console.log("TYPE", path.toString());
     const { albumId, songId } = this.getRealPath(path);
     if (albumId == null) {

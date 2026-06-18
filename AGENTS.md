@@ -6,11 +6,11 @@
 | --------- | ----------------- | ---------------------------------------------------------- |
 | Install   | `pnpm install`    |                                                            |
 | Dev       | `pnpm dev`        | Electron-Vite dev server                                   |
-| Dev:Web   | `pnpm dev:server` | Standalone Express backend on :3001                        |
+| Dev:Web   | `pnpm dev:server` | Alias for `pnpm backend:dev`; Express backend on :3001     |
 |           | `pnpm dev:web`    | Standalone Vite frontend on :5173, /api proxied to :3001   |
 |           | `pnpm dev:both`   | Both together via concurrently                             |
 | Lint      | `pnpm lint`       | ESLint w/ cache                                            |
-| Typecheck | `pnpm typecheck`  | node + web + e2e; separate: `typecheck:node`/`:web`/`:e2e` |
+| Typecheck | `pnpm typecheck`  | node + backend + web + e2e; separate commands available    |
 | Format    | `pnpm format`     | Prettier                                                   |
 | Test unit | `pnpm test`       | vitest run; coverage `pnpm test:coverage`                  |
 | Test E2E  | `pnpm test:e2e`   | playwright; headed: `:headed`                              |
@@ -41,7 +41,7 @@ mechanics.
   - `features/` — domain APIs, hooks, types, and components
   - `components/` — shared layout, media, view, search, and common UI
   - `lib/` — Axios and TanStack Query clients
-- `src/main/backend/` — layered backend (`config/`, `models/`, `db/`, `routes/`, `services/`, `utils/`, `types/`, `scripts/`, `webdav/`)
+- `apps/backend/src/` — layered backend (`config/`, `models/`, `db/`, `routes/`, `services/`, `utils/`, `types/`, `scripts/`, `webdav/`)
 - Client API calls: feature-owned API modules using `src/renderer/src/lib/axios.ts`
 - `docs` — where all markdown documents are placed.
 
@@ -49,7 +49,7 @@ mechanics.
 
 - Electron stores only desktop-local secrets such as `AES_PW` in encrypted `electron-store` after login
 - Electron no longer stores MongoDB credentials or shows a first-run env setup window
-- Standalone server (`dev:server`) reads `.env` directly via `dotenv/config`
+- Standalone backend (`backend:dev` / `dev:server`) reads `.env` directly via `dotenv/config`
 - Built output: `./out/`; electron-builder config: `electron-builder.yml`
 - Electron-Vite v3; typecheck uses `tsconfig.node.json`, `tsconfig.web.json`, and `tsconfig.e2e.json` (e2e)
 

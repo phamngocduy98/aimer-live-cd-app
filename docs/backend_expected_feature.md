@@ -8,7 +8,7 @@ test planning.
 
 - **Server startup:** connects to MongoDB before accepting API traffic.
 - **Electron mode:** reads encrypted app configuration from the main process environment.
-- **Standalone mode:** supports `.env` through `src/main/backend/standalone.ts`.
+- **Standalone mode:** supports `.env` through `apps/backend/src/standalone.ts`.
 - **E2E mode:** uses `E2E_TEST_MODE=true` and a database name ending in `_e2e` or `_test`.
 - **Request logging:** emits request logs with request IDs and structured backend module logs.
 - **Optional lyrics services:** `MYMEMORY_EMAIL` raises the free MyMemory quota;

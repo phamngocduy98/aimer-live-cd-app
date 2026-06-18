@@ -181,7 +181,7 @@ export class StreamingCache {
     stream._write = function (
       this: DuplexStream,
       chunk: Buffer,
-      encoding: string,
+      _encoding: string,
       next: (error?: Error) => void
     ): void {
       if (!self.emitters[key]) {

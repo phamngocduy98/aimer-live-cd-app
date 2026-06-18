@@ -9,7 +9,7 @@ export class StreamFilePart {
   ) {}
 
   getBlockStart(byteStart = this.partByteStart) {
-    return Math.floor(this.partByteStart / StreamFilePart.BLOCK_SIZE) * StreamFilePart.BLOCK_SIZE;
+    return Math.floor(byteStart / StreamFilePart.BLOCK_SIZE) * StreamFilePart.BLOCK_SIZE;
   }
   getBlockStartIdx(byteStart = this.partByteStart) {
     return this.getBlockStart(byteStart) / StreamFilePart.BLOCK_SIZE;

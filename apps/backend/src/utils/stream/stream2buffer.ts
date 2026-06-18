@@ -1,4 +1,3 @@
-import http from "node:http";
 import { Stream } from "stream";
 import zlib from "node:zlib";
 import { AxiosResponse } from "axios";
@@ -16,17 +15,17 @@ export async function stream2buffer(stream: Stream): Promise<Buffer> {
 
 export async function resp2string(resp: AxiosResponse<any, any>): Promise<string> {
   const buff = await stream2buffer(resp.data);
-  return new Promise<string>((resolve, reject) => {
+  return new Promise<string>((resolve) => {
     switch (resp.headers["content-encoding"]) {
       case "br":
-        zlib.brotliDecompress(buff, (e, r) => resolve(r.toString("utf-8")));
+        zlib.brotliDecompress(buff, (_e, r) => resolve(r.toString("utf-8")));
         break;
       // Or, just use zlib.createUnzip() to handle both of the following cases:
       case "gzip":
-        zlib.gunzip(buff, (e, r) => resolve(r.toString("utf-8")));
+        zlib.gunzip(buff, (_e, r) => resolve(r.toString("utf-8")));
         break;
       case "deflate":
-        zlib.inflate(buff, (e, r) => resolve(r.toString("utf-8")));
+        zlib.inflate(buff, (_e, r) => resolve(r.toString("utf-8")));
         break;
       default:
         resolve(buff.toString());

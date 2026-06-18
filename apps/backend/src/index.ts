@@ -102,6 +102,26 @@ import {
 const rootDir = path.resolve();
 const webdavServer = new WebdavServer();
 
+function parseCorsOrigin(): cors.CorsOptions["origin"] {
+  const configured = process.env.CORS_ORIGIN;
+  if (!configured) return true;
+
+  const allowed = new Set(
+    configured
+      .split(",")
+      .map((origin) => origin.trim())
+      .filter(Boolean)
+  );
+
+  return (origin, callback) => {
+    if (!origin || allowed.has(origin)) {
+      callback(null, true);
+      return;
+    }
+    callback(new Error(`CORS origin not allowed: ${origin}`));
+  };
+}
+
 const app = express();
 app.use(bodyParser.json());
 app.use(
@@ -116,8 +136,14 @@ app.use(
 app.use((req, _res, next) => {
   requestContext.run({ requestId: String(req.id) }, () => next());
 });
-app.use(cors({ credentials: true, origin: true }));
+app.use(cors({ credentials: true, origin: parseCorsOrigin() }));
 app.use(attachSession);
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok" });
+});
+app.get("/api/health", (_req, res) => {
+  res.json({ status: "ok" });
+});
 const staticPath = path.join(rootDir, "src", "client");
 createLogger("Status").info(`Serve static at ${staticPath}`);
 app.use("/", express.static(staticPath));

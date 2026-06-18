@@ -61,7 +61,7 @@ function sendFixtureStream(req, res, contentType: string): void {
 }
 
 // GET /api/stream/:id
-export function handleDeprecatedStream(req, res) {
+export function handleDeprecatedStream(_req, res) {
   fail(res, "Deprecated api", 404);
 }
 
