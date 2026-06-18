@@ -56,6 +56,10 @@ or connect to MongoDB directly.
   warm function instance before handing requests to the shared Express app.
 - Set production cookies with `AUTH_COOKIE_SAMESITE=None` and
   `AUTH_COOKIE_SECURE=true`; set `CORS_ORIGIN` to the deployed frontend origin.
+- MongoDB Atlas network access must allow Vercel function egress. Vercel
+  serverless functions do not provide one stable outbound IP by default, so use
+  an Atlas access-list strategy that matches the deployment plan before treating
+  `/api/health` as ready.
 - Validate streaming, uploads, SSE upload progress, WebDAV, FTP-backed host
   operations, and YouTube metadata import in a preview deployment before
   promoting the Git branch to production.
