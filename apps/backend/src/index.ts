@@ -145,7 +145,7 @@ app.get("/health", (_req, res) => {
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
 });
-const staticPath = path.join(rootDir, "src", "client");
+const staticPath = path.join(rootDir, "public");
 createLogger("Status").info(`Serve static at ${staticPath}`);
 app.use("/", express.static(staticPath));
 app.use(webdav.extensions.express("/webdav", webdavServer.server));

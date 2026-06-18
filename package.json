@@ -32,6 +32,7 @@
     "dev:server": "pnpm backend:dev",
     "dev:web": "vite --config src/renderer/vite.config.ts",
     "dev:both": "concurrently -n server,web -c blue,green \"pnpm dev:server\" \"pnpm dev:web\"",
+    "build:web": "vite --config src/renderer/vite.config.ts build",
     "build": "electron-vite build",
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "npm run build && electron-builder --dir",

@@ -1,6 +1,6 @@
 {
   "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "pnpm typecheck:backend && pnpm typecheck:vercel",
+  "buildCommand": "pnpm typecheck:backend && pnpm typecheck:vercel && pnpm typecheck:web && pnpm build:web",
   "outputDirectory": "public",
   "functions": {
     "api/index.ts": {
