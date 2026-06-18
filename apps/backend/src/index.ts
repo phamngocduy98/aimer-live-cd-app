@@ -100,7 +100,8 @@ import {
 } from "./routes/auth.js";
 
 const rootDir = path.resolve();
-const webdavServer = new WebdavServer();
+const webdavEnabled = process.env.VERCEL !== "1";
+const webdavServer = webdavEnabled ? new WebdavServer() : null;
 let backendInitPromise: Promise<void> | null = null;
 
 function parseConfiguredCorsOrigins(): Set<string> | true {
@@ -167,7 +168,16 @@ app.get("/api/health", (_req, res) => {
 const staticPath = path.join(rootDir, "public");
 createLogger("Status").info(`Serve static at ${staticPath}`);
 app.use("/", express.static(staticPath));
-app.use(webdav.extensions.express("/webdav", webdavServer.server));
+if (webdavServer) {
+  app.use(webdav.extensions.express("/webdav", webdavServer.server));
+} else {
+  app.use("/webdav", (_req, res) => {
+    res.status(501).json({
+      status: "error",
+      message: "WebDAV is not supported on this deployment runtime"
+    });
+  });
+}
 
 const upload = multer();
 
@@ -313,8 +323,12 @@ export async function initializeBackend(): Promise<void> {
       await dbClient.connect();
       log.info("DB connected");
       await seedFirstAdmin();
-      await webdavServer.init();
-      log.info("Webdav served at /webdav");
+      if (webdavServer) {
+        await webdavServer.init();
+        log.info("Webdav served at /webdav");
+      } else {
+        log.info("Webdav disabled on this deployment runtime");
+      }
     })().catch((error) => {
       backendInitPromise = null;
       throw error;
