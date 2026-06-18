@@ -103,24 +103,43 @@ const rootDir = path.resolve();
 const webdavServer = new WebdavServer();
 let backendInitPromise: Promise<void> | null = null;
 
-function parseCorsOrigin(): cors.CorsOptions["origin"] {
+function parseConfiguredCorsOrigins(): Set<string> | true {
   const configured = process.env.CORS_ORIGIN;
   if (!configured) return true;
 
-  const allowed = new Set(
+  return new Set(
     configured
       .split(",")
       .map((origin) => origin.trim())
       .filter(Boolean)
   );
+}
 
-  return (origin, callback) => {
-    if (!origin || allowed.has(origin)) {
-      callback(null, true);
-      return;
-    }
-    callback(new Error(`CORS origin not allowed: ${origin}`));
-  };
+const configuredCorsOrigins = parseConfiguredCorsOrigins();
+
+function requestOrigin(req: express.Request): string | undefined {
+  const host = req.get("x-forwarded-host") ?? req.get("host");
+  if (!host) return undefined;
+  const proto = req.get("x-forwarded-proto") ?? req.protocol;
+  return `${proto}://${host}`;
+}
+
+function corsOptions(
+  req: express.Request,
+  callback: (error: Error | null, options?: cors.CorsOptions) => void
+) {
+  const origin = req.get("origin");
+  if (
+    !origin ||
+    configuredCorsOrigins === true ||
+    configuredCorsOrigins.has(origin) ||
+    origin === requestOrigin(req)
+  ) {
+    callback(null, { credentials: true, origin: true });
+    return;
+  }
+
+  callback(new Error(`CORS origin not allowed: ${origin}`));
 }
 
 export const app = express();
@@ -137,7 +156,7 @@ app.use(
 app.use((req, _res, next) => {
   requestContext.run({ requestId: String(req.id) }, () => next());
 });
-app.use(cors({ credentials: true, origin: parseCorsOrigin() }));
+app.use(cors(corsOptions));
 app.use(attachSession);
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
@@ -186,19 +205,39 @@ app.put("/api/admin/users/:id", requireAdmin, handleAdminUpdateUser);
 app.post("/api/admin/hosts", requireAdmin, handleAdminCreateHost);
 app.put("/api/admin/songs/:id", requireAdmin, handleAdminUpdateSong);
 app.put("/api/admin/videos/:id", requireAdmin, handleAdminUpdateVideo);
-app.put("/api/admin/videos/:id/cover", requireAdmin, upload.single("cover"), handleAdminUpdateVideoCover);
+app.put(
+  "/api/admin/videos/:id/cover",
+  requireAdmin,
+  upload.single("cover"),
+  handleAdminUpdateVideoCover
+);
 app.put("/api/admin/lyrics/:mediaType/:mediaId/tracks", requireAdmin, handleAdminSaveLyrics);
 app.get("/api/admin/lyrics/providers", requireAdmin, handleAdminGetLyricsProviders);
-app.post("/api/admin/lyrics/preview-srt", requireAdmin, upload.single("subtitle"), handleAdminPreviewSrt);
+app.post(
+  "/api/admin/lyrics/preview-srt",
+  requireAdmin,
+  upload.single("subtitle"),
+  handleAdminPreviewSrt
+);
 app.post("/api/admin/lyrics/:mediaType/:mediaId/search", requireAdmin, handleAdminSearchLyrics);
 app.post("/api/admin/lyrics/:mediaType/:mediaId/import", requireAdmin, handleAdminImportLyrics);
 app.post("/api/admin/lyrics/romanize", requireAdmin, handleAdminRomanizeLyrics);
 app.post("/api/admin/lyrics/translate", requireAdmin, handleAdminTranslateLyrics);
 app.put("/api/admin/albums/:id", requireAdmin, handleAdminUpdateAlbum);
-app.put("/api/admin/albums/:id/cover", requireAdmin, upload.single("cover"), handleAdminUpdateAlbumCover);
+app.put(
+  "/api/admin/albums/:id/cover",
+  requireAdmin,
+  upload.single("cover"),
+  handleAdminUpdateAlbumCover
+);
 app.put("/api/admin/hosts/:id", requireAdmin, handleAdminUpdateHost);
 app.put("/api/admin/artists/:name", requireAdmin, handleAdminRenameArtist);
-app.put("/api/admin/artists/:name/image", requireAdmin, upload.single("image"), handleAdminUpdateArtistImage);
+app.put(
+  "/api/admin/artists/:name/image",
+  requireAdmin,
+  upload.single("image"),
+  handleAdminUpdateArtistImage
+);
 app.delete("/api/admin/songs/:id", requireAdmin, handleAdminDeleteSong);
 app.delete("/api/admin/videos/:id", requireAdmin, handleAdminDeleteVideo);
 app.delete("/api/admin/albums/:id", requireAdmin, handleAdminDeleteAlbum);
