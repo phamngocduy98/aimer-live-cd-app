@@ -101,6 +101,7 @@ import {
 
 const rootDir = path.resolve();
 const webdavServer = new WebdavServer();
+let backendInitPromise: Promise<void> | null = null;
 
 function parseCorsOrigin(): cors.CorsOptions["origin"] {
   const configured = process.env.CORS_ORIGIN;
@@ -122,7 +123,7 @@ function parseCorsOrigin(): cors.CorsOptions["origin"] {
   };
 }
 
-const app = express();
+export const app = express();
 app.use(bodyParser.json());
 app.use(
   pinoHttp({
@@ -266,13 +267,27 @@ function handleCatchAll(_req, res) {
 
 app.get("/*", handleCatchAll);
 
+export async function initializeBackend(): Promise<void> {
+  if (!backendInitPromise) {
+    backendInitPromise = (async () => {
+      const log = createLogger("Status");
+      await dbClient.connect();
+      log.info("DB connected");
+      await seedFirstAdmin();
+      await webdavServer.init();
+      log.info("Webdav served at /webdav");
+    })().catch((error) => {
+      backendInitPromise = null;
+      throw error;
+    });
+  }
+
+  return backendInitPromise;
+}
+
 export async function startServer(port: number): Promise<http.Server> {
   const log = createLogger("Status");
-  await dbClient.connect();
-  log.info("DB connected");
-  await seedFirstAdmin();
-  await webdavServer.init();
-  log.info("Webdav served at /webdav");
+  await initializeBackend();
 
   return app.listen(port, () => log.info(`Stream server listening on port ${port}!`));
 }

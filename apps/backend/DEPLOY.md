@@ -17,6 +17,7 @@ or connect to MongoDB directly.
 - Source entrypoint: `apps/backend/src/standalone.ts`
 - Built entrypoint: `apps/backend/dist/standalone.js`
 - Default port: `3001`, overridden by `PORT`
+- Vercel function entrypoint: `api/index.ts`
 
 ## Required Environment
 
@@ -44,3 +45,17 @@ or connect to MongoDB directly.
 - `LIBRETRANSLATE_URL` enables LibreTranslate.
 - `LIBRETRANSLATE_API_KEY` supplies the optional LibreTranslate key.
 - `YT_DLP_PATH` points YouTube metadata import at a specific `yt-dlp` binary.
+
+## Vercel Deployment
+
+- Import the GitHub repository from the repo root so Vercel can read
+  `package.json`, `pnpm-lock.yaml`, `api/index.ts`, and `vercel.json`.
+- Vercel install command: `pnpm install --frozen-lockfile`.
+- Vercel build command: `pnpm typecheck:backend && pnpm typecheck:vercel`.
+- `api/index.ts` initializes MongoDB, the first admin seed, and WebDAV once per
+  warm function instance before handing requests to the shared Express app.
+- Set production cookies with `AUTH_COOKIE_SAMESITE=None` and
+  `AUTH_COOKIE_SECURE=true`; set `CORS_ORIGIN` to the deployed frontend origin.
+- Validate streaming, uploads, SSE upload progress, WebDAV, FTP-backed host
+  operations, and YouTube metadata import in a preview deployment before
+  promoting the Git branch to production.

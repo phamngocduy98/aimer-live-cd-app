@@ -15,6 +15,7 @@
     "lint": "eslint --cache .",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:backend": "tsc --noEmit -p apps/backend/tsconfig.json",
+    "typecheck:vercel": "tsc --noEmit -p tsconfig.vercel.json",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck:e2e": "tsc --noEmit -p tsconfig.e2e.json",
     "typecheck": "npm run typecheck:node && npm run typecheck:backend && npm run typecheck:web && npm run typecheck:e2e",
