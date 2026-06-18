@@ -9,6 +9,18 @@ let _rootLogger: pino.Logger | null = null;
 
 export function initLogger(options?: { logDir?: string }): void {
   const level = process.env.LOG_LEVEL || "info";
+  const loggerOptions: pino.LoggerOptions = {
+    level,
+    mixin() {
+      const store = requestContext.getStore();
+      return store ? { reqId: store.requestId } : { reqId: "-" };
+    }
+  };
+
+  if (process.env.VERCEL === "1") {
+    _rootLogger = pino(loggerOptions);
+    return;
+  }
 
   const targets: pino.TransportTargetOptions[] = [
     {
@@ -42,13 +54,7 @@ export function initLogger(options?: { logDir?: string }): void {
     console.error("Logger transport error:", err.message);
   });
   _rootLogger = pino(
-    {
-      level,
-      mixin() {
-        const store = requestContext.getStore();
-        return store ? { reqId: store.requestId } : { reqId: "-" };
-      }
-    },
+    loggerOptions,
     transport
   );
 }
