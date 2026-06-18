@@ -8,5 +8,8 @@ out
 test-results
 playwright-report
 .env
+.vercel
 .playwright-cli/
 opencode.jsonc
+
+.vercel
