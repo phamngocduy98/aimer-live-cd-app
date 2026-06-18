@@ -1,5 +1,5 @@
 import { Readable } from "node:stream";
-import { CacheValue, StreamingCache } from "../../utils/stream-cache";
+import { CacheValue, StreamingCache } from "../../utils/stream-cache/index.js";
 import { createLogger } from "../../utils/log.js";
 
 const log = createLogger("Cache");

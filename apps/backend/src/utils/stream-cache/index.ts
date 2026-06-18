@@ -2,7 +2,7 @@ import { EventEmitter } from "events";
 import { Duplex } from "stream";
 import { LRUCache } from "lru-cache";
 import LinkedList from "linkedlist";
-import { ensureDefined, assign as mAssign } from "./utils";
+import { ensureDefined, assign as mAssign } from "./utils.js";
 import assign from "lodash.assign";
 import { ReadStream } from "./readStream.js";
 
