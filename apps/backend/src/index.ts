@@ -5,7 +5,7 @@ import http from "node:http";
 import multer from "multer";
 import path from "node:path";
 import { v2 as webdav } from "webdav-server";
-import pinoHttp from "pino-http";
+import { pinoHttp } from "pino-http";
 
 import { dbClient } from "./db/Mongo.js";
 import { WebdavServer } from "./webdav/webdav.js";
