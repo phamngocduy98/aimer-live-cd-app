@@ -3,7 +3,8 @@ import FavoriteBorderRoundedIcon from "@mui/icons-material/FavoriteBorderRounded
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import IosShareOutlinedIcon from "@mui/icons-material/IosShareOutlined";
 import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
-import { Box, Menu, Snackbar, Typography } from "@mui/material";
+import { Box, Snackbar, Typography } from "@mui/material";
+import { ResponsiveActionMenu } from "@components/common/ResponsiveActionMenu";
 import { useAppDispatch } from "@app/hooks";
 import { SongActionsMenu } from "@components/media/MediaActionsMenu";
 import {
@@ -59,6 +60,7 @@ export function VideoControlButton({ video }: { video: Video }): React.ReactElem
             playAriaLabel="Play"
           />
         }
+        secondaryColumns={{ xs: 4, sm: 2, md: 3, lg: 4 }}
         secondary={
           <>
             <DetailActionButton
@@ -66,16 +68,20 @@ export function VideoControlButton({ video }: { video: Video }): React.ReactElem
               icon={<FavoriteBorderRoundedIcon />}
               onClick={() => setAddToPlaylistOpen(true)}
             />
-            <DetailActionButton
-              label="Credits"
-              icon={<InfoOutlinedIcon />}
-              onClick={(event) => setCreditsAnchor(event.currentTarget)}
-            />
-            <DetailActionButton
-              label="Share"
-              icon={<IosShareOutlinedIcon />}
-              onClick={shareVideo}
-            />
+            <Box sx={{ display: { xs: "block", sm: "none", lg: "block" } }}>
+              <DetailActionButton
+                label="Credits"
+                icon={<InfoOutlinedIcon />}
+                onClick={(event) => setCreditsAnchor(event.currentTarget)}
+              />
+            </Box>
+            <Box sx={{ display: { xs: "block", sm: "none", md: "block" } }}>
+              <DetailActionButton
+                label="Share"
+                icon={<IosShareOutlinedIcon />}
+                onClick={shareVideo}
+              />
+            </Box>
             <DetailActionButton
               label="More"
               icon={<MoreHorizRoundedIcon />}
@@ -85,12 +91,14 @@ export function VideoControlButton({ video }: { video: Video }): React.ReactElem
         }
       />
 
-      <Menu
+      <ResponsiveActionMenu
         anchorEl={creditsAnchor}
         open={Boolean(creditsAnchor)}
         onClose={() => setCreditsAnchor(null)}
+        ariaLabel={`${video.title} credits`}
+        mobileContentSx={{ p: 2 }}
       >
-        <Box sx={{ px: 2, py: 1.25, minWidth: 240 }}>
+        <Box sx={{ px: { xs: 0, sm: 2 }, py: { xs: 0, sm: 1.25 }, minWidth: 240 }}>
           <Typography fontWeight={850}>{video.title}</Typography>
           <Typography color="text.secondary" fontSize={13} sx={{ mt: 0.75 }}>
             Artist: {video.artist.join(", ")}
@@ -106,7 +114,7 @@ export function VideoControlButton({ video }: { video: Video }): React.ReactElem
             </Typography>
           )}
         </Box>
-      </Menu>
+      </ResponsiveActionMenu>
 
       <SongActionsMenu
         track={video}

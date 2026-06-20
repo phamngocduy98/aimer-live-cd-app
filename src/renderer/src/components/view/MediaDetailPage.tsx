@@ -20,7 +20,7 @@ export function MediaDetailHero({
       data-testid={testId}
       sx={(theme) => ({
         position: "relative",
-        minHeight: { xs: 500, sm: 360, lg: 470 },
+        minHeight: { xs: 460 },
         display: "flex",
         alignItems: "center",
         overflow: "hidden",
@@ -47,7 +47,7 @@ export function MediaDetailHero({
           maxWidth: theme.design.layout.detailWidth,
           mx: "auto",
           px: theme.design.layout.gutters,
-          py: { xs: 4, md: 3.5 }
+          py: { xs: 2.5, md: 3.5 }
         })}
       >
         {children}
@@ -76,16 +76,16 @@ export function MediaDetailIdentity({
       data-design="media-detail-identity"
       sx={{
         display: "flex",
-        flexDirection: { xs: "column", md: "row" },
+        flexDirection: { xs: "column", sm: "row" },
         alignItems: "center",
-        gap: { xs: 2.5, md: 4 },
-        textAlign: { xs: "center", md: "left" }
+        gap: { xs: 2, sm: 4 },
+        textAlign: { xs: "center", sm: "left" }
       }}
     >
       <Box
         data-testid={artworkTestId}
         sx={(theme) => ({
-          width: { xs: 218, sm: 240, md: 250 },
+          width: { xs: 152, sm: 240, md: 250 },
           aspectRatio: "1 / 1",
           borderRadius: `${theme.design.radius.artwork}px`,
           overflow: "hidden",
@@ -104,7 +104,7 @@ export function MediaDetailIdentity({
           minWidth: 0,
           display: "flex",
           flexDirection: "column",
-          alignItems: { xs: "center", md: "flex-start" },
+          alignItems: { xs: "center", sm: "flex-start" },
           maxWidth: 760
         }}
       >
@@ -120,7 +120,7 @@ export function MediaDetailIdentity({
         >
           {title}
         </Typography>
-        {subtitle && <Box sx={{ mt: 2 }}>{subtitle}</Box>}
+        {subtitle && <Box sx={{ mt: { xs: 0, sm: 2 } }}>{subtitle}</Box>}
         {summary && (
           <Box
             sx={{
@@ -140,7 +140,9 @@ export function MediaDetailIdentity({
           </Box>
         )}
         {badges && (
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 2 }}>{badges}</Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: { xs: 1.5, sm: 2 } }}>
+            {badges}
+          </Box>
         )}
       </Box>
     </Box>

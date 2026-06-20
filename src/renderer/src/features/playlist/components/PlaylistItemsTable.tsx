@@ -3,8 +3,6 @@ import {
   Avatar,
   Box,
   IconButton,
-  Menu,
-  MenuItem,
   Table,
   TableBody,
   TableCell,
@@ -25,6 +23,7 @@ import { mediaArtworkUrl } from "@utils/mediaArtwork";
 import type { PlaylistItem } from "../types";
 import { formatDuration } from "@utils/formatDuration";
 import { ArtistLinks } from "@components/media/ArtistLinks";
+import { ResponsiveActionMenu } from "@components/common/ResponsiveActionMenu";
 
 interface PlaylistItemsTableProps {
   items: PlaylistItem[];
@@ -188,9 +187,7 @@ export function PlaylistItemsTable({
                     sx={{ display: { xs: "none", lg: "table-cell" } }}
                   >
                     <Typography noWrap textOverflow="ellipsis" fontSize={14} color="#a0a0a0">
-                      {"album" in item.media
-                        ? (item.media.album?.title ?? "Unknown")
-                        : "Video"}
+                      {"album" in item.media ? (item.media.album?.title ?? "Unknown") : "Video"}
                     </Typography>
                   </PlaylistTableCell>
                   <PlaylistTableCell
@@ -219,16 +216,20 @@ export function PlaylistItemsTable({
           </TableBody>
         </Table>
       </TableContainer>
-      <Menu anchorEl={menu?.anchor} open={Boolean(menu)} onClose={() => setMenu(null)}>
-        <MenuItem
-          onClick={() => {
-            if (menu) onRemove(menu.itemId);
-            setMenu(null);
-          }}
-        >
-          Remove from playlist
-        </MenuItem>
-      </Menu>
+      <ResponsiveActionMenu
+        anchorEl={menu?.anchor}
+        open={Boolean(menu)}
+        onClose={() => setMenu(null)}
+        ariaLabel="Playlist item actions"
+        items={[
+          {
+            label: "Remove from playlist",
+            onClick: () => {
+              if (menu) onRemove(menu.itemId);
+            }
+          }
+        ]}
+      />
     </>
   );
 }

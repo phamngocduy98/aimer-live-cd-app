@@ -32,7 +32,6 @@ interface SongTableProps {
   showActions?: boolean;
   showAddToPlaylist?: boolean;
   showArtwork?: boolean;
-  mobileEmphasis?: boolean;
   mobileSubtitle?: "artist" | "album";
   getExtraActions?: (song: Song) => ExtraMediaAction[];
   playSource?: PlaySource;
@@ -49,7 +48,6 @@ export const SongTable: React.FC<SongTableProps> = ({
   showActions = false,
   showAddToPlaylist = false,
   showArtwork = false,
-  mobileEmphasis = false,
   mobileSubtitle = "artist",
   getExtraActions,
   playSource
@@ -157,8 +155,8 @@ export const SongTable: React.FC<SongTableProps> = ({
                       noWrap
                       textOverflow="ellipsis"
                       sx={{
-                        fontSize: { xs: mobileEmphasis ? 17 : 14, sm: 14 },
-                        fontWeight: mobileEmphasis ? 750 : 600
+                        fontSize: { xs: 14 },
+                        fontWeight: 600
                       }}
                     >
                       {song.title}
@@ -167,17 +165,17 @@ export const SongTable: React.FC<SongTableProps> = ({
                       {mobileSubtitle === "artist" ? (
                         <ArtistLinks
                           artists={song.artist}
-                          fontSize={mobileEmphasis ? 15 : 14}
-                          color={mobileEmphasis ? "#f2f2f2" : "#919191"}
-                          fontWeight={mobileEmphasis ? 650 : 400}
+                          fontSize={14}
+                          color={"#919191"}
+                          fontWeight={600}
                         />
                       ) : (
                         <Typography
                           noWrap
                           textOverflow="ellipsis"
-                          fontSize={mobileEmphasis ? 15 : 14}
-                          color={mobileEmphasis ? "#f2f2f2" : "#919191"}
-                          fontWeight={mobileEmphasis ? 650 : 400}
+                          fontSize={14}
+                          color={"#919191"}
+                          fontWeight={600}
                         >
                           {mobileText}
                         </Typography>

@@ -161,16 +161,22 @@ and action workflows.
 ## Responsive Actions
 
 **Decision:** The same action may use a menu, dialog, or compact control at
-different widths, but its accessible name and outcome remain stable.
+different widths, but its accessible name and outcome remain stable. Command
+menus use `ResponsiveActionMenu`: desktop/tablet render an anchored `Menu`,
+while mobile renders a bottom-aligned dialog that slides up on open and down on
+close.
 
 **Why:** Desktop hover/menu patterns do not always fit touch layouts, while
 stable semantics support keyboard use and resilient E2E selectors.
 
 **Change guidance:** Treat `aria-label`, roles, and landmark names as behavior
 contracts. Prefer role/name selectors over styling or DOM-position selectors
-when adding tests.
+when adding tests. Do not use the responsive action menu for form `Select`
+options, search preview, or player-specific poppers unless their interaction
+model is intentionally changed too.
 
-**References:** [`MediaActionsMenu.tsx`](media/MediaActionsMenu.tsx),
+**References:** [`ResponsiveActionMenu.tsx`](common/ResponsiveActionMenu.tsx),
+[`MediaActionsMenu.tsx`](media/MediaActionsMenu.tsx),
 [`SongTable.tsx`](media/SongTable.tsx),
 [`gui.spec.ts`](../../../../e2e/gui.spec.ts)
 

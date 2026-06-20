@@ -74,6 +74,7 @@ describe("playback gate", () => {
     );
 
     expect(result.showPrompt).toBe(false);
+    expect(result.promptMedia).toBeUndefined();
     expect(result.payload?.items).toEqual([youtubeVideo]);
     expect(result.payload?.startIndex).toBe(0);
     expect(result.payload?.sourceItemKeys).toEqual(["youtube-key"]);
@@ -90,6 +91,7 @@ describe("playback gate", () => {
     );
 
     expect(result.showPrompt).toBe(true);
+    expect(result.promptMedia).toEqual(song);
     expect(result.payload).toBeUndefined();
   });
 
@@ -103,6 +105,7 @@ describe("playback gate", () => {
     );
 
     expect(result.showPrompt).toBe(true);
+    expect(result.promptMedia).toEqual(song);
     expect(result.payload?.items).toEqual([youtubeVideo]);
     expect(result.payload?.startIndex).toBe(0);
   });

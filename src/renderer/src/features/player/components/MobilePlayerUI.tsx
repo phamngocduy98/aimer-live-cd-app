@@ -243,7 +243,7 @@ function PlayerHeader({
           </HeaderPill>
         </Box>
         {video && (
-          <IconButton aria-label="Video display mode">
+          <IconButton aria-label="Video display mode" sx={{ display: { xs: "none", sm: "inline-flex" } }}>
             <OndemandVideoOutlinedIcon />
           </IconButton>
         )}

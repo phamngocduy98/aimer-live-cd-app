@@ -4,17 +4,10 @@ import IosShareOutlinedIcon from "@mui/icons-material/IosShareOutlined";
 import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
 import QueueMusicIcon from "@mui/icons-material/QueueMusic";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
-import {
-  Box,
-  InputAdornment,
-  Menu,
-  MenuItem,
-  Snackbar,
-  TextField,
-  Typography
-} from "@mui/material";
+import { Box, InputAdornment, Snackbar, TextField, Typography } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 
+import { ResponsiveActionMenu } from "@components/common/ResponsiveActionMenu";
 import { PageScaffold } from "@components/view/PageScaffold";
 import { formatArtists } from "@utils/artist";
 import { formatDuration } from "@utils/formatDuration";
@@ -168,7 +161,7 @@ export const PlaylistView: React.FC = () => {
               <PrimaryActionGroup onPlay={() => play()} onShuffle={() => play(true)} />
             </Box>
           }
-          secondaryColumns={3}
+          secondaryColumns={{ xs: 3, sm: 2, md: 3, lg: 3 }}
           secondary={
             <>
               <DetailActionButton
@@ -239,11 +232,13 @@ export const PlaylistView: React.FC = () => {
       </DetailContent>
 
       <EditPlaylistDialog open={editOpen} playlist={playlist} onClose={() => setEditOpen(false)} />
-      <Menu anchorEl={moreAnchor} open={Boolean(moreAnchor)} onClose={() => setMoreAnchor(null)}>
-        <MenuItem onClick={handleDelete} sx={{ color: "error.main" }}>
-          Delete playlist
-        </MenuItem>
-      </Menu>
+      <ResponsiveActionMenu
+        anchorEl={moreAnchor}
+        open={Boolean(moreAnchor)}
+        onClose={() => setMoreAnchor(null)}
+        ariaLabel={`${playlist.name} actions`}
+        items={[{ label: "Delete playlist", color: "error", onClick: handleDelete }]}
+      />
       <Snackbar
         open={Boolean(message)}
         autoHideDuration={2200}

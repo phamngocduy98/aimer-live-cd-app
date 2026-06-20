@@ -1,7 +1,7 @@
 import AlbumOutlinedIcon from "@mui/icons-material/AlbumOutlined";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import LibraryMusicOutlinedIcon from "@mui/icons-material/LibraryMusicOutlined";
-import MusicNoteOutlinedIcon from "@mui/icons-material/MusicNoteOutlined";
+import VideoLibraryOutlinedIcon from "@mui/icons-material/VideoLibraryOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import { Box, IconButton } from "@mui/material";
 import { NavLink, useLocation } from "react-router-dom";
@@ -9,7 +9,7 @@ import { isMobileNavItemActive } from "./mobileNavigationRoutes";
 
 const items = [
   { label: "Home", path: "/", icon: HomeOutlinedIcon },
-  { label: "Songs", path: "/songs", icon: MusicNoteOutlinedIcon },
+  { label: "Videos", path: "/videos", icon: VideoLibraryOutlinedIcon },
   { label: "Albums", path: "/albums", icon: AlbumOutlinedIcon },
   { label: "Playlists", path: "/playlists", icon: LibraryMusicOutlinedIcon },
   { label: "Search", path: "/search", icon: SearchOutlinedIcon }

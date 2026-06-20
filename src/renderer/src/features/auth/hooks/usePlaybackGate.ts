@@ -9,6 +9,7 @@ type MediaItem = Song | Video;
 interface PlaybackGateResult {
   payload?: PlayContextPayload;
   showPrompt: boolean;
+  promptMedia?: MediaItem;
 }
 
 export function isFreePlayableMedia(media: MediaItem): boolean {
@@ -31,7 +32,7 @@ export function preparePlaybackGatePayload(
   const sourceItemKeys = payload.sourceItemKeys;
 
   if (hasExplicitSelection && selectedItem && !isFreePlayableMedia(selectedItem)) {
-    return { showPrompt: true };
+    return { showPrompt: true, promptMedia: selectedItem };
   }
 
   const playableEntries = payload.items
@@ -39,13 +40,14 @@ export function preparePlaybackGatePayload(
     .filter(({ item }) => isFreePlayableMedia(item));
 
   if (playableEntries.length === 0) {
-    return { showPrompt: true };
+    return { showPrompt: true, promptMedia: selectedItem ?? payload.items[0] };
   }
 
   const startIndex =
     hasExplicitSelection && selectedItem
       ? playableEntries.findIndex(({ originalIndex }) => originalIndex === selectedIndex)
       : 0;
+  const blockedEntry = payload.items.find((item) => !isFreePlayableMedia(item));
 
   return {
     payload: {
@@ -56,7 +58,8 @@ export function preparePlaybackGatePayload(
         ? playableEntries.map(({ originalIndex }) => sourceItemKeys[originalIndex])
         : undefined
     },
-    showPrompt: !hasExplicitSelection && playableEntries.length !== payload.items.length
+    showPrompt: !hasExplicitSelection && playableEntries.length !== payload.items.length,
+    promptMedia: !hasExplicitSelection ? blockedEntry : undefined
   };
 }
 
@@ -67,7 +70,7 @@ export function usePlaybackGate() {
   return (payload: PlayContextPayload): void => {
     const result = preparePlaybackGatePayload(payload, canAccessPaidMedia);
     if (result.showPrompt) {
-      dispatch(showSubscriptionPrompt());
+      dispatch(showSubscriptionPrompt(result.promptMedia));
     }
     if (result.payload) dispatch(playContext(result.payload));
   };

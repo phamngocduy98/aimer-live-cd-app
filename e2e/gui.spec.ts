@@ -33,6 +33,16 @@ async function openQueue(page: Page): Promise<void> {
   await expect(page.getByRole("button", { name: "Close play queue" }).first()).toBeVisible();
 }
 
+async function expectBottomAlignedDialog(page: Page, name: string | RegExp): Promise<void> {
+  const dialog = page.getByRole("dialog", { name });
+  await expect(dialog).toBeVisible();
+  const box = await dialog.boundingBox();
+  const viewport = page.viewportSize();
+  expect(box).not.toBeNull();
+  expect(viewport).not.toBeNull();
+  expect((viewport?.height ?? 0) - ((box?.y ?? 0) + (box?.height ?? 0))).toBeLessThanOrEqual(24);
+}
+
 async function toggleFullScreenPlayer(page: Page): Promise<void> {
   await page
     .getByRole("button", { name: "Toggle full screen player" })
@@ -836,9 +846,7 @@ test.describe("GUI expected features", () => {
       ctx.mainWindow.getByTestId("expanded-mobile-track-details").getByText("E2E Song One")
     ).toHaveCSS("font-size", "20px");
     await ctx.mainWindow.getByRole("button", { name: "Player options" }).click();
-    await expect(
-      ctx.mainWindow.getByRole("dialog", { name: "E2E Song One", exact: true })
-    ).toBeVisible();
+    await expectBottomAlignedDialog(ctx.mainWindow, "E2E Song One");
     await expect(ctx.mainWindow.getByText("Go to artist", { exact: true })).toBeVisible();
     await ctx.mainWindow.getByRole("button", { name: "Close" }).click();
     await ctx.mainWindow.getByRole("button", { name: "Playing queue" }).click();

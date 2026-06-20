@@ -77,8 +77,8 @@ export function MediaCard({
               justifyContent: "space-between",
               p: 1.25,
               background: "linear-gradient(180deg, transparent 48%, rgba(0,0,0,.72))",
-              opacity: { xs: 1, sm: 0 },
-              transform: { xs: "none", sm: "translateY(6px)" },
+              opacity: 0,
+              transform: "translateY(6px)",
               transition: "opacity 160ms ease, transform 160ms ease",
               pointerEvents: "none"
             }}

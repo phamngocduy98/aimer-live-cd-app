@@ -1,15 +1,8 @@
 import React, { useState } from "react";
 import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
-import {
-  Box,
-  IconButton,
-  InputAdornment,
-  Menu,
-  MenuItem,
-  TextField,
-  Typography
-} from "@mui/material";
+import { ResponsiveActionMenu } from "@components/common/ResponsiveActionMenu";
+import { Box, IconButton, InputAdornment, TextField, Typography } from "@mui/material";
 
 export interface CollectionHeaderAction {
   label: string;
@@ -94,20 +87,17 @@ export const CollectionHeader: React.FC<CollectionHeaderProps> = ({
         }}
       />
 
-      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
-        {actions.map((action) => (
-          <MenuItem
-            key={action.label}
-            disabled={action.disabled}
-            onClick={() => {
-              setAnchorEl(null);
-              action.onClick?.();
-            }}
-          >
-            {action.label}
-          </MenuItem>
-        ))}
-      </Menu>
+      <ResponsiveActionMenu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={() => setAnchorEl(null)}
+        ariaLabel={`${title} actions`}
+        items={actions.map((action) => ({
+          label: action.label,
+          disabled: action.disabled,
+          onClick: action.onClick
+        }))}
+      />
     </Box>
   );
 };

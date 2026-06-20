@@ -11,7 +11,7 @@ export const playVideoChapter =
     const chapter = video.chapters[chapterIndex] ?? video.chapters[0];
     if (!chapter) return;
     if (!getState().auth.session.canAccessPaidMedia && !video.youtubeUrl) {
-      dispatch(showSubscriptionPrompt());
+      dispatch(showSubscriptionPrompt(video));
       return;
     }
     const nextChapterTime = video.chapters[chapterIndex + 1]?.time ?? video.duration;

@@ -31,7 +31,7 @@ export const AlbumInfo: React.FC<{ album: AlbumDetail }> = ({ album }) => {
             display: "flex",
             alignItems: "center",
             gap: 1,
-            mt: 2,
+            mt: 1,
             cursor: "pointer",
             "&:hover .artist-name": { textDecoration: "underline" }
           }}
@@ -53,7 +53,7 @@ export const AlbumInfo: React.FC<{ album: AlbumDetail }> = ({ album }) => {
               border: "1px solid rgba(255,255,255,.26)"
             }}
           />
-          <Typography className="artist-name" fontSize={16} fontWeight={800}>
+          <Typography className="artist-name" fontSize={16} fontWeight={600}>
             {album.artist}
           </Typography>
         </Box>

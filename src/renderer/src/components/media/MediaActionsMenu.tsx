@@ -1,19 +1,10 @@
 import React from "react";
+import { Avatar, Box, Typography } from "@mui/material";
 import {
-  Avatar,
-  Box,
-  Button,
-  Dialog,
-  DialogContent,
-  List,
-  ListItemButton,
-  ListItemText,
-  Menu,
-  MenuItem,
-  Typography,
-  useMediaQuery,
-  useTheme
-} from "@mui/material";
+  ResponsiveActionMenu,
+  type ActionMenuPosition,
+  type ResponsiveActionMenuItem
+} from "@components/common/ResponsiveActionMenu";
 import type { Album, Song, Video } from "@features/library";
 import { isVideo } from "@features/library";
 import { AddToPlaylistDialog } from "@features/playlist";
@@ -22,10 +13,7 @@ import { router } from "@app/router";
 import { artistPath, getPrimaryArtist } from "@utils/artist";
 import { mediaArtworkUrl } from "@utils/mediaArtwork";
 
-export interface ActionMenuPosition {
-  top: number;
-  left: number;
-}
+export type { ActionMenuPosition };
 
 export interface ExtraMediaAction {
   label: string;
@@ -173,88 +161,24 @@ function ResponsiveActionSurface({
   artworkUrl?: string;
   actions: ExtraMediaAction[];
 }) {
-  const theme = useTheme();
-  const mobile = useMediaQuery(theme.breakpoints.down("sm"));
   const titleId = "media-actions-title";
   const header = (
-    <ActionHeader
-      title={title}
-      subtitle={subtitle}
-      artworkUrl={artworkUrl}
-      titleId={titleId}
-    />
+    <ActionHeader title={title} subtitle={subtitle} artworkUrl={artworkUrl} titleId={titleId} />
   );
 
-  if (mobile) {
-    return (
-      <Dialog
-        open={open}
-        onClose={onClose}
-        fullWidth
-        aria-labelledby={titleId}
-        sx={{ zIndex: 1700 }}
-        PaperProps={{
-          sx: {
-            m: 1.5,
-            width: "calc(100% - 24px)",
-            maxWidth: 520,
-            borderRadius: "22px",
-            bgcolor: "#292929",
-            backgroundImage: "none"
-          }
-        }}
-      >
-        <DialogContent sx={{ p: 2.5 }}>
-          {header}
-          <List disablePadding sx={{ mt: 1.5 }}>
-            {actions.map((action) => (
-              <ListItemButton
-                key={action.label}
-                onClick={action.onClick ?? onClose}
-                sx={{ minHeight: 52, borderRadius: 1.5, px: 1.5 }}
-              >
-                <ListItemText
-                  primary={action.label}
-                  primaryTypographyProps={{ fontSize: 17, fontWeight: 750 }}
-                />
-              </ListItemButton>
-            ))}
-          </List>
-          <Button
-            fullWidth
-            onClick={onClose}
-            sx={{ mt: 2, minHeight: 54, borderRadius: 2, bgcolor: "rgba(255,255,255,.12)" }}
-          >
-            Close
-          </Button>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
   return (
-    <Menu
+    <ResponsiveActionMenu
       open={open}
       onClose={onClose}
-      sx={{ zIndex: 1800 }}
       anchorEl={anchorEl}
-      anchorReference={anchorPosition ? "anchorPosition" : "anchorEl"}
-      anchorPosition={anchorPosition ?? undefined}
-      anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-      transformOrigin={{ vertical: "top", horizontal: "right" }}
-      slotProps={{ paper: { sx: { width: 286, p: 1, borderRadius: 2 } } }}
-    >
-      <Box sx={{ px: 1.25, pt: 0.75, pb: 1 }}>{header}</Box>
-      {actions.map((action) => (
-        <MenuItem
-          key={action.label}
-          onClick={action.onClick ?? onClose}
-          sx={{ minHeight: 44, borderRadius: 1, fontWeight: 650 }}
-        >
-          {action.label}
-        </MenuItem>
-      ))}
-    </Menu>
+      anchorPosition={anchorPosition}
+      title={title}
+      header={header}
+      items={actions as ResponsiveActionMenuItem[]}
+      showCloseButton
+      zIndex={1800}
+      desktopPaperSx={{ width: 286, p: 1, borderRadius: 2 }}
+    />
   );
 }
 
@@ -271,11 +195,7 @@ function ActionHeader({
 }) {
   return (
     <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-      <Avatar
-        variant="rounded"
-        src={artworkUrl}
-        sx={{ width: 48, height: 48 }}
-      />
+      <Avatar variant="rounded" src={artworkUrl} sx={{ width: 48, height: 48 }} />
       <Box sx={{ minWidth: 0 }}>
         <Typography id={titleId} noWrap fontWeight={800}>
           {title}

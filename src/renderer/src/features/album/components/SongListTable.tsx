@@ -22,7 +22,6 @@ export const SongListTable: React.FC<{ album: AlbumDetail }> = ({ album }) => {
         showAlbum={false}
         showQuality={false}
         showActions
-        mobileEmphasis
         playSource={playSource}
         onPlayFromIndex={(idx) =>
           play({ items: album.trackList, playFrom: playSource, startIndex: idx })

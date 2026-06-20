@@ -4,7 +4,8 @@ import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
 import PodcastsRoundedIcon from "@mui/icons-material/PodcastsRounded";
 import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
-import { Box, Button, Menu, MenuItem, Snackbar, Typography } from "@mui/material";
+import { Box, Button, Snackbar, Typography } from "@mui/material";
+import { ResponsiveActionMenu } from "@components/common/ResponsiveActionMenu";
 import { AlbumShelf } from "@components/media/AlbumShelf";
 import { VideoShelf } from "@components/media/VideoShelf";
 import { SongTable } from "@components/media/SongTable";
@@ -89,7 +90,7 @@ export const ArtistView: React.FC = () => {
         component="section"
         sx={{
           position: "relative",
-          minHeight: { xs: 590, sm: 500, lg: 470 },
+          minHeight: { xs: 460, sm: 500, lg: 470 },
           display: "flex",
           alignItems: "flex-end",
           overflow: "hidden",
@@ -254,12 +255,16 @@ export const ArtistView: React.FC = () => {
         />
       </Box>
 
-      <Menu anchorEl={moreAnchor} open={Boolean(moreAnchor)} onClose={() => setMoreAnchor(null)}>
-        <MenuItem onClick={copyArtistLink}>Copy artist link</MenuItem>
-        <MenuItem onClick={() => setMoreAnchor(null)} disabled>
-          {songs.length} tracks in library
-        </MenuItem>
-      </Menu>
+      <ResponsiveActionMenu
+        anchorEl={moreAnchor}
+        open={Boolean(moreAnchor)}
+        onClose={() => setMoreAnchor(null)}
+        ariaLabel={`${artistName} actions`}
+        items={[
+          { label: "Copy artist link", onClick: copyArtistLink },
+          { label: `${songs.length} tracks in library`, disabled: true }
+        ]}
+      />
       <Snackbar
         open={Boolean(shareMessage)}
         autoHideDuration={2200}

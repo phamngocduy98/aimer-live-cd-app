@@ -161,11 +161,57 @@ export const darkTheme = createTheme({
       }
     },
     MuiMenu: {
+      defaultProps: {
+        marginThreshold: 12
+      },
       styleOverrides: {
+        list: {
+          padding: "14px 0"
+        },
         paper: {
+          minWidth: 220,
           backgroundImage: "none",
-          border: `1px solid ${design.color.border}`,
-          boxShadow: design.shadow.menu
+          backgroundColor: "#2d2d2d",
+          border: 0,
+          borderRadius: 16,
+          boxShadow: design.shadow.menu,
+          color: design.color.text
+        }
+      }
+    },
+    MuiMenuItem: {
+      styleOverrides: {
+        root: {
+          minHeight: 44,
+          padding: "10px 24px",
+          fontSize: 16,
+          fontWeight: 750,
+          lineHeight: 1.35,
+          letterSpacing: 0,
+          color: design.color.text,
+          "&:hover": {
+            backgroundColor: "rgba(255,255,255,.08)"
+          },
+          "&.Mui-focusVisible": {
+            backgroundColor: "rgba(255,255,255,.1)"
+          },
+          "&.Mui-selected": {
+            backgroundColor: "rgba(255,255,255,.1)"
+          },
+          "&.Mui-selected:hover": {
+            backgroundColor: "rgba(255,255,255,.14)"
+          },
+          "&.Mui-disabled": {
+            color: "rgba(255,255,255,.42)",
+            opacity: 1
+          }
+        }
+      }
+    },
+    MuiSelect: {
+      defaultProps: {
+        MenuProps: {
+          marginThreshold: 12
         }
       }
     },

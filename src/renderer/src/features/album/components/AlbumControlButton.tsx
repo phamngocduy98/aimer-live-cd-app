@@ -3,7 +3,8 @@ import FavoriteBorderRoundedIcon from "@mui/icons-material/FavoriteBorderRounded
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import IosShareOutlinedIcon from "@mui/icons-material/IosShareOutlined";
 import MoreHorizRoundedIcon from "@mui/icons-material/MoreHorizRounded";
-import { Box, Menu, Snackbar, Typography } from "@mui/material";
+import { Box, Snackbar, Typography } from "@mui/material";
+import { ResponsiveActionMenu } from "@components/common/ResponsiveActionMenu";
 import { usePlaybackGate } from "@features/auth";
 import { AddToPlaylistDialog } from "@features/playlist";
 import type { AlbumDetail } from "../types";
@@ -60,6 +61,7 @@ export const AlbumControlButton: React.FC<{ album: AlbumDetail }> = ({ album }) 
     <>
       <DetailActions
         primary={<PrimaryActionGroup onPlay={() => play()} onShuffle={() => play(true)} />}
+        secondaryColumns={{ xs: 3, sm: 2, md: 3, lg: 4 }}
         secondary={
           <>
             <DetailActionButton
@@ -67,16 +69,20 @@ export const AlbumControlButton: React.FC<{ album: AlbumDetail }> = ({ album }) 
               icon={<FavoriteBorderRoundedIcon />}
               onClick={() => setAddToPlaylistOpen(true)}
             />
-            <DetailActionButton
-              label="Credits"
-              icon={<InfoOutlinedIcon />}
-              onClick={(event) => setCreditsAnchor(event.currentTarget)}
-            />
-            <DetailActionButton
-              label="Share"
-              icon={<IosShareOutlinedIcon />}
-              onClick={shareAlbum}
-            />
+            <Box sx={{ display: { xs: "none", sm: "none", lg: "block" } }}>
+              <DetailActionButton
+                label="Credits"
+                icon={<InfoOutlinedIcon />}
+                onClick={(event) => setCreditsAnchor(event.currentTarget)}
+              />
+            </Box>
+            <Box sx={{ display: { xs: "block", sm: "none", md: "block" } }}>
+              <DetailActionButton
+                label="Share"
+                icon={<IosShareOutlinedIcon />}
+                onClick={shareAlbum}
+              />
+            </Box>
             <DetailActionButton
               label="More"
               icon={<MoreHorizRoundedIcon />}
@@ -86,12 +92,14 @@ export const AlbumControlButton: React.FC<{ album: AlbumDetail }> = ({ album }) 
         }
       />
 
-      <Menu
+      <ResponsiveActionMenu
         anchorEl={creditsAnchor}
         open={Boolean(creditsAnchor)}
         onClose={() => setCreditsAnchor(null)}
+        ariaLabel={`${album.title} credits`}
+        mobileContentSx={{ p: 2 }}
       >
-        <Box sx={{ px: 2, py: 1.25, minWidth: 240 }}>
+        <Box sx={{ px: { xs: 0, sm: 2 }, py: { xs: 0, sm: 1.25 }, minWidth: 240 }}>
           <Typography fontWeight={850}>{album.title}</Typography>
           <Typography color="text.secondary" fontSize={13} sx={{ mt: 0.75 }}>
             Artist: {album.artist}
@@ -105,7 +113,7 @@ export const AlbumControlButton: React.FC<{ album: AlbumDetail }> = ({ album }) 
             </Typography>
           )}
         </Box>
-      </Menu>
+      </ResponsiveActionMenu>
 
       <AlbumActionsMenu
         album={album}

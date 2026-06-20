@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { Debouncer } from "@tanstack/pacer";
-import { Box, Grid, IconButton, Menu, MenuItem } from "@mui/material";
+import { Box, Grid, IconButton } from "@mui/material";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import SearchIcon from "@mui/icons-material/Search";
 import PersonIcon from "@mui/icons-material/Person";
 import styled from "@emotion/styled";
 import { InputAdornment, InputBase } from "@mui/material";
+import { ResponsiveActionMenu } from "@components/common/ResponsiveActionMenu";
 import { SearchDropdown } from "@components/search/SearchDropdown";
 import type { SearchResult } from "@renderer/types/shared";
 import { search } from "@features/search";
@@ -222,37 +223,33 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           </Grid>
         </Grid>
       </Box>
-      <Menu anchorEl={anchorEl} open={isMenuOpen} onClose={onMenuClose}>
-        {session.canAccessAdmin && (
-          <MenuItem
-            onClick={() => {
-              onMenuClose();
-              onAdminClick();
-            }}
-          >
-            Admin
-          </MenuItem>
-        )}
-        {session.user ? (
-          <MenuItem
-            onClick={() => {
-              onMenuClose();
-              onLogoutClick();
-            }}
-          >
-            Logout {session.user.displayName}
-          </MenuItem>
-        ) : (
-          <MenuItem
-            onClick={() => {
-              onMenuClose();
-              onLoginClick();
-            }}
-          >
-            Login
-          </MenuItem>
-        )}
-      </Menu>
+      <ResponsiveActionMenu
+        anchorEl={anchorEl}
+        open={isMenuOpen}
+        onClose={onMenuClose}
+        ariaLabel="User menu"
+        desktopPaperSx={{ width: 360, maxWidth: "calc(100vw - 32px)" }}
+        items={[
+          ...(session.canAccessAdmin
+            ? [
+                {
+                  label: "Admin",
+                  onClick: onAdminClick
+                }
+              ]
+            : []),
+          session.user
+            ? {
+                label: "Log out",
+                color: "error" as const,
+                onClick: onLogoutClick
+              }
+            : {
+                label: "Login",
+                onClick: onLoginClick
+              }
+        ]}
+      />
     </>
   );
 };

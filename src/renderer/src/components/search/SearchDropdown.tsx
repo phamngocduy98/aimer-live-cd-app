@@ -81,25 +81,24 @@ export const SearchDropdown: React.FC<SearchDropdownProps> = ({
         top: "100%",
         left: 0,
         right: 0,
-        mt: 0.5,
+        mt: 1.5,
         zIndex: 1300,
-        bgcolor: "#1c1c21",
-        border: "1px solid",
-        borderColor: "rgba(255,255,255,0.08)",
-        borderRadius: "12px",
+        bgcolor: "#2d2d2d",
+        borderRadius: "16px",
         overflow: "hidden",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.5)"
+        boxShadow: (theme) => theme.design.shadow.menu,
+        color: "text.primary"
       }}
       onMouseDown={(e) => e.preventDefault()}
     >
       {loading && (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", py: 2.5 }}>
           <CircularProgress size={24} />
         </Box>
       )}
 
       {!loading && !hasResults && (
-        <Typography sx={{ px: 2, py: 2 }} color="text.secondary" variant="body2">
+        <Typography sx={{ px: 3, py: 2.5, fontWeight: 750 }} color="text.secondary" variant="body2">
           No results found
         </Typography>
       )}
@@ -124,7 +123,7 @@ export const SearchDropdown: React.FC<SearchDropdownProps> = ({
           {result.albums.length > 0 && (
             <>
               <SectionHeader title="Albums" count={result.albums.length} />
-              <Box sx={{ display: "flex", gap: 1, px: 2, pb: 1, overflow: "auto" }}>
+              <Box sx={{ display: "flex", gap: 1.25, px: 3, pb: 1.5, overflow: "auto" }}>
                 {result.albums.slice(0, 4).map((album) => (
                   <Box
                     key={album._id}
@@ -140,7 +139,7 @@ export const SearchDropdown: React.FC<SearchDropdownProps> = ({
                       sx={{
                         width: 80,
                         height: 80,
-                        borderRadius: 1,
+                        borderRadius: 1.5,
                         overflow: "hidden",
                         bgcolor: "rgba(255,255,255,0.05)"
                       }}
@@ -200,14 +199,14 @@ export const SearchDropdown: React.FC<SearchDropdownProps> = ({
             </>
           )}
 
-          <Divider sx={{ borderColor: "rgba(255,255,255,0.08)" }} />
+          <Divider sx={{ borderColor: "rgba(255,255,255,0.08)", mx: 2 }} />
           <Box
             onClick={handleViewAll}
             sx={{
-              px: 2,
-              py: 1.5,
+              px: 3,
+              py: 1.75,
               cursor: "pointer",
-              "&:hover": { bgcolor: "rgba(255,255,255,0.04)" }
+              "&:hover": { bgcolor: "rgba(255,255,255,.08)" }
             }}
           >
             <Typography variant="body2" color="primary" fontWeight={500} textAlign="center">
@@ -224,15 +223,15 @@ function SectionHeader({ title, count }: { title: string; count: number }): Reac
   return (
     <Box
       sx={{
-        px: 2,
-        pt: 1.5,
-        pb: 0.5,
+        px: 3,
+        pt: 1.75,
+        pb: 0.75,
         display: "flex",
         alignItems: "baseline",
         gap: 0.5
       }}
     >
-      <Typography variant="caption" fontWeight={600} color="text.secondary">
+      <Typography variant="caption" fontWeight={800} color="text.secondary">
         {title}
       </Typography>
       <Typography variant="caption" color="text.disabled">
@@ -259,17 +258,17 @@ function ResultRow({
     <Box
       onClick={onClick}
       sx={{
-        px: 2,
-        py: 0.75,
+        px: 3,
+        py: 1.1,
         cursor: "pointer",
         display: "flex",
         alignItems: "center",
         gap: 1,
-        "&:hover": { bgcolor: "rgba(255,255,255,0.04)" }
+        "&:hover": { bgcolor: "rgba(255,255,255,.08)" }
       }}
     >
       <Box sx={{ minWidth: 0 }}>
-        <Typography variant="body2" noWrap textOverflow="ellipsis">
+        <Typography variant="body2" noWrap textOverflow="ellipsis" fontWeight={750}>
           {primary}
         </Typography>
         {secondary && (
