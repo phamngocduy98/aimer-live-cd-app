@@ -113,16 +113,16 @@ export const ControlButton = () => {
         size="medium"
         sx={{
           fontSize: {
-            xs: "56px",
-            sm: "44px"
+            xs: "42px",
+            sm: "36px"
           },
-          width: { xs: showMobilePlayer ? 70 : 50, sm: 54 },
-          height: { xs: showMobilePlayer ? 70 : 50, sm: 54 },
+          width: { xs: showMobilePlayer ? 56 : 44, sm: 48 },
+          height: { xs: showMobilePlayer ? 56 : 44, sm: 48 },
           p: 0
         }}
       >
         {!_isReady || _isLoading ? (
-          <CircularProgress size={showMobilePlayer ? 42 : 32} thickness={4} />
+          <CircularProgress size={showMobilePlayer ? 36 : 26} thickness={4} />
         ) : !_playing ? (
           <PlayArrowRounded fontSize="inherit" htmlColor={mainIconColor} />
         ) : (

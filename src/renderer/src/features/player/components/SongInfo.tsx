@@ -3,9 +3,9 @@ import React from "react";
 import { router } from "@app/router";
 import { useAppDispatch, useAppSelector } from "@app/hooks";
 import { hideView } from "../store/playerGuiSlice";
-import { artistPath, getPrimaryArtist } from "@utils/artist";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import { isVideo } from "@features/library";
+import { ArtistLinks } from "@components/media/ArtistLinks";
 
 interface AlbumImageProps extends React.PropsWithChildren {
   hideArtworkBelow?: "narrow" | "responsiveMedia" | "sm" | "md";
@@ -99,47 +99,23 @@ export const AlbumImage: React.FC<AlbumImageProps> = ({ children, hideArtworkBel
           lineHeight="21px"
           fontWeight={700}
           padding={0}
-          sx={{
-            "&:hover": {
-              textDecoration: "underline",
-              cursor: "pointer"
-            }
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-            dispatch(hideView("mobilePlayer"));
-            if (isVideo(playingTrack)) router.navigate(`/video/${playingTrack._id}`);
-            else if (playingTrack?.album?._id) router.navigate(`/album/${playingTrack.album._id}`);
-          }}
         >
           {currentChapter
             ? [currentChapter.title, currentChapter.subTitle].filter((t) => t).join(" - ")
             : playingTrack?.title}
         </Typography>
-        <Typography
-          component="span"
-          noWrap
-          fontSize={13}
-          lineHeight="20px"
-          textOverflow={"ellipsis"}
+        <ArtistLinks
+          artists={playingTrack?.artist}
           color="text.secondary"
-          maxWidth={"100%"}
+          fontSize={13}
           fontWeight={500}
-          padding={0}
+          onNavigate={() => dispatch(hideView("mobilePlayer"))}
           sx={{
-            "&:hover": {
-              textDecoration: "underline",
-              cursor: "pointer"
-            }
+            lineHeight: "20px",
+            maxWidth: "100%",
+            p: 0
           }}
-          onClick={(e) => {
-            e.stopPropagation();
-            dispatch(hideView("mobilePlayer"));
-            router.navigate(artistPath(getPrimaryArtist(playingTrack?.artist)));
-          }}
-        >
-          {playingTrack?.artist.join(", ")}
-        </Typography>
+        />
         <Typography
           component="span"
           noWrap
@@ -174,7 +150,8 @@ export const AlbumImage: React.FC<AlbumImageProps> = ({ children, hideArtworkBel
               e.stopPropagation();
               dispatch(hideView("mobilePlayer"));
               if (isVideo(playingTrack)) router.navigate(`/video/${playingTrack._id}`);
-              else if (playingTrack?.album?._id) router.navigate(`/album/${playingTrack.album._id}`);
+              else if (playingTrack?.album?._id)
+                router.navigate(`/album/${playingTrack.album._id}`);
             }}
           >
             {isVideo(playingTrack) ? "Videos" : playingTrack?.album?.title}

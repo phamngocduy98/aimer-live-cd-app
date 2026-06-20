@@ -70,26 +70,27 @@ export const SearchResults: React.FC = () => {
       >
         <Typography
           component="h1"
-          sx={{ fontSize: { xs: 36, sm: 48 }, fontWeight: 900, letterSpacing: "-.035em" }}
+          sx={{ fontSize: { xs: 24, sm: 32 }, fontWeight: 900, letterSpacing: "-.035em" }}
         >
-          Search results
+          Explore
         </Typography>
         <Box component="form" onSubmit={submitSearch} sx={{ mt: { xs: 3, sm: 4 } }}>
           <TextField
             fullWidth
             value={searchInput}
             onChange={(event) => setSearchInput(event.target.value)}
-            placeholder="Search songs, albums, videos, chapters"
+            placeholder="Search"
             inputProps={{ "aria-label": "Search library" }}
             sx={{
               maxWidth: 760,
               "& .MuiOutlinedInput-root": {
-                height: 58,
+                height: 44,
                 borderRadius: 1.5,
                 bgcolor: "rgba(0,0,0,.42)",
-                fontSize: 16,
+                fontSize: 15,
                 "& fieldset": { borderColor: "rgba(255,255,255,.12)" },
                 "&:hover fieldset": { borderColor: "rgba(255,255,255,.24)" },
+                "&.Mui-focused": { bgcolor: "rgba(255,255,255,.08)" },
                 "&.Mui-focused fieldset": { borderColor: "#6e6e6e", borderWidth: 1 }
               }
             }}

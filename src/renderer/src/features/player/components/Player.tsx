@@ -61,6 +61,7 @@ export function Player() {
           bottom: 8,
           left: 8,
           right: 8,
+          padding: 1,
           zIndex: 1202,
           userSelect: "none",
           borderRadius: "30px",
@@ -98,8 +99,11 @@ export function Player() {
           left: { xs: 8, sm: 10 },
           right: { xs: 8, sm: 10 },
           zIndex: showMobilePlayer ? 1301 : 1202,
+          padding: "16px",
           userSelect: "none",
           overflow: "visible",
+          display: "grid",
+          gap: 2,
           borderRadius: { xs: showMobilePlayer ? "26px" : "30px", sm: "24px" },
           border: {
             xs: showMobilePlayer ? "none" : "1px solid rgba(255,255,255,.13)"

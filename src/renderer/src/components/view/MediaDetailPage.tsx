@@ -124,7 +124,7 @@ export function MediaDetailIdentity({
         {summary && (
           <Box
             sx={{
-              display: { xs: "none", md: "flex" },
+              display: { xs: "none", sm: "flex" },
               alignItems: "center",
               flexWrap: "wrap",
               gap: 0.75,

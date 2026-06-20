@@ -1,3 +1,4 @@
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
@@ -23,11 +24,12 @@ import { isVideo } from "@features/library";
 import { useLyrics } from "@features/lyrics";
 import { artistImageUrl, artistPath, getPrimaryArtist } from "@utils/artist";
 import { useArtist } from "@features/artist/hooks/useArtist";
-import { FavoriteButton } from "./FavoriteButton";
 import { useAlbumBackgroundColor } from "../utils/albumBackground";
 import { LyricsExperience } from "@features/lyrics";
 import { toggleView } from "../store/playerGuiSlice";
 import { mediaArtworkUrl } from "@utils/mediaArtwork";
+import { ArtistLinks } from "@components/media/ArtistLinks";
+import { AddToPlaylistDialog, type PlaylistItemInput } from "@features/playlist";
 
 interface MobilePlayerProps {
   desktopChromeVisible?: boolean;
@@ -243,7 +245,10 @@ function PlayerHeader({
           </HeaderPill>
         </Box>
         {video && (
-          <IconButton aria-label="Video display mode" sx={{ display: { xs: "none", sm: "inline-flex" } }}>
+          <IconButton
+            aria-label="Video display mode"
+            sx={{ display: { xs: "none", sm: "inline-flex" } }}
+          >
             <OndemandVideoOutlinedIcon />
           </IconButton>
         )}
@@ -404,10 +409,7 @@ function AudioPlayerContent({ queueOpen, visible }: { queueOpen: boolean; visibl
           (visible ? "0s" : "280ms")
       }}
     >
-      <InteractiveAlbumArtwork
-        src={mediaArtworkUrl(playingTrack) ?? ""}
-        queueOpen={queueOpen}
-      />
+      <InteractiveAlbumArtwork src={mediaArtworkUrl(playingTrack) ?? ""} queueOpen={queueOpen} />
     </Box>
   );
 }
@@ -445,10 +447,7 @@ function AudioLyricsContent({ queueOpen, visible }: { queueOpen: boolean; visibl
           overflow: "hidden"
         }}
       >
-        <InteractiveAlbumArtwork
-          src={mediaArtworkUrl(playingTrack) ?? ""}
-          queueOpen={queueOpen}
-        />
+        <InteractiveAlbumArtwork src={mediaArtworkUrl(playingTrack) ?? ""} queueOpen={queueOpen} />
       </Box>
       <LyricsExperience />
     </Box>
@@ -456,41 +455,74 @@ function AudioLyricsContent({ queueOpen, visible }: { queueOpen: boolean; visibl
 }
 
 function MobileTrackDetails() {
+  const dispatch = useAppDispatch();
+  const [addToPlaylistOpen, setAddToPlaylistOpen] = React.useState(false);
   const playingTrack = useAppSelector((state) => state.player.playingTrack);
   const currentChapter = useAppSelector(
     (state) => state.player.chapters[state.player.currentChapterIdx ?? -1]
   );
+  const playlistItems = React.useMemo<PlaylistItemInput[]>(
+    () =>
+      playingTrack
+        ? [{ mediaType: isVideo(playingTrack) ? "video" : "audio", mediaId: playingTrack._id }]
+        : [],
+    [playingTrack]
+  );
 
   return (
-    <Box
-      data-testid="expanded-mobile-track-details"
-      sx={{
-        position: "absolute",
-        left: 20,
-        right: 20,
-        bottom: "clamp(238px, 33.5dvh, 270px)",
-        display: "flex",
-        alignItems: "center",
-        gap: 2
-      }}
-    >
-      <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography noWrap sx={{ fontSize: 20, fontWeight: 800, lineHeight: 1.25 }}>
-          {currentChapter
-            ? [currentChapter.title, currentChapter.subTitle].filter(Boolean).join(" - ")
-            : playingTrack?.title}
-        </Typography>
-        <Typography
-          noWrap
-          color="text.secondary"
-          sx={{ mt: 0.25, fontSize: 16, lineHeight: 1.35, cursor: "pointer" }}
-          onClick={() => router.navigate(artistPath(getPrimaryArtist(playingTrack?.artist)))}
+    <>
+      <Box
+        data-testid="expanded-mobile-track-details"
+        sx={{
+          position: "absolute",
+          left: 20,
+          right: 20,
+          bottom: "clamp(238px, 33.5dvh, 270px)",
+          zIndex: 13,
+          display: "flex",
+          alignItems: "center",
+          gap: 1.5
+        }}
+      >
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography noWrap sx={{ fontSize: 20, fontWeight: 800, lineHeight: 1.25 }}>
+            {currentChapter
+              ? [currentChapter.title, currentChapter.subTitle].filter(Boolean).join(" - ")
+              : playingTrack?.title}
+          </Typography>
+          <ArtistLinks
+            artists={playingTrack?.artist}
+            color="text.secondary"
+            fontSize={16}
+            onNavigate={() => dispatch(hideView("mobilePlayer"))}
+            sx={{ mt: 0.25, lineHeight: 1.35, maxWidth: "100%" }}
+          />
+        </Box>
+        <IconButton
+          aria-label="Add to Playlist"
+          disabled={!playingTrack}
+          onClick={(event) => {
+            event.stopPropagation();
+            setAddToPlaylistOpen(true);
+          }}
+          sx={{
+            width: 36,
+            height: 36,
+            flexShrink: 0,
+            color: "#fff",
+            bgcolor: "rgba(255,255,255,.12)",
+            "&:hover": { bgcolor: "rgba(255,255,255,.18)" }
+          }}
         >
-          {playingTrack?.artist.join(", ")}
-        </Typography>
+          <FavoriteBorderIcon sx={{ fontSize: 22 }} />
+        </IconButton>
       </Box>
-      <FavoriteButton size={38} />
-    </Box>
+      <AddToPlaylistDialog
+        open={addToPlaylistOpen}
+        onClose={() => setAddToPlaylistOpen(false)}
+        items={playlistItems}
+      />
+    </>
   );
 }
 

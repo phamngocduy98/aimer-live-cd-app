@@ -24,12 +24,9 @@ export function MobileNavigation(): React.JSX.Element {
       aria-label="Mobile navigation"
       onClick={(event) => event.stopPropagation()}
       sx={{
-        height: 50,
         display: "flex",
         alignItems: "center",
         justifyContent: "space-around",
-        px: 1,
-        pb: 0.5
       }}
     >
       {items.map(({ label, path, icon: Icon }) => {

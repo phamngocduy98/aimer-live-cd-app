@@ -1,3 +1,4 @@
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import MenuIcon from "@mui/icons-material/Menu";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { Alert, Avatar, IconButton, Slide, SlideProps, Snackbar } from "@mui/material";
@@ -16,9 +17,9 @@ import { nextTrack } from "../store/playerSlice";
 import type { Song, Video } from "@features/library";
 import { SongBitDepth, VideoBitDepth } from "./SongBitDepth";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
-import { FavoriteButton } from "./FavoriteButton";
 import { SongActionsMenu } from "@components/media/MediaActionsMenu";
 import { LyricsLanguageButton } from "@features/lyrics";
+import { AddToPlaylistDialog, type PlaylistItemInput } from "@features/playlist";
 
 function SlideTransition(props: SlideProps) {
   return <Slide {...props} direction="up" />;
@@ -33,6 +34,16 @@ export function MPlayerUI() {
   const lyricsOpen = useAppSelector((state) => state.playerGui.lyrics);
   const { error } = useGlobalAudioPlayer();
   const [actionsAnchor, setActionsAnchor] = React.useState<HTMLElement | null>(null);
+  const [addToPlaylistOpen, setAddToPlaylistOpen] = React.useState(false);
+  const playlistItems = React.useMemo<PlaylistItemInput[]>(() => {
+    if (!playingTrack) return [];
+    return [
+      {
+        mediaType: playingTrack.type === "video" ? "video" : "audio",
+        mediaId: playingTrack._id
+      }
+    ];
+  }, [playingTrack]);
 
   React.useEffect(() => {
     clearTimeout(timeoutRef.current);
@@ -71,8 +82,7 @@ export function MPlayerUI() {
         }}
         sx={{
           background: "transparent",
-          minHeight: { xs: 72, sm: 84 },
-          padding: { xs: "10px 14px 4px", sm: "8px 14px" },
+          minHeight: 0,
           mx: 0,
           width: "100%",
           alignItems: "center",
@@ -121,7 +131,16 @@ export function MPlayerUI() {
             )}
           </AlbumImage>
           <Box sx={{ display: { xs: "none", sm: "flex" }, flexShrink: 0 }}>
-            <FavoriteButton size={22} />
+            <IconButton
+              aria-label="Add to Playlist"
+              disabled={!playingTrack}
+              onClick={(event) => {
+                event.stopPropagation();
+                setAddToPlaylistOpen(true);
+              }}
+            >
+              <FavoriteBorderIcon sx={{ fontSize: 22 }} />
+            </IconButton>
             <IconButton
               aria-label="Player track actions"
               onClick={(event) => {
@@ -195,6 +214,11 @@ export function MPlayerUI() {
         open={Boolean(actionsAnchor)}
         anchorEl={actionsAnchor}
         onClose={() => setActionsAnchor(null)}
+      />
+      <AddToPlaylistDialog
+        open={addToPlaylistOpen}
+        onClose={() => setAddToPlaylistOpen(false)}
+        items={playlistItems}
       />
     </>
   );

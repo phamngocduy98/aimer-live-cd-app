@@ -43,8 +43,8 @@ export const CollectionHeader: React.FC<CollectionHeaderProps> = ({
         <Typography
           component="h1"
           sx={{
-            fontSize: { xs: 34, sm: 40 },
-            fontWeight: 900,
+            fontSize: { xs: 26, sm: 32 },
+            fontWeight: 850,
             lineHeight: 1,
             letterSpacing: "-.04em"
           }}
@@ -69,12 +69,13 @@ export const CollectionHeader: React.FC<CollectionHeaderProps> = ({
         sx={{
           mt: { xs: 3, sm: 4 },
           "& .MuiOutlinedInput-root": {
-            height: 58,
+            height: 44,
             borderRadius: 1.5,
             bgcolor: "rgba(0,0,0,.42)",
-            fontSize: 16,
+            fontSize: 15,
             "& fieldset": { borderColor: "rgba(255,255,255,.12)" },
             "&:hover fieldset": { borderColor: "rgba(255,255,255,.24)" },
+            "&.Mui-focused": { bgcolor: "rgba(255,255,255,.08)" },
             "&.Mui-focused fieldset": { borderColor: "#6e6e6e", borderWidth: 1 }
           }
         }}

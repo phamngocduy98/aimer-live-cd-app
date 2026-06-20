@@ -15,36 +15,6 @@ widths, rather than normal responsive simplification.
 
 ## Critical
 
-### UI-001: Mobile search has no way to enter a query
-
-- **Affected:** Mobile, below 600 px
-- **Observed:** The desktop search input is hidden. Mobile navigation links to
-  `/search`, but `SearchResults` only reads `q` from the URL and renders results;
-  it does not render a search input. Opening Search on mobile therefore shows an
-  empty "Search results" page with no way to perform a search.
-- **Desktop behavior:** Search input and debounced preview are available in the
-  top bar.
-- **Expected:** Mobile Search must provide an input that updates/navigates with
-  `?q=...`, or the top-bar search must have a mobile presentation.
-- **References:**
-  `src/renderer/src/components/layout/TopNavBar.tsx:191`,
-  `src/renderer/src/components/layout/MobileNavigation.tsx:15`,
-  `src/renderer/src/features/search/components/SearchResults.tsx:19`
-
-### UI-002: Videos navigation disappears on mobile
-
-- **Affected:** Mobile, below 600 px
-- **Observed:** The desktop sidebar includes Videos, but the five-item mobile
-  navigation replaces it with Search. There is no mobile Videos entry and Home
-  does not expose a videos section, so the `/videos` collection loses its normal
-  navigation path.
-- **Expected:** Videos must remain directly reachable in the mobile navigation
-  model, or through a visible mobile library/more destination.
-- **References:**
-  `src/renderer/src/components/layout/Sidebar.tsx:20`,
-  `src/renderer/src/components/layout/MobileNavigation.tsx:10`,
-  `src/renderer/src/app/router.tsx:21`
-
 ### UI-003: Creating the first playlist is unavailable on mobile
 
 - **Affected:** Mobile, below 600 px
@@ -79,18 +49,6 @@ widths, rather than normal responsive simplification.
   `src/renderer/src/features/search/components/SearchResults.tsx:74`,
   `src/renderer/src/features/artist/components/ArtistView.tsx:206`
 
-### UI-005: Host administration has no mobile entry point
-
-- **Affected:** Mobile, below 600 px
-- **Observed:** Admin is opened only from the avatar menu. The avatar is
-  hidden below `sm`, and mobile navigation has no settings/admin destination.
-- **Expected:** Global administration must remain reachable from mobile through
-  a mobile account/settings action or another shell-owned menu.
-- **References:**
-  `src/renderer/src/components/layout/TopNavBar.tsx:215`,
-  `src/renderer/src/components/layout/TopNavBar.tsx:224`,
-  `src/renderer/src/app/AppShell.tsx:88`
-
 ## High
 
 ### UI-006: Expanded mobile queue loses Create Playlist and Clear Queue
@@ -107,18 +65,6 @@ widths, rather than normal responsive simplification.
   `src/renderer/src/features/player/components/FloatingQueueList.tsx:103`,
   `src/renderer/src/features/player/components/FloatingQueueList.tsx:118`,
   `src/renderer/src/features/player/components/FloatingQueueList.tsx:172`
-
-### UI-007: Artist navigation from expanded mobile track details stays hidden behind the player
-
-- **Affected:** Mobile expanded player
-- **Observed:** Tapping the artist name in the lower track-details area
-  navigates the router but does not close the expanded player. The artist
-  identity in the header correctly hides the player before navigating.
-- **Expected:** Both artist links should minimize/close the expanded player
-  before route navigation.
-- **References:**
-  `src/renderer/src/features/player/components/MobilePlayerUI.tsx:208`,
-  `src/renderer/src/features/player/components/MobilePlayerUI.tsx:353`
 
 ### UI-008: Album card actions are exposed by right-click on desktop but have no mobile opener
 
@@ -149,17 +95,6 @@ widths, rather than normal responsive simplification.
 
 ## Medium
 
-### UI-010: Brand identity changes between desktop and mobile
-
-- **Affected:** Shell header
-- **Observed:** Desktop/tablet displays only `BrandMark` in the sidebar, while
-  mobile Home displays the text "Aimer live" in the top bar.
-- **Expected:** Use the same brand mark, wordmark, or deliberate combined lockup
-  across width bands.
-- **References:**
-  `src/renderer/src/components/layout/Sidebar.tsx:29`,
-  `src/renderer/src/components/layout/Sidebar.tsx:102`,
-  `src/renderer/src/components/layout/TopNavBar.tsx:163`
 
 ### UI-011: Responsive action behavior exists, but several touch surfaces cannot open it
 
