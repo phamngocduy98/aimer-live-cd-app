@@ -47,7 +47,9 @@ export function VideoChapterTable({ video }: { video: Video }): React.ReactEleme
           </MediaTableCell>
           <MediaTableCell>TITLE</MediaTableCell>
           <MediaTableCell>ARTIST</MediaTableCell>
-          <MediaTableCell align="center">TIME</MediaTableCell>
+          <MediaTableCell align="center" sx={{ display: { sm: "none", md: "table-cell" } }}>
+            TIME
+          </MediaTableCell>
           <MediaTableCell align="center" width={44}></MediaTableCell>
         </TableRow>
       </MediaTableHead>
@@ -66,7 +68,12 @@ export function VideoChapterTable({ video }: { video: Video }): React.ReactEleme
             >
               <MediaTableCell align="center" component="th" scope="row" width={30}>
                 {active ? (
-                  <VolumeUpIcon className="now-playing-accent" sx={{ width: 16, height: 16 }} />
+                  <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                    <VolumeUpIcon
+                      className="now-playing-accent"
+                      sx={{ width: 16, height: 16 }}
+                    />
+                  </Box>
                 ) : (
                   <Typography fontSize={14} fontWeight={500} color="#79777f">
                     {index + 1}
@@ -78,13 +85,12 @@ export function VideoChapterTable({ video }: { video: Video }): React.ReactEleme
                   <Typography
                     className={active ? "now-playing-accent" : undefined}
                     noWrap
-                    fontSize={{ xs: 17, sm: 14 }}
-                    fontWeight={600}
+                    sx={{ fontSize: { xs: "14px", sm: "inherit" }, fontWeight: 600 }}
                   >
                     {chapter.title}
                   </Typography>
                   {chapter.subTitle && (
-                    <Typography noWrap color="text.secondary" fontSize={{ xs: 15, sm: 13 }}>
+                    <Typography noWrap color="text.secondary" fontSize={14}>
                       {chapter.subTitle}
                     </Typography>
                   )}
@@ -93,7 +99,7 @@ export function VideoChapterTable({ video }: { video: Video }): React.ReactEleme
               <MediaTableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>
                 <ArtistLinks artists={video.artist} />
               </MediaTableCell>
-              <MediaTableCell align="center" sx={{ display: { xs: "none", sm: "table-cell" } }}>
+              <MediaTableCell align="center" sx={{ display: { xs: "none", md: "table-cell" } }}>
                 <Typography fontSize={14} color="#919191">
                   {formatDuration(Math.max(0, end - chapter.time))}
                 </Typography>

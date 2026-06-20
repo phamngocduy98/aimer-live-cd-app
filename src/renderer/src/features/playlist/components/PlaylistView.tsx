@@ -203,9 +203,14 @@ export const PlaylistView: React.FC = () => {
           sx={{
             mb: 2.5,
             "& .MuiOutlinedInput-root": {
+              height: 44,
               borderRadius: 2,
               bgcolor: "rgba(255,255,255,.025)",
-              "& fieldset": { borderColor: "rgba(255,255,255,.14)" }
+              fontSize: 15,
+              "& fieldset": { borderColor: "rgba(255,255,255,.14)" },
+              "&.Mui-focused": { bgcolor: "#242429" },
+              "&:hover fieldset": { borderColor: "rgba(255,255,255,.24)" },
+              "&.Mui-focused fieldset": { borderColor: "#6e6e6e", borderWidth: 1 }
             }
           }}
         />

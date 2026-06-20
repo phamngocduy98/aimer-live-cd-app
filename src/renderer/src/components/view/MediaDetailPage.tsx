@@ -113,7 +113,7 @@ export function MediaDetailIdentity({
           component="h1"
           sx={(theme) => ({
             ...theme.design.typography.detailTitle,
-            fontSize: { xs: 24, sm: 28, lg: 48 },
+            fontSize: { xs: 20, md: 32 },
             lineHeight: 1,
             letterSpacing: "-.035em",
             textShadow: "0 2px 24px rgba(0,0,0,.55)"

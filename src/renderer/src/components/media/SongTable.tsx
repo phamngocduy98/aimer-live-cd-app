@@ -91,11 +91,24 @@ export const SongTable: React.FC<SongTableProps> = ({
           </MediaTableCell>
           <MediaTableCell>TITLE</MediaTableCell>
           {showArtist && <MediaTableCell>ARTIST</MediaTableCell>}
-          {showAlbum && <MediaTableCell>ALBUM</MediaTableCell>}
-          {showQuality && <MediaTableCell align="center">QUALITY</MediaTableCell>}
-          <MediaTableCell align="center">TIME</MediaTableCell>
+          {showAlbum && (
+            <MediaTableCell sx={{ display: { sm: "none", md: "table-cell" } }}>
+              ALBUM
+            </MediaTableCell>
+          )}
+          {showQuality && (
+            <MediaTableCell align="center" sx={{ display: { sm: "none", lg: "table-cell" } }}>
+              QUALITY
+            </MediaTableCell>
+          )}
+          <MediaTableCell align="center" sx={{ display: { sm: "none", lg: "table-cell" } }}>
+            TIME
+          </MediaTableCell>
           {showActions && (
-            <MediaTableCell align="center" width={showAddToPlaylist ? 88 : 44}></MediaTableCell>
+            <MediaTableCell
+              align="center"
+              width={showAddToPlaylist ? 88 : 44}
+            ></MediaTableCell>
           )}
         </TableRow>
       </MediaTableHead>
@@ -129,7 +142,12 @@ export const SongTable: React.FC<SongTableProps> = ({
                     {getIndexLabel(song, index)}
                   </Typography>
                 ) : (
-                  <VolumeUpIcon className="now-playing-accent" style={{ width: 16, height: 16 }} />
+                  <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                    <VolumeUpIcon
+                      className="now-playing-accent"
+                      sx={{ width: 16, height: 16 }}
+                    />
+                  </Box>
                 )}
               </MediaTableCell>
               <MediaTableCell>
@@ -155,7 +173,7 @@ export const SongTable: React.FC<SongTableProps> = ({
                       noWrap
                       textOverflow="ellipsis"
                       sx={{
-                        fontSize: { xs: 14 },
+                        fontSize: { xs: "14px", sm: "inherit" },
                         fontWeight: 600
                       }}
                     >
@@ -190,7 +208,7 @@ export const SongTable: React.FC<SongTableProps> = ({
                 </MediaTableCell>
               )}
               {showAlbum && (
-                <MediaTableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>
+                <MediaTableCell sx={{ display: { xs: "none", md: "table-cell" } }}>
                   <MetadataLink
                     onClick={(event) => {
                       event.stopPropagation();
@@ -202,11 +220,11 @@ export const SongTable: React.FC<SongTableProps> = ({
                 </MediaTableCell>
               )}
               {showQuality && (
-                <MediaTableCell align="center" sx={{ display: { xs: "none", sm: "table-cell" } }}>
+                <MediaTableCell align="center" sx={{ display: { xs: "none", lg: "table-cell" } }}>
                   <SongBitDepth song={song} />
                 </MediaTableCell>
               )}
-              <MediaTableCell align="center" sx={{ display: { xs: "none", sm: "table-cell" } }}>
+              <MediaTableCell align="center" sx={{ display: { xs: "none", lg: "table-cell" } }}>
                 <Typography fontSize="14px" color="#919191">
                   {formatDuration(song.duration)}
                 </Typography>

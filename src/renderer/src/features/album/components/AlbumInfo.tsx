@@ -1,8 +1,8 @@
 import { Box, Typography } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "@app/hooks";
 import { hideView } from "@features/player/store/playerGuiSlice";
 import { SongBitDepth } from "@features/player/components/SongBitDepth";
-import { router } from "@app/router";
 import { artistImageUrl, artistPath } from "@utils/artist";
 import { formatDuration } from "@utils/formatDuration";
 import { apiAssetUrl } from "@lib/axios";
@@ -11,11 +11,12 @@ import { MediaDetailIdentity } from "@components/view/MediaDetailPage";
 
 export const AlbumInfo: React.FC<{ album: AlbumDetail }> = ({ album }) => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const trackDuration = album.trackList.reduce((total, track) => total + track.duration, 0);
 
   const openArtist = () => {
     dispatch(hideView("mobilePlayer"));
-    router.navigate(artistPath(album.artist));
+    navigate(artistPath(album.artist));
   };
 
   return (

@@ -35,8 +35,8 @@ export const CollectionHeader: React.FC<CollectionHeaderProps> = ({
         maxWidth: (theme) => theme.design.layout.collectionWidth,
         mx: "auto",
         px: (theme) => theme.design.layout.gutters,
-        pt: { xs: "calc(64px + 32px)", sm: "calc(64px + 40px)" },
-        pb: { xs: 4, sm: 5 }
+        pt: { xs: "calc(64px + 16px)", sm: "calc(64px + 16px)" },
+        pb: 4
       }}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -44,7 +44,7 @@ export const CollectionHeader: React.FC<CollectionHeaderProps> = ({
           component="h1"
           sx={(theme) => ({
             ...theme.design.typography.pageTitle,
-            fontSize: { xs: 26, sm: 32 },
+            fontSize: { xs: 24, md: 27 },
             lineHeight: 1,
             letterSpacing: "-.04em"
           })}

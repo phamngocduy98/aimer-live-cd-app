@@ -294,8 +294,8 @@ test.describe("GUI expected features", () => {
     await ctx.electronApp
       .browserWindow(ctx.mainWindow)
       .then((win) => win.evaluate((browserWindow) => browserWindow.setSize(1024, 760)));
-    await expect(playlistTable.getByText("ALBUM", { exact: true })).not.toBeVisible();
-    await expect(playlistTable.getByText("TIME", { exact: true })).toBeVisible();
+    await expect(playlistTable.getByText("ALBUM", { exact: true })).toBeVisible();
+    await expect(playlistTable.getByText("TIME", { exact: true })).not.toBeVisible();
     await expect(ctx.mainWindow.getByRole("button", { name: "Share" })).toBeVisible();
 
     await ctx.electronApp
@@ -310,6 +310,7 @@ test.describe("GUI expected features", () => {
       "28px"
     );
     await expect(playlistTable.getByText("ARTIST", { exact: true })).toBeVisible();
+    await expect(playlistTable.getByText("ALBUM", { exact: true })).not.toBeVisible();
     await expect(playlistTable.getByText("TIME", { exact: true })).not.toBeVisible();
     await expect(ctx.mainWindow.getByRole("button", { name: "Share" })).not.toBeVisible();
     await expect(ctx.mainWindow.getByText("Shuffle", { exact: true })).not.toBeVisible();
@@ -317,7 +318,7 @@ test.describe("GUI expected features", () => {
     await ctx.electronApp
       .browserWindow(ctx.mainWindow)
       .then((win) => win.evaluate((browserWindow) => browserWindow.setSize(700, 760)));
-    await expect(playlistTable.getByText("ARTIST", { exact: true })).not.toBeVisible();
+    await expect(playlistTable.getByText("ARTIST", { exact: true })).toBeVisible();
 
     await ctx.electronApp
       .browserWindow(ctx.mainWindow)
@@ -332,8 +333,8 @@ test.describe("GUI expected features", () => {
     );
     await expect(playlistTable).toHaveCSS("table-layout", "fixed");
     await expect(playlistTable.getByText("TITLE", { exact: true })).not.toBeVisible();
-    await expect(playlistTable.getByText("E2E Search Ballad")).toHaveCSS("font-size", "17px");
-    await expect(playlistTable.getByText("E2E Search Ballad")).toHaveCSS("font-weight", "400");
+    await expect(playlistTable.getByText("E2E Search Ballad")).toHaveCSS("font-size", "14px");
+    await expect(playlistTable.getByText("E2E Search Ballad")).toHaveCSS("font-weight", "600");
     await expect(ctx.mainWindow.getByRole("button", { name: "Share" })).toBeVisible();
     await expect(ctx.mainWindow.getByText("Shuffle", { exact: true })).toBeVisible();
     expect(

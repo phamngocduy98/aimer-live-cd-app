@@ -120,7 +120,7 @@ export const MobilePlayer: React.FC<MobilePlayerProps> = ({ desktopChromeVisible
                   (queueOpen ? "0s" : "300ms")
               }}
             >
-              <QueuePanel mobile />
+              <QueuePanel mobile onClear={() => dispatch(reset({ songs: [], type: "audio" }))} />
             </Box>
           )}
           {desktop && (

@@ -136,7 +136,7 @@ export function Player() {
             "opacity 220ms ease, transform 220ms ease, background 220ms ease, width 220ms ease"
         }}
       >
-        <Box sx={{ display: { xs: showMobilePlayer ? "none" : "block", sm: "block" } }}>
+        <Box sx={{ display: { xs: showMobilePlayer ? "none" : "block", sm: "block" }, overflow: "hidden" }}>
           <MPlayerUI />
         </Box>
         {showMobilePlayer && (

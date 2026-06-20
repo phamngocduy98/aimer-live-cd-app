@@ -68,22 +68,21 @@ export function PlaylistItemsTable({
                 data-testid="playlist-artist-column"
                 sx={{
                   width: "24%",
-                  display: { xs: "none", sm: "table-cell" },
-                  "@media (max-width: 749.95px)": { display: "none" }
+                  display: { xs: "none", sm: "table-cell" }
                 }}
               >
                 ARTIST
               </PlaylistTableCell>
               <PlaylistTableCell
                 data-testid="playlist-album-column"
-                sx={{ width: "24%", display: { xs: "none", lg: "table-cell" } }}
+                sx={{ width: "24%", display: { xs: "none", md: "table-cell" } }}
               >
                 ALBUM
               </PlaylistTableCell>
               <PlaylistTableCell
                 data-testid="playlist-time-column"
                 align="center"
-                sx={{ width: 72, display: { xs: "none", md: "table-cell" } }}
+                sx={{ width: 72, display: { xs: "none", lg: "table-cell" } }}
               >
                 TIME
               </PlaylistTableCell>
@@ -119,7 +118,12 @@ export function PlaylistItemsTable({
                 >
                   <PlaylistTableCell align="center" component="th" scope="row" width={30}>
                     {active ? (
-                      <VolumeUpIcon className="now-playing-accent" sx={{ width: 16, height: 16 }} />
+                      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                        <VolumeUpIcon
+                          className="now-playing-accent"
+                          sx={{ width: 16, height: 16 }}
+                        />
+                      </Box>
                     ) : (
                       <Typography fontSize="14px" fontWeight={500} color="#79777f">
                         {index + 1}
@@ -146,8 +150,8 @@ export function PlaylistItemsTable({
                           noWrap
                           textOverflow="ellipsis"
                           sx={{
-                            fontSize: { xs: 17, sm: 14 },
-                            fontWeight: { xs: 400, sm: 600 }
+                            fontSize: { xs: "14px", sm: "inherit" },
+                            fontWeight: 600
                           }}
                         >
                           {item.media.title}
@@ -176,15 +180,14 @@ export function PlaylistItemsTable({
                   <PlaylistTableCell
                     data-testid="playlist-artist-cell"
                     sx={{
-                      display: { xs: "none", sm: "table-cell" },
-                      "@media (max-width: 749.95px)": { display: "none" }
+                      display: { xs: "none", sm: "table-cell" }
                     }}
                   >
                     <ArtistLinks artists={item.media.artist} />
                   </PlaylistTableCell>
                   <PlaylistTableCell
                     data-testid="playlist-album-cell"
-                    sx={{ display: { xs: "none", lg: "table-cell" } }}
+                    sx={{ display: { xs: "none", md: "table-cell" } }}
                   >
                     <Typography noWrap textOverflow="ellipsis" fontSize={14} color="#a0a0a0">
                       {"album" in item.media ? (item.media.album?.title ?? "Unknown") : "Video"}
@@ -193,7 +196,7 @@ export function PlaylistItemsTable({
                   <PlaylistTableCell
                     data-testid="playlist-time-cell"
                     align="center"
-                    sx={{ display: { xs: "none", md: "table-cell" } }}
+                    sx={{ display: { xs: "none", lg: "table-cell" } }}
                   >
                     <Typography fontSize={14} color="#919191">
                       {formatDuration(item.media.duration)}
