@@ -310,7 +310,7 @@ export function VideoEditDialog({
         <Typography variant="overline" color="primary.main">
           Video library
         </Typography>
-        <Typography component="h2" variant="h5" fontWeight={850}>
+        <Typography component="h2" variant="h5" fontWeight={700}>
           Edit video metadata
         </Typography>
       </DialogTitle>
@@ -433,7 +433,7 @@ export function VideoEditDialog({
             spacing={1.5}
           >
             <Box>
-              <Typography variant="h6" fontWeight={800}>
+              <Typography variant="h6" fontWeight={700}>
                 Chapters
               </Typography>
               <Typography variant="body2" color="text.secondary">
@@ -725,7 +725,7 @@ export function YoutubeVideoCreateDialog({
         <Typography variant="overline" color="error.light">
           YouTube import
         </Typography>
-        <Typography component="h2" variant="h5" fontWeight={900}>
+        <Typography component="h2" variant="h5" fontWeight={700}>
           Add YouTube video
         </Typography>
       </DialogTitle>
@@ -771,7 +771,7 @@ export function YoutubeVideoCreateDialog({
                       bgcolor: "error.main",
                       color: "#fff",
                       fontSize: 12,
-                      fontWeight: 800,
+                      fontWeight: 700,
                       pointerEvents: "none"
                     }}
                   >
@@ -793,7 +793,7 @@ export function YoutubeVideoCreateDialog({
                 border: `1px solid ${theme.design.color.border}`
               })}
             >
-              <Typography fontWeight={800}>Preview status</Typography>
+              <Typography fontWeight={700}>Preview status</Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
                 {loaded
                   ? "Metadata loaded. Tune the fields, artwork, and chapters before saving."
@@ -972,7 +972,7 @@ export function YoutubeVideoCreateDialog({
               spacing={1.5}
             >
               <Box>
-                <Typography variant="h6" fontWeight={850}>
+                <Typography variant="h6" fontWeight={700}>
                   Chapters
                 </Typography>
                 <Typography variant="body2" color="text.secondary">

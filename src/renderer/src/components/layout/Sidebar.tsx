@@ -121,7 +121,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               <Icon />
               {!collapsed && (
-                <Typography fontSize={15} fontWeight={750}>
+                <Typography fontSize={15} fontWeight={600}>
                   {label}
                 </Typography>
               )}
@@ -148,7 +148,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           }}
         >
           {!collapsed && (
-            <Typography color="#7f7f7f" fontSize={14} fontWeight={750}>
+            <Typography color="#7f7f7f" fontSize={14} fontWeight={600}>
               All playlists
             </Typography>
           )}
@@ -188,7 +188,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </Box>
                 {!collapsed && (
                   <Box minWidth={0}>
-                    <Typography noWrap fontSize={13} fontWeight={750}>
+                    <Typography noWrap fontSize={13} fontWeight={600}>
                       {playlist.name}
                     </Typography>
                     <Typography color="text.secondary" fontSize={11}>

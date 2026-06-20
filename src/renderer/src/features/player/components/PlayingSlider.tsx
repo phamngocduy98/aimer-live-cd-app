@@ -20,6 +20,7 @@ export function PlayingSlider() {
   const theme = useTheme();
 
   const { videoPosition, videoIsReady } = useAppSelector((state) => state.playerVideoControl);
+  const [dragPosition, setDragPosition] = React.useState<number | null>(null);
 
   const _position = isVideo(playingTrack)
     ? currentChapter != null
@@ -27,8 +28,17 @@ export function PlayingSlider() {
       : videoPosition
     : position;
   const _duration = currentChapter != null ? currentChapterDuration : (playingTrack?.duration ?? 0);
-  const _remain = _duration - _position;
   const _isReady = isVideo(playingTrack) ? videoIsReady : isReady;
+  const sliderPosition = dragPosition ?? Math.min(Math.max(_position, 0), _duration);
+  const _remain = _duration - sliderPosition;
+
+  const commitSeek = React.useCallback(
+    (value: number) => {
+      const newPos = (currentChapter?.time ?? 0) + value;
+      playingTrack?.type === "video" ? dispatch(videoOnSeek({ position: newPos })) : seek(newPos);
+    },
+    [currentChapter?.time, dispatch, playingTrack?.type, seek]
+  );
 
   return (
     <div onClick={(e) => e.stopPropagation()}>
@@ -56,7 +66,7 @@ export function PlayingSlider() {
             }
           }}
         >
-          <TinyText>{formatDuration(_position)}</TinyText>
+          <TinyText>{formatDuration(sliderPosition)}</TinyText>
         </Grid>
         <Grid
           item
@@ -75,19 +85,19 @@ export function PlayingSlider() {
         >
           <Slider
             size="small"
-            value={Math.floor(_position)}
+            value={Math.floor(sliderPosition)}
             min={0}
             step={1}
             disabled={!_isReady}
-            max={Math.floor(_duration)}
+            max={Math.max(Math.floor(_duration), 1)}
             onChange={(e, value) => {
               e.stopPropagation();
-              const newPos =
-                (currentChapter != null ? currentChapter?.time : 0) + (value as number);
-              playingTrack?.type === "video"
-                ? dispatch(videoOnSeek({ position: newPos }))
-                : seek(newPos);
-              // console.log("seek", value);
+              setDragPosition(value as number);
+            }}
+            onChangeCommitted={(e, value) => {
+              e.stopPropagation();
+              setDragPosition(null);
+              commitSeek(value as number);
             }}
             sx={{
               color: theme.palette.mode === "dark" ? "#fff" : "rgba(0,0,0,0.87)",
@@ -125,7 +135,7 @@ export function PlayingSlider() {
             pl: { sm: 1 }
           }}
         >
-          <TinyText align="right">-{formatDuration(_remain)}</TinyText>
+          <TinyText align="right">-{formatDuration(Math.max(_remain, 0))}</TinyText>
         </Grid>
       </Grid>
     </div>

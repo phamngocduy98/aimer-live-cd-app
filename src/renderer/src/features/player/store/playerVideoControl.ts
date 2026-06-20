@@ -79,6 +79,9 @@ const playerVideoControlSlice = createSlice({
       payload: PayloadAction<{ position: number | null; mediaId?: string | null }>
     ) {
       state.videoSeekPosition = payload.payload.position;
+      if (payload.payload.position != null) {
+        state.videoPosition = payload.payload.position;
+      }
       state.videoSeekMediaId =
         payload.payload.position == null
           ? null

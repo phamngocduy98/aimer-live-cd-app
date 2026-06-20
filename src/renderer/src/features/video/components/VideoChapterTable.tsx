@@ -79,7 +79,7 @@ export function VideoChapterTable({ video }: { video: Video }): React.ReactEleme
                     className={active ? "now-playing-accent" : undefined}
                     noWrap
                     fontSize={{ xs: 17, sm: 14 }}
-                    fontWeight={750}
+                    fontWeight={600}
                   >
                     {chapter.title}
                   </Typography>

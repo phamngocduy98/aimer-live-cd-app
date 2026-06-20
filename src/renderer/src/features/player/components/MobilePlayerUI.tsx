@@ -228,7 +228,7 @@ function PlayerHeader({
             bgcolor: lyricsOpen ? "rgba(255,255,255,.9)" : "rgba(255,255,255,.12)",
             color: lyricsOpen ? "#171717" : "#fff",
             textTransform: "none",
-            fontWeight: 800
+            fontWeight: 700
           }}
         >
           Lyrics
@@ -356,7 +356,7 @@ function ArtistIdentity() {
               boxShadow: "0 24px 70px rgba(0,0,0,.5)"
             }}
           >
-            <Typography sx={{ fontSize: 20, fontWeight: 850 }}>{artist}</Typography>
+            <Typography sx={{ fontSize: 20, fontWeight: 700 }}>{artist}</Typography>
             <Typography sx={{ mt: 0.75, color: "text.secondary", lineHeight: 1.55 }}>
               Explore {artist} through {data?.songs.length ?? 0} tracks and{" "}
               {data?.albums.length ?? 0} releases saved in your library.
@@ -485,7 +485,7 @@ function MobileTrackDetails() {
         }}
       >
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography noWrap sx={{ fontSize: 20, fontWeight: 800, lineHeight: 1.25 }}>
+          <Typography noWrap sx={{ fontSize: 20, fontWeight: 700, lineHeight: 1.25 }}>
             {currentChapter
               ? [currentChapter.title, currentChapter.subTitle].filter(Boolean).join(" - ")
               : playingTrack?.title}

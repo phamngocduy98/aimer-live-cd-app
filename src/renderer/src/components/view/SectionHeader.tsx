@@ -25,10 +25,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
   >
     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
       {icon && <Box sx={{ display: "flex", color: "#fff" }}>{icon}</Box>}
-      <Typography
-        component="h2"
-        sx={{ fontSize: { xs: 22, sm: 25 }, fontWeight: 850, letterSpacing: "-.025em" }}
-      >
+      <Typography component="h2" sx={(theme) => theme.design.typography.sectionTitle}>
         {title}
       </Typography>
       {count != null && (
@@ -43,7 +40,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
         onClick={onAction}
         sx={{
           color: "#d0d0d0",
-          fontWeight: 750,
+          fontWeight: 600,
           minWidth: 0,
           px: 1,
           mr: -1,

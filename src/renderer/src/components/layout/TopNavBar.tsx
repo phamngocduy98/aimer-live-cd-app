@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Debouncer } from "@tanstack/pacer";
-import { Box, Grid, IconButton } from "@mui/material";
+import { Box, Grid, IconButton, useMediaQuery, useTheme } from "@mui/material";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import SearchIcon from "@mui/icons-material/Search";
 import PersonIcon from "@mui/icons-material/Person";
@@ -17,32 +17,47 @@ const BootstrapInput = styled(InputBase)({
   "& .MuiInputAdornment-positionStart": {
     position: "absolute",
     left: "12px",
+    top: "50%",
+    transform: "translateY(-50%)",
     zIndex: 1
   },
   "& .MuiInputAdornment-positionEnd": {
     position: "absolute",
     right: "12px",
+    top: "50%",
+    transform: "translateY(-50%)",
     zIndex: 1
   },
   "&.Mui-focused .MuiInputAdornment-root": {
-    color: "black"
+    color: "rgba(255,255,255,.72)"
   },
   "& .MuiInputBase-input": {
     borderRadius: "999px",
     position: "relative",
-    backgroundColor: "rgba(32,32,32,.82)",
+    background: "var(--frosted-glass-surface)",
+    backdropFilter: "blur(26px)",
     border: "1px solid",
-    borderColor: "#ffffff1a",
+    borderColor: "rgba(255,255,255,.08)",
+    boxShadow: "0 0 0 .5px #ffffff0d, inset 0 0 0 1px #ffffff0a",
+    color: "rgba(255,255,255,.86)",
     fontSize: "14px",
+    fontWeight: 700,
+    height: 44,
+    lineHeight: "44px",
     width: "auto",
-    padding: "10px 12px 10px 38px",
+    padding: "0 18px 0 46px",
+    boxSizing: "border-box",
     transition:
-      "border-color 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, background-color 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
+      "border-color 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, backdrop-filter 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, width 220ms ease",
+    "&::placeholder": {
+      color: "rgba(255,255,255,.62)",
+      opacity: 1
+    },
     "&:focus": {
-      boxShadow: "rgba(38,231,223,.18) 0 0 0 0.2rem",
-      borderColor: "#26e7df",
-      backgroundColor: "white",
-      color: "black",
+      boxShadow: "inset 0 1px 0 rgba(255,255,255,.04), 0 8px 24px rgba(0,0,0,.18)",
+      borderColor: "rgba(255,255,255,.12)",
+      backdropFilter: "blur(18px) saturate(130%)",
+      color: "rgba(255,255,255,.9)",
       width: "400px",
       maxWidth: "50vw"
     }
@@ -53,6 +68,9 @@ interface TopNavBarProps {
   drawerWidth: number;
   isMenuOpen: boolean;
   isHome: boolean;
+  isSearchRoute: boolean;
+  initialSearchQuery: string;
+  isContentScrolled: boolean;
   anchorEl: HTMLElement | null;
   session: SessionState;
   onMenuOpen: (event: React.MouseEvent<HTMLElement>) => void;
@@ -68,6 +86,9 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
   drawerWidth,
   isMenuOpen,
   isHome,
+  isSearchRoute,
+  initialSearchQuery,
+  isContentScrolled,
   anchorEl,
   session,
   onMenuOpen,
@@ -78,7 +99,10 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
   onBackClick,
   onSearch
 }) => {
-  const [searchInput, setSearchInput] = useState("");
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const mobileSearchOnly = isMobile && isSearchRoute;
+  const [searchInput, setSearchInput] = useState(initialSearchQuery);
   const [previewResult, setPreviewResult] = useState<SearchResult | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -86,6 +110,11 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
 
   const onSearchRef = useRef(onSearch);
   onSearchRef.current = onSearch;
+
+  useEffect(() => {
+    setSearchInput(initialSearchQuery);
+    setIsDropdownOpen(false);
+  }, [initialSearchQuery]);
 
   const debouncedPreviewRef = useRef<Debouncer<(query: string) => void>>(
     null as unknown as Debouncer<(query: string) => void>
@@ -130,7 +159,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       closeDropdown();
-      onSearchRef.current(searchInput);
+      onSearchRef.current(searchInput.trim());
     } else if (e.key === "Escape") {
       closeDropdown();
     }
@@ -138,7 +167,16 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
 
   const handleSearchChange = (value: string) => {
     setSearchInput(value);
+    if (mobileSearchOnly) {
+      setIsDropdownOpen(false);
+      setPreviewResult(null);
+      return;
+    }
     debouncedPreviewRef.current.maybeExecute(value);
+  };
+
+  const handleSearchBlur = () => {
+    closeDropdown();
   };
 
   return (
@@ -150,14 +188,19 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           right: 0,
           zIndex: 1200,
           height: 64,
-          borderBottom: "1px solid rgba(255,255,255,.055)",
-          background: "linear-gradient(180deg, rgba(0,0,0,.78), rgba(0,0,0,.34))",
-          backdropFilter: "blur(18px)",
+          borderBottom: isContentScrolled
+            ? "1px solid rgba(255,255,255,.055)"
+            : "1px solid transparent",
+          background: isContentScrolled
+            ? "linear-gradient(180deg, rgba(0,0,0,.78), rgba(0,0,0,.34))"
+            : "transparent",
+          backdropFilter: isContentScrolled ? "blur(18px)" : "none",
           width: {
             xs: "100%",
             sm: `calc(100% - ${drawerWidth}px)`
           },
-          transition: "width 220ms ease"
+          transition:
+            "width 220ms ease, background 180ms ease, border-color 180ms ease, backdrop-filter 180ms ease"
         }}
       >
         <Grid
@@ -168,37 +211,59 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             padding: { xs: "0 16px", sm: "0 24px 0 20px" }
           }}
         >
-          <Grid item xs>
-            {isHome ? (
-              <Box sx={{ display: { xs: "block", sm: "none" } }}>
-                <BrandMark size={7} />
-              </Box>
-            ) : (
-              <IconButton
-                aria-label="Back"
-                size="small"
-                sx={{
-                  fontSize: "14px",
-                  "&:hover": {
-                    backgroundColor: "#fcfcfc29"
-                  },
-                  backgroundColor: "rgba(255,255,255,.12)",
-                  width: 36,
-                  height: 36
-                }}
-                onClick={onBackClick}
-              >
-                <ArrowBackIosNewIcon fontSize="inherit" />
-              </IconButton>
-            )}
-          </Grid>
-          <Grid item xs="auto" sx={{ display: { xs: "none", sm: "unset" } }}>
+          {!mobileSearchOnly && (
+            <Grid item xs>
+              {isHome ? (
+                <Box sx={{ display: { xs: "block", sm: "none" } }}>
+                  <BrandMark size={7} />
+                </Box>
+              ) : (
+                <IconButton
+                  aria-label="Back"
+                  size="small"
+                  sx={{
+                    fontSize: "14px",
+                    "&:hover": {
+                      backgroundColor: "#fcfcfc29"
+                    },
+                    backgroundColor: "rgba(255,255,255,.12)",
+                    width: 36,
+                    height: 36
+                  }}
+                  onClick={onBackClick}
+                >
+                  <ArrowBackIosNewIcon fontSize="inherit" />
+                </IconButton>
+              )}
+            </Grid>
+          )}
+          <Grid
+            item
+            xs={mobileSearchOnly ? 12 : "auto"}
+            sx={{ display: { xs: mobileSearchOnly ? "block" : "none", sm: "unset" } }}
+          >
             <Box ref={containerRef} sx={{ position: "relative" }}>
               <BootstrapInput
                 size="small"
                 placeholder="Search"
                 value={searchInput}
+                sx={
+                  mobileSearchOnly
+                    ? {
+                        "--frosted-glass-surface": theme.design.color.frostedGlassSurface,
+                        width: "100%",
+                        "& .MuiInputBase-input": {
+                          width: "100% !important",
+                          maxWidth: "none !important",
+                          boxSizing: "border-box"
+                        }
+                      }
+                    : {
+                        "--frosted-glass-surface": theme.design.color.frostedGlassSurface
+                      }
+                }
                 onChange={(e) => handleSearchChange(e.target.value)}
+                onBlur={handleSearchBlur}
                 onKeyDown={handleKeyDown}
                 startAdornment={
                   <InputAdornment position="start" sx={{ fontSize: "16px" }}>
@@ -210,13 +275,20 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
                 query={searchInput}
                 result={previewResult}
                 loading={previewLoading}
-                open={isDropdownOpen}
+                open={!mobileSearchOnly && isDropdownOpen}
                 onClose={closeDropdown}
                 onNavigate={(q) => onSearchRef.current(q)}
               />
             </Box>
           </Grid>
-          <Grid item xs="auto" sx={{ marginLeft: 2 }}>
+          <Grid
+            item
+            xs="auto"
+            sx={{
+              marginLeft: 2,
+              display: { xs: mobileSearchOnly ? "none" : "block", sm: "block" }
+            }}
+          >
             <IconButton aria-label="User menu" onClick={onMenuOpen} size="small">
               <PersonIcon />
             </IconButton>

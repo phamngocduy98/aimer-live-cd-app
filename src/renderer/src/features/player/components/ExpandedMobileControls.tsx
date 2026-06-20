@@ -55,6 +55,8 @@ export function ExpandedMobileControls() {
     ? currentChapterDuration
     : Math.max(playingTrack?.duration ?? 0, 0);
   const ready = video ? videoIsReady : isReady;
+  const [dragPosition, setDragPosition] = React.useState<number | null>(null);
+  const sliderPosition = dragPosition ?? Math.min(Math.max(position, 0), duration);
   const loading = video ? videoIsLoading : isLoading;
   const isPlaying = video ? videoPlaying : playing;
   const canPrevious = history.length > 0 || (currentChapterIdx ?? -1) > 0;
@@ -74,12 +76,16 @@ export function ExpandedMobileControls() {
       <Slider
         aria-label="Playback position"
         size="small"
-        value={Math.min(Math.max(position, 0), duration)}
+        value={sliderPosition}
         min={0}
         max={Math.max(Math.floor(duration), 1)}
         step={1}
         disabled={!ready}
-        onChange={(_, value) => handleSeek(value as number)}
+        onChange={(_, value) => setDragPosition(value as number)}
+        onChangeCommitted={(_, value) => {
+          setDragPosition(null);
+          handleSeek(value as number);
+        }}
         sx={{
           display: "block",
           width: "100%",
@@ -92,8 +98,8 @@ export function ExpandedMobileControls() {
       />
 
       <Box sx={{ display: "flex", justifyContent: "space-between", mt: 0.25 }}>
-        <TimeLabel>{formatDuration(position)}</TimeLabel>
-        <TimeLabel>-{formatDuration(Math.max(duration - position, 0))}</TimeLabel>
+        <TimeLabel>{formatDuration(sliderPosition)}</TimeLabel>
+        <TimeLabel>-{formatDuration(Math.max(duration - sliderPosition, 0))}</TimeLabel>
       </Box>
 
       <Box

@@ -56,11 +56,12 @@ export const MediaTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
     border: 0,
     color: theme.design.color.textMuted,
-    fontSize: 12
+    fontSize: 12,
+    padding: "6px 8px"
   },
   [`&.${tableCellClasses.body}`]: {
     border: 0,
-    padding: "6px 8px",
+    padding: "6px 8px"
   }
 }));
 

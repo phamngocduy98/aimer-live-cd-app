@@ -20,17 +20,28 @@ export function AppShell() {
   const location = useLocation();
   const navigate = useNavigate();
   const isHome = location.pathname === "/";
+  const isSearchRoute = location.pathname === "/search";
+  const searchQuery = React.useMemo(
+    () => new URLSearchParams(location.search).get("q") ?? "",
+    [location.search]
+  );
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [isAdminDialogOpen, setIsAdminDialogOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isCreatePlaylistOpen, setIsCreatePlaylistOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => !desktopUp);
+  const [isContentScrolled, setIsContentScrolled] = useState(false);
+  const contentRef = React.useRef<HTMLElement>(null);
   const { session } = useSession();
   const logout = useLogout();
 
   React.useEffect(() => {
     setIsSidebarCollapsed(!desktopUp || !mediumUp);
   }, [desktopUp, mediumUp]);
+
+  React.useEffect(() => {
+    setIsContentScrolled((contentRef.current?.scrollTop ?? 0) > 4);
+  }, [location.pathname, location.search]);
 
   const drawerWidth = isSidebarCollapsed ? collapsedDrawerWidth : expandedDrawerWidth;
 
@@ -43,7 +54,9 @@ export function AppShell() {
         onCreatePlaylist={() => setIsCreatePlaylistOpen(true)}
       />
       <Box
+        ref={contentRef}
         component="main"
+        onScroll={(event) => setIsContentScrolled(event.currentTarget.scrollTop > 4)}
         sx={{
           flexGrow: 1,
           bgcolor: "black",
@@ -64,6 +77,9 @@ export function AppShell() {
         drawerWidth={drawerWidth}
         isMenuOpen={Boolean(anchorEl)}
         isHome={isHome}
+        isSearchRoute={isSearchRoute}
+        initialSearchQuery={searchQuery}
+        isContentScrolled={isContentScrolled}
         anchorEl={anchorEl}
         onMenuOpen={(event) => setAnchorEl(event.currentTarget)}
         onMenuClose={() => setAnchorEl(null)}

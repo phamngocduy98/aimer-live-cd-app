@@ -137,7 +137,7 @@ export function ResponsiveActionMenu({
                 >
                   <ListItemText
                     primary={item.label}
-                    primaryTypographyProps={{ fontSize: 17, fontWeight: 750 }}
+                    primaryTypographyProps={{ fontSize: 17, fontWeight: 600 }}
                   />
                 </ListItemButton>
               ))}
@@ -181,7 +181,7 @@ export function ResponsiveActionMenu({
             color: item.color === "error" ? "error.main" : undefined,
             minHeight: 44,
             borderRadius: 1,
-            fontWeight: 650
+            fontWeight: 600
           }}
         >
           {item.label}

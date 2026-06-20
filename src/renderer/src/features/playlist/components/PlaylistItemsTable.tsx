@@ -147,7 +147,7 @@ export function PlaylistItemsTable({
                           textOverflow="ellipsis"
                           sx={{
                             fontSize: { xs: 17, sm: 14 },
-                            fontWeight: { xs: 400, sm: 750 }
+                            fontWeight: { xs: 400, sm: 600 }
                           }}
                         >
                           {item.media.title}

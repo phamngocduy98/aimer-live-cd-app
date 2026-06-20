@@ -128,7 +128,7 @@ export function SubscriptionRequiredDialog() {
               p: 0,
               mb: 1.75,
               fontSize: { xs: 21, sm: 23 },
-              fontWeight: 900,
+              fontWeight: 700,
               lineHeight: 1.16,
               letterSpacing: 0
             }}
@@ -139,7 +139,7 @@ export function SubscriptionRequiredDialog() {
             sx={{
               color: "rgba(255,255,255,.68)",
               fontSize: { xs: 14, sm: 15 },
-              fontWeight: 800,
+              fontWeight: 700,
               lineHeight: 1.35,
               letterSpacing: 0
             }}
@@ -168,7 +168,7 @@ export function SubscriptionRequiredDialog() {
             bgcolor: "#fff",
             color: "#111",
             fontSize: 15,
-            fontWeight: 850,
+            fontWeight: 700,
             boxShadow: "none",
             "&:hover": { bgcolor: "rgba(255,255,255,.9)", boxShadow: "none" }
           }}

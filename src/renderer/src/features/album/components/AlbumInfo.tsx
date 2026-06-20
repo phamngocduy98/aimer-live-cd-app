@@ -67,7 +67,7 @@ export const AlbumInfo: React.FC<{ album: AlbumDetail }> = ({ album }) => {
       }
       badges={
         <>
-          <Typography fontSize={13} fontWeight={850}>
+          <Typography fontSize={13} fontWeight={700}>
             {album.year}
           </Typography>
           {album.trackList.length > 0 ? <SongBitDepth song={album.trackList[0]} /> : null}

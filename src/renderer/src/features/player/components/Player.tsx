@@ -99,7 +99,7 @@ export function Player() {
           left: { xs: 8, sm: 10 },
           right: { xs: 8, sm: 10 },
           zIndex: showMobilePlayer ? 1301 : 1202,
-          padding: "16px",
+          padding: showMobilePlayer? {xs: 0, sm: "16px"} : "16px",
           userSelect: "none",
           overflow: "visible",
           display: "grid",

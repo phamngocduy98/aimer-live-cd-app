@@ -34,7 +34,7 @@ export function VideoInfo({ video }: { video: Video }): React.ReactElement {
               border: "1px solid rgba(255,255,255,.26)"
             }}
           />
-          <ArtistLinks artists={video.artist} color="#fff" fontSize={16} fontWeight={800} />
+          <ArtistLinks artists={video.artist} color="#fff" fontSize={16} fontWeight={700} />
         </Box>
       }
       summary={
@@ -47,7 +47,7 @@ export function VideoInfo({ video }: { video: Video }): React.ReactElement {
       badges={
         <>
           {video.year && (
-            <Typography fontSize={13} fontWeight={850}>
+            <Typography fontSize={13} fontWeight={700}>
               {video.year}
             </Typography>
           )}

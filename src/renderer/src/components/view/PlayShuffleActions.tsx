@@ -38,7 +38,7 @@ export const PlayShuffleActions: React.FC<PlayShuffleActionsProps> = ({
         borderRadius: "999px",
         px: 3.5,
         minHeight: 46,
-        fontWeight: 800,
+        fontWeight: 600,
         "&:hover": { bgcolor: "#e8e8e8", transform: "translateY(-1px)" }
       }}
     >
@@ -57,7 +57,7 @@ export const PlayShuffleActions: React.FC<PlayShuffleActionsProps> = ({
         borderRadius: "999px",
         px: 3.5,
         minHeight: 46,
-        fontWeight: 800,
+        fontWeight: 600,
         border: "1px solid rgba(255,255,255,.08)",
         "&:hover": { bgcolor: "rgba(255,255,255,.22)", transform: "translateY(-1px)" }
       }}

@@ -24,7 +24,6 @@ export const PageScaffold: React.FC<PageScaffoldProps> = ({
       backgroundSize: "cover",
       backgroundPosition: "center top",
       backgroundRepeat: "no-repeat",
-      pt: (theme) => theme.design.layout.topClearance,
       pb: (theme) => theme.design.layout.playerClearance,
       overflow: "hidden",
       ...sx

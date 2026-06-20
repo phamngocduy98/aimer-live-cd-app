@@ -54,7 +54,7 @@ export const AlbumShelf: React.FC<AlbumShelfProps> = ({
                 onClick={() => setShowAll((current) => !current)}
                 sx={{
                   color: "#d0d0d0",
-                  fontWeight: 750,
+                  fontWeight: 600,
                   minWidth: 0,
                   px: 1,
                   mr: -1,

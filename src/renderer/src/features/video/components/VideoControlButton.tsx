@@ -99,7 +99,7 @@ export function VideoControlButton({ video }: { video: Video }): React.ReactElem
         mobileContentSx={{ p: 2 }}
       >
         <Box sx={{ px: { xs: 0, sm: 2 }, py: { xs: 0, sm: 1.25 }, minWidth: 240 }}>
-          <Typography fontWeight={850}>{video.title}</Typography>
+          <Typography fontWeight={700}>{video.title}</Typography>
           <Typography color="text.secondary" fontSize={13} sx={{ mt: 0.75 }}>
             Artist: {video.artist.join(", ")}
           </Typography>

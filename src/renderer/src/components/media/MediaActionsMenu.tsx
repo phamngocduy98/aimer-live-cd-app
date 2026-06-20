@@ -197,7 +197,7 @@ function ActionHeader({
     <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
       <Avatar variant="rounded" src={artworkUrl} sx={{ width: 48, height: 48 }} />
       <Box sx={{ minWidth: 0 }}>
-        <Typography id={titleId} noWrap fontWeight={800}>
+        <Typography id={titleId} noWrap fontWeight={700}>
           {title}
         </Typography>
         <Typography noWrap color="text.secondary" fontSize={14}>

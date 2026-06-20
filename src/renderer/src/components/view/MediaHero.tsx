@@ -32,7 +32,7 @@ export const MediaHero: React.FC<MediaHeroProps> = ({
       maxWidth: 1440,
       mx: "auto",
       px: { xs: 2.5, sm: 4, lg: 6 },
-      pt: { xs: 8, sm: 12 },
+      pt: { xs: "calc(64px + 64px)", sm: "calc(64px + 96px)" },
       pb: 4,
       ...sx
     }}
@@ -65,19 +65,21 @@ export const MediaHero: React.FC<MediaHeroProps> = ({
         </Avatar>
       )}
       <Box sx={{ display: "flex", flexDirection: "column", minWidth: 0, zIndex: 1 }}>
-        <Typography color="#a7a7a7" fontSize={12} fontWeight={800} textTransform="uppercase">
+        <Typography color="#a7a7a7" fontSize={12} fontWeight={700} textTransform="uppercase">
           {eyebrow}
         </Typography>
         <Typography
           component="h1"
-          sx={{
-            fontSize: { xs: 40, sm: 58, lg: 66 },
-            fontWeight: 900,
-            lineHeight: 0.98,
-            letterSpacing: "-.035em",
-            mt: icon || imageSrc ? 0 : 1,
-            ...titleSx
-          }}
+          sx={[
+            (theme) => ({
+              ...theme.design.typography.pageTitle,
+              fontSize: { xs: 40, sm: 58, lg: 66 },
+              lineHeight: 0.98,
+              letterSpacing: "-.035em",
+              mt: icon || imageSrc ? 0 : 1
+            }),
+            ...(Array.isArray(titleSx) ? titleSx : [titleSx])
+          ]}
           noWrap={typeof title === "string"}
         >
           {title}

@@ -14,6 +14,7 @@ export interface DesignTokens {
   color: {
     canvas: string;
     surface: string;
+    frostedGlassSurface: string;
     surfaceRaised: string;
     surfaceHover: string;
     overlay: string;
@@ -53,6 +54,7 @@ export interface DesignTokens {
   typography: {
     pageTitle: CSSProperties;
     detailTitle: CSSProperties;
+    sectionTitle: CSSProperties;
     mediaTitle: CSSProperties;
     metadata: CSSProperties;
     overline: CSSProperties;
@@ -63,6 +65,8 @@ const design: DesignTokens = {
   color: {
     canvas: "#000",
     surface: "#171717",
+    frostedGlassSurface:
+      "linear-gradient(0deg, #46464659 0%, #43434359 19%, #41414159 34%, #3f3f3f59 47%, #3e3e3e59 56.5%, #3d3d3d59 65%, #3c3c3c59 73%, #3c3c3c59 100%)",
     surfaceRaised: "#181818",
     surfaceHover: "rgba(255,255,255,.065)",
     overlay: "rgba(0,0,0,.72)",
@@ -77,7 +81,7 @@ const design: DesignTokens = {
   },
   layout: {
     collectionWidth: 1440,
-    detailWidth: 1180,
+    detailWidth: 1500,
     gutters: { xs: 2.5, sm: 4, lg: 6 },
     topClearance: "64px",
     playerClearance: { xs: "190px", sm: "120px" }
@@ -100,13 +104,14 @@ const design: DesignTokens = {
     lift: "transform .22s ease, box-shadow .22s ease"
   },
   typography: {
-    pageTitle: { fontSize: 40, fontWeight: 900, lineHeight: 1, letterSpacing: "-.04em" },
-    detailTitle: { fontSize: 48, fontWeight: 900, lineHeight: 1, letterSpacing: "-.035em" },
-    mediaTitle: { fontSize: 14, fontWeight: 750, letterSpacing: "-.01em" },
+    pageTitle: { fontSize: 40, fontWeight: 700, lineHeight: 1, letterSpacing: "-.04em" },
+    detailTitle: { fontSize: 48, fontWeight: 700, lineHeight: 1, letterSpacing: "-.035em" },
+    sectionTitle: { fontSize: 19, fontWeight: 700, lineHeight: 1.2, letterSpacing: 0 },
+    mediaTitle: { fontSize: 14, fontWeight: 600, letterSpacing: "-.01em" },
     metadata: { fontSize: 13, color: "#a7a7a7" },
     overline: {
       fontSize: 11,
-      fontWeight: 800,
+      fontWeight: 700,
       letterSpacing: ".085em",
       textTransform: "uppercase"
     }
@@ -133,10 +138,18 @@ export const darkTheme = createTheme({
     borderRadius: 10
   },
   typography: {
-    fontFamily:
-      'Inter, "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, sans-serif',
+    fontFamily: '"Square Sans Display VF", "Square Sans Display", Helvetica, Arial, sans-serif',
+    fontWeightRegular: 600,
+    fontWeightMedium: 600,
+    fontWeightBold: 700,
+    h1: { fontWeight: 700 },
+    h2: { fontWeight: 700 },
+    h3: { fontWeight: 700 },
+    h4: { fontWeight: 700 },
+    h5: { fontWeight: 700 },
+    h6: { fontWeight: 700 },
     button: {
-      fontWeight: 750
+      fontWeight: 600
     }
   },
   components: {
@@ -185,7 +198,7 @@ export const darkTheme = createTheme({
           minHeight: 44,
           padding: "10px 24px",
           fontSize: 16,
-          fontWeight: 750,
+          fontWeight: 600,
           lineHeight: 1.35,
           letterSpacing: 0,
           color: design.color.text,

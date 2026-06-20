@@ -47,7 +47,8 @@ export function MediaDetailHero({
           maxWidth: theme.design.layout.detailWidth,
           mx: "auto",
           px: theme.design.layout.gutters,
-          py: { xs: 2.5, md: 3.5 }
+          pt: { xs: "calc(64px + 20px)", md: "calc(64px + 28px)" },
+          pb: { xs: 2.5, md: 3.5 }
         })}
       >
         {children}
@@ -110,13 +111,13 @@ export function MediaDetailIdentity({
       >
         <Typography
           component="h1"
-          sx={{
+          sx={(theme) => ({
+            ...theme.design.typography.detailTitle,
             fontSize: { xs: 24, sm: 28, lg: 48 },
-            fontWeight: 900,
             lineHeight: 1,
             letterSpacing: "-.035em",
             textShadow: "0 2px 24px rgba(0,0,0,.55)"
-          }}
+          })}
         >
           {title}
         </Typography>
@@ -131,7 +132,7 @@ export function MediaDetailIdentity({
               mt: 2.25,
               color: "rgba(255,255,255,.78)",
               fontSize: 12,
-              fontWeight: 800,
+              fontWeight: 700,
               letterSpacing: ".075em",
               textTransform: "uppercase"
             }}

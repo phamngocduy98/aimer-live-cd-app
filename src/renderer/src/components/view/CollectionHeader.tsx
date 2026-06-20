@@ -35,19 +35,19 @@ export const CollectionHeader: React.FC<CollectionHeaderProps> = ({
         maxWidth: (theme) => theme.design.layout.collectionWidth,
         mx: "auto",
         px: (theme) => theme.design.layout.gutters,
-        pt: { xs: 4, sm: 5 },
+        pt: { xs: "calc(64px + 32px)", sm: "calc(64px + 40px)" },
         pb: { xs: 4, sm: 5 }
       }}
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <Typography
           component="h1"
-          sx={{
+          sx={(theme) => ({
+            ...theme.design.typography.pageTitle,
             fontSize: { xs: 26, sm: 32 },
-            fontWeight: 850,
             lineHeight: 1,
             letterSpacing: "-.04em"
-          }}
+          })}
         >
           {title}
         </Typography>
@@ -75,7 +75,7 @@ export const CollectionHeader: React.FC<CollectionHeaderProps> = ({
             fontSize: 15,
             "& fieldset": { borderColor: "rgba(255,255,255,.12)" },
             "&:hover fieldset": { borderColor: "rgba(255,255,255,.24)" },
-            "&.Mui-focused": { bgcolor: "rgba(255,255,255,.08)" },
+            "&.Mui-focused": { bgcolor: "#242429" },
             "&.Mui-focused fieldset": { borderColor: "#6e6e6e", borderWidth: 1 }
           }
         }}

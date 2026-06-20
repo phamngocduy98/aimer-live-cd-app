@@ -57,7 +57,12 @@ export function PageState({
   return (
     <Box
       role={state === "error" ? "alert" : "status"}
-      sx={{ display: "grid", placeItems: "center", minHeight: state === "loading" ? 280 : 160 }}
+      sx={{
+        display: "grid",
+        placeItems: "center",
+        minHeight: state === "loading" ? 280 : 160,
+        pt: (theme) => theme.design.layout.topClearance
+      }}
     >
       {state === "loading" ? (
         <CircularProgress />
@@ -71,30 +76,35 @@ export function PageState({
 export function DetailActionButton({
   icon,
   label,
-  onClick
+  onClick,
+  sx
 }: {
   icon: React.ReactNode;
   label: string;
   onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  sx?: SxProps<Theme>;
 }): React.ReactElement {
   return (
     <Button
       aria-label={label}
       onClick={onClick}
-      sx={{
-        minWidth: 0,
-        width: "100%",
-        display: "flex",
-        color: "#fff",
-        flexDirection: "column",
-        gap: 0.4,
-        py: 0.35,
-        fontSize: { xs: 11, sm: 12 },
-        fontWeight: 800,
-        lineHeight: 1.15,
-        "& .MuiSvgIcon-root": { fontSize: 29 },
-        "&:hover": { bgcolor: "rgba(255,255,255,.08)" }
-      }}
+      sx={[
+        {
+          minWidth: 0,
+          width: "100%",
+          display: "flex",
+          color: "#fff",
+          flexDirection: "column",
+          gap: 0.4,
+          py: 0.35,
+          fontSize: { xs: 11, sm: 12 },
+          fontWeight: 600,
+          lineHeight: 1.15,
+          "& .MuiSvgIcon-root": { fontSize: 29 },
+          "&:hover": { bgcolor: "rgba(255,255,255,.08)" }
+        },
+        ...(Array.isArray(sx) ? sx : [sx])
+      ]}
     >
       {icon}
       <span>{label}</span>
@@ -105,11 +115,13 @@ export function DetailActionButton({
 export function DetailActions({
   primary,
   secondary,
-  secondaryColumns = 4
+  secondaryColumns = 4,
+  sx
 }: {
-  primary: React.ReactNode;
+  primary?: React.ReactNode;
   secondary?: React.ReactNode;
   secondaryColumns?: number | { xs: number; sm?: number; md?: number; lg?: number };
+  sx?: SxProps<Theme>;
 }): React.ReactElement {
   const secondaryGridTemplateColumns =
     typeof secondaryColumns === "number"
@@ -123,33 +135,41 @@ export function DetailActions({
           md: `repeat(${secondaryColumns.md ?? secondaryColumns.sm ?? secondaryColumns.xs}, 64px)`,
           lg: `repeat(${secondaryColumns.lg ?? secondaryColumns.md ?? secondaryColumns.sm ?? secondaryColumns.xs}, 64px)`
         };
+  const secondaryGrid = secondary && (
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: secondaryGridTemplateColumns,
+        width: { xs: "100%", sm: "auto" },
+        justifyContent: "flex-end",
+        gap: { xs: 1, sm: 1.5 }
+      }}
+    >
+      {secondary}
+    </Box>
+  );
+
+  if (!primary) {
+    return <>{secondaryGrid}</>;
+  }
 
   return (
     <Box
       data-design="media-detail-actions"
-      sx={{
-        display: "flex",
-        flexDirection: { xs: "column", sm: "row" },
-        alignItems: "center",
-        justifyContent: { xs: "center", sm: "space-between" },
-        gap: { xs: 2.35, sm: 4 },
-        mt: { xs: 2.75, sm: 4 }
-      }}
+      sx={[
+        {
+          display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
+          alignItems: "center",
+          justifyContent: { xs: "center", sm: "space-between" },
+          gap: { xs: 2.35, sm: 4 },
+          mt: { xs: 2.75, sm: 4 }
+        },
+        ...(Array.isArray(sx) ? sx : [sx])
+      ]}
     >
       {primary}
-      {secondary && (
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: secondaryGridTemplateColumns,
-            width: { xs: "100%", sm: "auto" },
-            justifyContent: "flex-end",
-            gap: { xs: 1, sm: 1.5 }
-          }}
-        >
-          {secondary}
-        </Box>
-      )}
+      {secondaryGrid}
     </Box>
   );
 }
@@ -188,7 +208,7 @@ export function PrimaryActionGroup({
           color: "#000",
           borderRadius: "999px",
           fontSize: 16,
-          fontWeight: 850,
+          fontWeight: 600,
           "& .MuiButton-startIcon": compactIconMargin,
           "&:hover": { bgcolor: "#e9e9e9" }
         }}
@@ -211,7 +231,7 @@ export function PrimaryActionGroup({
             border: "1px solid rgba(255,255,255,.08)",
             borderRadius: "999px",
             fontSize: 16,
-            fontWeight: 850,
+            fontWeight: 600,
             "& .MuiButton-startIcon": compactIconMargin,
             "&:hover": { bgcolor: "rgba(255,255,255,.22)" }
           }}

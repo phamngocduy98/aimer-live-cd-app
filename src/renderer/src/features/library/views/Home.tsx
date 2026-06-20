@@ -51,7 +51,7 @@ export const Home: React.FC = () => {
       <Box
         sx={{
           px: { xs: 2.5, sm: 4, lg: 6 },
-          pt: { xs: 3, sm: 4 },
+          pt: { xs: "calc(64px + 24px)", sm: "calc(64px + 32px)" },
           maxWidth: 1440,
           mx: "auto"
         }}
@@ -150,7 +150,7 @@ export const Home: React.FC = () => {
                       placeItems: "center",
                       background: "linear-gradient(145deg, #353535, #111)",
                       fontSize: { xs: 42, sm: 54 },
-                      fontWeight: 850,
+                      fontWeight: 700,
                       transition: "transform .25s ease"
                     }}
                   >
@@ -179,7 +179,7 @@ export const Home: React.FC = () => {
                     <PlayArrowRoundedIcon />
                   </IconButton>
                 </Box>
-                <Typography noWrap fontWeight={750} sx={{ mt: 1.15, letterSpacing: "-.01em" }}>
+                <Typography noWrap fontWeight={600} sx={{ mt: 1.15, letterSpacing: "-.01em" }}>
                   {name}
                 </Typography>
               </Box>

@@ -103,7 +103,7 @@ export const PlaylistView: React.FC = () => {
   };
 
   return (
-    <PageScaffold sx={{ pt: "64px" }}>
+    <PageScaffold>
       <MediaDetailHero
         testId="playlist-media-hero"
         backgroundImage={
@@ -136,7 +136,7 @@ export const PlaylistView: React.FC = () => {
           title={playlist.name}
           subtitle={
             playlist.description ? (
-              <Typography color="rgba(255,255,255,.72)" fontWeight={650}>
+              <Typography color="rgba(255,255,255,.72)" fontWeight={600}>
                 {playlist.description}
               </Typography>
             ) : undefined

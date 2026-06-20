@@ -31,7 +31,7 @@ export function VideoView(): React.ReactElement {
   const coverUrl = apiAssetUrl(`/video/${video._id}/cover`);
 
   return (
-    <PageScaffold sx={{ pt: "64px" }}>
+    <PageScaffold>
       <MediaDetailHero
         backgroundImage={{
           xs: `linear-gradient(180deg, rgba(0,0,0,.08) 0%, rgba(0,0,0,.28) 40%, #000 100%), url("${coverUrl}")`,
@@ -52,7 +52,7 @@ export function VideoView(): React.ReactElement {
             pb: 1,
             color: "#c8c8c8",
             fontSize: 11,
-            fontWeight: 800,
+            fontWeight: 700,
             letterSpacing: ".085em",
             textTransform: "uppercase",
             lineHeight: 1.9

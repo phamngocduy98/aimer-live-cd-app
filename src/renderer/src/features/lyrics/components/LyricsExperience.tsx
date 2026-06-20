@@ -74,7 +74,7 @@ export function LyricsExperience({ videoOverlay = false }: { videoOverlay?: bool
               textShadow: "0 2px 8px #000, 0 0 3px #000"
             }}
           >
-            <Typography sx={{ fontSize: { xs: 22, sm: 30 }, fontWeight: 800, lineHeight: 1.25 }}>
+            <Typography sx={{ fontSize: { xs: 22, sm: 30 }, fontWeight: 700, lineHeight: 1.25 }}>
               {activePrimary}
             </Typography>
             {activeSecondary && activeSecondary !== activePrimary && (
@@ -191,7 +191,7 @@ export function LyricsExperience({ videoOverlay = false }: { videoOverlay?: bool
                   sx={{
                     whiteSpace: "pre-line",
                     fontSize: { xs: 30, sm: 36, lg: 32, xl: 38 },
-                    fontWeight: 850,
+                    fontWeight: 700,
                     lineHeight: 1.2
                   }}
                 >
@@ -203,7 +203,7 @@ export function LyricsExperience({ videoOverlay = false }: { videoOverlay?: bool
                       mt: 0.75,
                       whiteSpace: "pre-line",
                       fontSize: { xs: 17, sm: 20, lg: 18, xl: 21 },
-                      fontWeight: 650,
+                      fontWeight: 600,
                       lineHeight: 1.35,
                       color: active ? "rgba(255,255,255,.82)" : "inherit"
                     }}

@@ -23,7 +23,7 @@ export const StatTile: React.FC<StatTileProps> = ({ icon, label, value }) => (
     >
       <Box sx={{ display: "flex", color: "#fff" }}>{icon}</Box>
       <Box>
-        <Typography fontSize={20} fontWeight={800} lineHeight={1}>
+        <Typography fontSize={20} fontWeight={700} lineHeight={1}>
           {value}
         </Typography>
         <Typography color="#a7a7a7" fontSize={12} fontWeight={700} textTransform="uppercase">

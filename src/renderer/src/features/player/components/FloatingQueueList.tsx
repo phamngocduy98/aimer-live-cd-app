@@ -26,9 +26,9 @@ import type { Song, Video } from "@features/library";
 import { videoOnSeek } from "../store/playerVideoControl";
 import { SongActionsMenu } from "@components/media/MediaActionsMenu";
 import { CreatePlaylistDialog } from "@features/playlist";
-import { router } from "@app/router";
 import { ArtistLinks } from "@components/media/ArtistLinks";
 import { mediaArtworkUrl } from "@utils/mediaArtwork";
+import type { PlaySource } from "../types";
 
 export const FloatingQueueList = () => {
   const { playingQueue, mobilePlayer } = useAppSelector((state) => state.playerGui);
@@ -118,7 +118,7 @@ export function QueuePanel({ onClose, onClear, mobile = false }: QueuePanelProps
           </Box>
         ) : (
           <Box sx={{ display: "flex", alignItems: "center", px: 2.5, pt: 2, pb: 1 }}>
-            <Typography component="h2" sx={{ flex: 1, fontSize: 24, fontWeight: 850 }}>
+            <Typography component="h2" sx={{ flex: 1, fontSize: 24, fontWeight: 700 }}>
               Play queue
             </Typography>
             <IconButton
@@ -153,6 +153,8 @@ export const QueueList: React.FC<{ onClear?: () => void }> = ({ onClear }) => {
   const dispatch = useAppDispatch();
   const { playingTrack, currentEntry, history, queue } = useAppSelector((state) => state.player);
   const currentChapterIdx = useAppSelector((state) => state.player.currentChapterIdx);
+  const currentSourceTitle = queueSourceTitle("Playing from", currentEntry?.playFrom);
+  const nextSourceTitle = queueSourceTitle("Next up from", queue[0]?.playFrom);
 
   return (
     <Box sx={{ pb: 3 }}>
@@ -164,8 +166,6 @@ export const QueueList: React.FC<{ onClear?: () => void }> = ({ onClear }) => {
               track={entry.media}
               title={entry.media.title}
               artworkUrl={mediaArtworkUrl(entry.media)}
-              playFromLabel={entry.playFrom.label}
-              onPlayFrom={() => router.navigate(entry.playFrom.route)}
               onClick={() => dispatch(prevTrack({ skip: history.length - idx - 1 }))}
             />
           ))}
@@ -174,7 +174,7 @@ export const QueueList: React.FC<{ onClear?: () => void }> = ({ onClear }) => {
 
       {playingTrack && (
         <QueueSection
-          title={isVideo(playingTrack) ? "Videos" : (playingTrack.album?.title ?? "Mix")}
+          title={currentSourceTitle}
           action={onClear ? <Button onClick={onClear}>Clear</Button> : undefined}
         >
           <QueueRow
@@ -182,8 +182,6 @@ export const QueueList: React.FC<{ onClear?: () => void }> = ({ onClear }) => {
             track={playingTrack}
             title={playingTrack.title}
             artworkUrl={mediaArtworkUrl(playingTrack)}
-            playFromLabel={currentEntry?.playFrom.label}
-            onPlayFrom={() => currentEntry && router.navigate(currentEntry.playFrom.route)}
           />
         </QueueSection>
       )}
@@ -196,6 +194,7 @@ export const QueueList: React.FC<{ onClear?: () => void }> = ({ onClear }) => {
               track={playingTrack}
               active={index === currentChapterIdx}
               title={chapter.title}
+              secondary={chapter.subTitle.trim() || null}
               artworkUrl={mediaArtworkUrl(playingTrack)}
               onClick={() => {
                 const nextChapterTime =
@@ -214,15 +213,13 @@ export const QueueList: React.FC<{ onClear?: () => void }> = ({ onClear }) => {
       )}
 
       {queue.length > 0 && (
-        <QueueSection title="Next Up from: Mix">
+        <QueueSection title={nextSourceTitle}>
           {queue.map((entry, idx) => (
             <QueueRow
               key={entry.queueEntryId}
               track={entry.media}
               title={entry.media.title}
               artworkUrl={mediaArtworkUrl(entry.media)}
-              playFromLabel={entry.playFrom.label}
-              onPlayFrom={() => router.navigate(entry.playFrom.route)}
               onClick={() => dispatch(nextTrack({ skip: idx }))}
               action={
                 <IconButton
@@ -251,7 +248,7 @@ function QueueSection({
   return (
     <Box component="section" sx={{ mt: 2.5 }}>
       <Box sx={{ display: "flex", alignItems: "center", px: 1, mb: 0.75 }}>
-        <Typography sx={{ flex: 1, fontSize: 16, fontWeight: 800 }}>{title}</Typography>
+        <Typography sx={{ flex: 1, fontSize: 16, fontWeight: 700 }}>{title}</Typography>
         {action}
       </Box>
       <List disablePadding>{children}</List>
@@ -266,21 +263,18 @@ interface QueueRowProps {
   active?: boolean;
   action?: React.ReactNode;
   onClick?: () => void;
-  playFromLabel?: string;
-  onPlayFrom?: () => void;
+  secondary?: React.ReactNode | null;
 }
 
-function QueueRow({
-  track,
-  title,
-  artworkUrl,
-  active,
-  action,
-  onClick,
-  playFromLabel,
-  onPlayFrom
-}: QueueRowProps) {
+function QueueRow({ track, title, artworkUrl, active, action, onClick, secondary }: QueueRowProps) {
   const [actionsAnchor, setActionsAnchor] = React.useState<HTMLElement | null>(null);
+  const rowSecondary =
+    secondary === undefined ? (
+      <ArtistLinks artists={track.artist} color="text.secondary" fontSize={14} />
+    ) : (
+      secondary
+    );
+
   return (
     <>
       <ListItem disablePadding secondaryAction={action}>
@@ -306,27 +300,11 @@ function QueueRow({
           </ListItemAvatar>
           <ListItemText
             primary={title}
-            secondary={
-              <>
-                <ArtistLinks artists={track.artist} color="text.secondary" fontSize={14} />
-                {playFromLabel && (
-                  <Typography
-                    component="span"
-                    sx={{ ml: 0.75, fontSize: "inherit", color: "text.secondary" }}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onPlayFrom?.();
-                    }}
-                  >
-                    · {playFromLabel}
-                  </Typography>
-                )}
-              </>
-            }
+            secondary={rowSecondary || undefined}
             primaryTypographyProps={{
               noWrap: true,
               fontSize: 15,
-              fontWeight: 750,
+              fontWeight: 600,
               color: active ? NOW_PLAYING_COLOR : "#fff"
             }}
             secondaryTypographyProps={{ noWrap: true, fontSize: 14 }}
@@ -352,6 +330,14 @@ function QueueRow({
       />
     </>
   );
+}
+
+function queueSourceTitle(prefix: "Playing from" | "Next up from", source?: PlaySource): string {
+  if (source?.type === "album" || source?.type === "playlist") {
+    return `${prefix} ${source.label}`;
+  }
+
+  return `${prefix} mix`;
 }
 
 function SuggestedTracks() {
