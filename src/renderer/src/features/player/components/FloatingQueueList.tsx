@@ -289,14 +289,29 @@ function QueueRow({ track, title, artworkUrl, active, action, onClick, secondary
             "&.Mui-selected": { bgcolor: NOW_PLAYING_BACKGROUND }
           }}
         >
-          <ListItemAvatar sx={{ minWidth: 66 }}>
-            <Avatar
-              variant="rounded"
-              src={artworkUrl}
-              sx={{ width: 56, height: 56, borderRadius: 1.25 }}
+          <ListItemAvatar sx={{ minWidth: isVideo(track) ? 106 : 66 }}>
+            <Box
+              sx={{
+                height: 52,
+                width: isVideo(track) ? "auto" : 52,
+                aspectRatio: isVideo(track) ? "16/9" : "1/1",
+                borderRadius: "6px",
+                overflow: "hidden",
+                bgcolor: "rgba(255,255,255,.06)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                "& img": { height: "100%", width: "auto", display: "block" }
+              }}
             >
-              {active ? <VolumeUpIcon /> : <MusicNoteIcon />}
-            </Avatar>
+              {artworkUrl ? (
+                <Box component="img" src={artworkUrl} alt="" />
+              ) : active ? (
+                <VolumeUpIcon />
+              ) : (
+                <MusicNoteIcon />
+              )}
+            </Box>
           </ListItemAvatar>
           <ListItemText
             primary={title}
