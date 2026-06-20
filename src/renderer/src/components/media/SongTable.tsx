@@ -105,10 +105,7 @@ export const SongTable: React.FC<SongTableProps> = ({
             TIME
           </MediaTableCell>
           {showActions && (
-            <MediaTableCell
-              align="center"
-              width={showAddToPlaylist ? 88 : 44}
-            ></MediaTableCell>
+            <MediaTableCell align="center" width={showAddToPlaylist ? 88 : 44}></MediaTableCell>
           )}
         </TableRow>
       </MediaTableHead>
@@ -143,10 +140,7 @@ export const SongTable: React.FC<SongTableProps> = ({
                   </Typography>
                 ) : (
                   <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-                    <VolumeUpIcon
-                      className="now-playing-accent"
-                      sx={{ width: 16, height: 16 }}
-                    />
+                    <VolumeUpIcon className="now-playing-accent" sx={{ width: 16, height: 16 }} />
                   </Box>
                 )}
               </MediaTableCell>

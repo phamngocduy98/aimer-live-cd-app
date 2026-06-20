@@ -69,10 +69,7 @@ export function VideoChapterTable({ video }: { video: Video }): React.ReactEleme
               <MediaTableCell align="center" component="th" scope="row" width={30}>
                 {active ? (
                   <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-                    <VolumeUpIcon
-                      className="now-playing-accent"
-                      sx={{ width: 16, height: 16 }}
-                    />
+                    <VolumeUpIcon className="now-playing-accent" sx={{ width: 16, height: 16 }} />
                   </Box>
                 ) : (
                   <Typography fontSize={14} fontWeight={500} color="#79777f">
