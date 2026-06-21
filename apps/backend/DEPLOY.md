@@ -9,7 +9,10 @@ or connect to MongoDB directly.
 
 - Dev: `pnpm backend:dev`
 - Typecheck: `pnpm typecheck:backend`
-- Build: `pnpm backend:build` (compiles TypeScript and copies PHP helper assets)
+- Build for Render/web service: `pnpm backend:build` (builds the standalone web
+  renderer into `public/`, then compiles the backend and copies backend assets)
+- Backend-only build: `pnpm backend:build:server` (compiles TypeScript and
+  copies backend helper assets)
 - Start built output: `pnpm backend:start`
 
 ## Entrypoint
