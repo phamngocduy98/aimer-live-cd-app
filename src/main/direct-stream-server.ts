@@ -2,7 +2,7 @@ import axios from "axios";
 import { session } from "electron";
 import http from "node:http";
 import crypto from "node:crypto";
-import { PassThrough, Readable, Transform } from "node:stream";
+import { Readable } from "node:stream";
 
 type MediaType = "audio" | "video";
 
@@ -31,11 +31,6 @@ interface StreamPart {
   partByteEnd: number;
 }
 
-interface PreparedPart {
-  part: StreamPart;
-  stream: Readable;
-}
-
 function parseRange(rangeHeader: string | undefined, size: number): ByteRange {
   let match = rangeHeader?.match(/bytes=(\d+)-(\d+)/);
   if (match) {
@@ -57,6 +52,13 @@ function parseRange(rangeHeader: string | undefined, size: number): ByteRange {
   }
 
   return { start: 0, end: size - 1 };
+}
+
+function capRange(range: ByteRange, size: number, maxBytes: number): ByteRange {
+  return {
+    start: range.start,
+    end: Math.min(range.end, range.start + maxBytes - 1, size - 1)
+  };
 }
 
 function partsForRange(manifest: DirectStreamManifest, range: ByteRange): StreamPart[] {
@@ -84,38 +86,18 @@ function partsForRange(manifest: DirectStreamManifest, range: ByteRange): Stream
   return parts;
 }
 
-function trimDecryptedPart(input: Readable, part: StreamPart): Readable {
+function trimDecryptedPart(input: Buffer, part: StreamPart): Buffer {
   if (part.partByteStart === 0 && part.partByteEnd === part.partSize - 1) return input;
-
-  let position = 0;
-  return input.pipe(
-    new Transform({
-      transform(chunk: Buffer, _encoding, callback) {
-        const chunkStart = position;
-        const chunkEnd = position + chunk.length - 1;
-        position += chunk.length;
-
-        if (chunkEnd < part.partByteStart || chunkStart > part.partByteEnd) {
-          callback();
-          return;
-        }
-
-        const start = Math.max(0, part.partByteStart - chunkStart);
-        const end = Math.min(chunk.length, part.partByteEnd - chunkStart + 1);
-        callback(null, chunk.subarray(start, end));
-      }
-    })
-  );
+  return input.subarray(part.partByteStart, part.partByteEnd + 1);
 }
 
-function decryptPart(input: Readable, manifest: DirectStreamManifest): Readable {
+function decryptPart(input: Buffer, manifest: DirectStreamManifest): Buffer {
   const decipher = crypto.createDecipheriv(
     "aes-256-ctr",
     Buffer.from(manifest.key, "hex"),
     Buffer.from(manifest.iv, "hex")
   );
-  input.on("error", (error) => decipher.destroy(error));
-  return input.pipe(decipher);
+  return Buffer.concat([decipher.update(input), decipher.final()]);
 }
 
 function apiOrigin(apiBaseUrl: string): string {
@@ -171,17 +153,23 @@ async function proxyBackendStream(
 async function fetchEncryptedPart(
   manifest: DirectStreamManifest,
   part: StreamPart
-): Promise<Readable> {
+): Promise<Buffer> {
+  if (manifest.hosts.length === 0) throw new Error("No direct stream hosts available");
+
   let lastError: unknown;
 
-  for (const host of manifest.hosts) {
+  const attempts = manifest.hosts.length * 2;
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    const host = manifest.hosts[attempt % manifest.hosts.length];
     try {
       const urlBase = host.urlBase.replace(/\/+$/, "");
-      const response = await axios.get<Readable>(
+      const response = await axios.get<ArrayBuffer>(
         `${urlBase}/${encodeURIComponent(part.fileName)}`,
         {
-          responseType: "stream",
+          responseType: "arraybuffer",
           timeout: 15000,
+          maxContentLength: Infinity,
+          maxBodyLength: Infinity,
           headers: {
             Range: `bytes=0-${Number.MAX_SAFE_INTEGER}`,
             "User-Agent":
@@ -189,7 +177,7 @@ async function fetchEncryptedPart(
           }
         }
       );
-      return response.data;
+      return Buffer.from(response.data);
     } catch (error) {
       lastError = error;
     }
@@ -199,28 +187,16 @@ async function fetchEncryptedPart(
 }
 
 async function pipeParts(
-  output: PassThrough,
   manifest: DirectStreamManifest,
-  parts: StreamPart[],
-  preparedFirstPart?: PreparedPart
-): Promise<void> {
-  for (const [index, part] of parts.entries()) {
-    const encrypted =
-      index === 0 && preparedFirstPart?.part === part
-        ? preparedFirstPart.stream
-        : await fetchEncryptedPart(manifest, part);
+  parts: StreamPart[]
+): Promise<Buffer> {
+  const buffers: Buffer[] = [];
+  for (const part of parts) {
+    const encrypted = await fetchEncryptedPart(manifest, part);
     const decrypted = decryptPart(encrypted, manifest);
-    const trimmed = trimDecryptedPart(decrypted, part);
-
-    await new Promise<void>((resolve, reject) => {
-      encrypted.on("error", reject);
-      decrypted.on("error", reject);
-      trimmed.on("error", reject);
-      trimmed.on("end", resolve);
-      trimmed.pipe(output, { end: false });
-    });
+    buffers.push(trimDecryptedPart(decrypted, part));
   }
-  output.end();
+  return Buffer.concat(buffers);
 }
 
 function respondError(res: http.ServerResponse, status: number, message: string): void {
@@ -256,43 +232,31 @@ export async function startDirectStreamServer(apiBaseUrl: string): Promise<{
         throw error;
       }
 
-      const range = parseRange(req.headers.range, manifest.size);
+      const requestedRange = parseRange(req.headers.range, manifest.size);
+      const range = capRange(requestedRange, manifest.size, manifest.partSize);
       if (range.start > range.end || range.start >= manifest.size) {
         respondError(res, 416, "Range not satisfiable");
         return;
       }
 
       const parts = partsForRange(manifest, range);
-      let preparedFirstPart: PreparedPart | undefined;
-      if (parts[0]) {
-        try {
-          preparedFirstPart = {
-            part: parts[0],
-            stream: await fetchEncryptedPart(manifest, parts[0])
-          };
-        } catch {
-          await proxyBackendStream(apiBaseUrl, mediaType, id, req, res);
-          return;
-        }
+      let body: Buffer;
+      try {
+        body = await pipeParts(manifest, parts);
+      } catch {
+        await proxyBackendStream(apiBaseUrl, mediaType, id, req, res);
+        return;
       }
 
-      const body = new PassThrough();
-      body.on("error", () => {
-        if (!res.destroyed) res.end();
-      });
-      res.writeHead(req.headers.range ? 206 : 200, {
+      res.writeHead(206, {
         "Accept-Ranges": "bytes",
         "Content-Type": manifest.contentType,
-        "Content-Length": range.end - range.start + 1,
+        "Content-Length": body.length,
         "Content-Range": `bytes ${range.start}-${range.end}/${manifest.size}`,
         "Cache-Control": "no-store",
         "Access-Control-Allow-Origin": "*"
       });
-      body.pipe(res);
-      pipeParts(body, manifest, parts, preparedFirstPart).catch(() => {
-        body.end();
-        if (!res.destroyed) res.end();
-      });
+      res.end(body);
     } catch (error) {
       const status = axios.isAxiosError(error) ? (error.response?.status ?? 500) : 500;
       respondError(res, status, error instanceof Error ? error.message : "Stream error");
