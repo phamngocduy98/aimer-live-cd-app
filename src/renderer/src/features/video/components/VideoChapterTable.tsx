@@ -1,6 +1,5 @@
 import React from "react";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import { Box, IconButton, TableBody, TableRow, Typography } from "@mui/material";
 import { useAppDispatch, useAppSelector } from "@app/hooks";
 import { ArtistLinks } from "@components/media/ArtistLinks";
@@ -11,6 +10,12 @@ import {
   MediaTableHead,
   MediaTableRow
 } from "@components/media/MediaTable";
+import {
+  SongTableIndexCell,
+  SongTableTitleText,
+  songTableBodyColumnDisplay,
+  songTableHeadColumnDisplay
+} from "@components/media/SongTableShared";
 import type { Video } from "@features/library";
 import { playVideoChapter } from "@features/player/thunks/playVideoChapter";
 import { formatDuration } from "@utils/formatDuration";
@@ -47,7 +52,7 @@ export function VideoChapterTable({ video }: { video: Video }): React.ReactEleme
           </MediaTableCell>
           <MediaTableCell>TITLE</MediaTableCell>
           <MediaTableCell>ARTIST</MediaTableCell>
-          <MediaTableCell align="center" sx={{ display: { sm: "none", md: "table-cell" } }}>
+          <MediaTableCell align="center" sx={{ display: songTableHeadColumnDisplay.detail }}>
             TIME
           </MediaTableCell>
           <MediaTableCell align="center" width={44}></MediaTableCell>
@@ -67,25 +72,11 @@ export function VideoChapterTable({ video }: { video: Video }): React.ReactEleme
               sx={{ cursor: "pointer" }}
             >
               <MediaTableCell align="center" component="th" scope="row" width={30}>
-                {active ? (
-                  <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-                    <VolumeUpIcon className="now-playing-accent" sx={{ width: 16, height: 16 }} />
-                  </Box>
-                ) : (
-                  <Typography fontSize={14} fontWeight={500} color="#79777f">
-                    {index + 1}
-                  </Typography>
-                )}
+                <SongTableIndexCell active={active}>{index + 1}</SongTableIndexCell>
               </MediaTableCell>
               <MediaTableCell>
                 <Box sx={{ minWidth: 0 }}>
-                  <Typography
-                    className={active ? "now-playing-accent" : undefined}
-                    noWrap
-                    sx={{ fontSize: { xs: "14px", sm: "inherit" }, fontWeight: 600 }}
-                  >
-                    {chapter.title}
-                  </Typography>
+                  <SongTableTitleText active={active}>{chapter.title}</SongTableTitleText>
                   {chapter.subTitle && (
                     <Typography noWrap color="text.secondary" fontSize={14}>
                       {chapter.subTitle}
@@ -93,10 +84,10 @@ export function VideoChapterTable({ video }: { video: Video }): React.ReactEleme
                   )}
                 </Box>
               </MediaTableCell>
-              <MediaTableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>
+              <MediaTableCell sx={{ display: songTableBodyColumnDisplay.artist }}>
                 <ArtistLinks artists={video.artist} />
               </MediaTableCell>
-              <MediaTableCell align="center" sx={{ display: { xs: "none", md: "table-cell" } }}>
+              <MediaTableCell align="center" sx={{ display: songTableBodyColumnDisplay.detail }}>
                 <Typography fontSize={14} color="#919191">
                   {formatDuration(Math.max(0, end - chapter.time))}
                 </Typography>

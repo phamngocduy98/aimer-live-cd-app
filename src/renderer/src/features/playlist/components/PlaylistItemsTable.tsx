@@ -15,7 +15,6 @@ import {
 import { styled } from "@mui/material/styles";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import OndemandVideoIcon from "@mui/icons-material/OndemandVideo";
-import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import { useAppSelector } from "@app/hooks";
 import type { PlaySource } from "@features/player/types";
 import { isCurrentSourceItem } from "@features/player/types";
@@ -24,6 +23,12 @@ import type { PlaylistItem } from "../types";
 import { formatDuration } from "@utils/formatDuration";
 import { ArtistLinks } from "@components/media/ArtistLinks";
 import { ResponsiveActionMenu } from "@components/common/ResponsiveActionMenu";
+import {
+  SongTableIndexCell,
+  SongTableTitleText,
+  songTableBodyColumnDisplay,
+  songTableHeadColumnDisplay
+} from "@components/media/SongTableShared";
 
 interface PlaylistItemsTableProps {
   items: PlaylistItem[];
@@ -68,21 +73,21 @@ export function PlaylistItemsTable({
                 data-testid="playlist-artist-column"
                 sx={{
                   width: "24%",
-                  display: { xs: "none", sm: "table-cell" }
+                  display: songTableBodyColumnDisplay.artist
                 }}
               >
                 ARTIST
               </PlaylistTableCell>
               <PlaylistTableCell
                 data-testid="playlist-album-column"
-                sx={{ width: "24%", display: { xs: "none", md: "table-cell" } }}
+                sx={{ width: "24%", display: songTableHeadColumnDisplay.detail }}
               >
                 ALBUM
               </PlaylistTableCell>
               <PlaylistTableCell
                 data-testid="playlist-time-column"
                 align="center"
-                sx={{ width: 72, display: { xs: "none", lg: "table-cell" } }}
+                sx={{ width: 72, display: songTableHeadColumnDisplay.metadata }}
               >
                 TIME
               </PlaylistTableCell>
@@ -117,18 +122,7 @@ export function PlaylistItemsTable({
                   })}
                 >
                   <PlaylistTableCell align="center" component="th" scope="row" width={30}>
-                    {active ? (
-                      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-                        <VolumeUpIcon
-                          className="now-playing-accent"
-                          sx={{ width: 16, height: 16 }}
-                        />
-                      </Box>
-                    ) : (
-                      <Typography fontSize="14px" fontWeight={500} color="#79777f">
-                        {index + 1}
-                      </Typography>
-                    )}
+                    <SongTableIndexCell active={active}>{index + 1}</SongTableIndexCell>
                   </PlaylistTableCell>
                   <PlaylistTableCell>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
@@ -145,17 +139,7 @@ export function PlaylistItemsTable({
                         {item.mediaType === "video" && <OndemandVideoIcon />}
                       </Avatar>
                       <Box sx={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-                        <Typography
-                          className={active ? "now-playing-accent" : undefined}
-                          noWrap
-                          textOverflow="ellipsis"
-                          sx={{
-                            fontSize: { xs: "14px", sm: "inherit" },
-                            fontWeight: 600
-                          }}
-                        >
-                          {item.media.title}
-                        </Typography>
+                        <SongTableTitleText active={active}>{item.media.title}</SongTableTitleText>
                         <Box
                           sx={{
                             display: { xs: "flex", sm: "none" },
@@ -180,14 +164,14 @@ export function PlaylistItemsTable({
                   <PlaylistTableCell
                     data-testid="playlist-artist-cell"
                     sx={{
-                      display: { xs: "none", sm: "table-cell" }
+                      display: songTableBodyColumnDisplay.artist
                     }}
                   >
                     <ArtistLinks artists={item.media.artist} />
                   </PlaylistTableCell>
                   <PlaylistTableCell
                     data-testid="playlist-album-cell"
-                    sx={{ display: { xs: "none", md: "table-cell" } }}
+                    sx={{ display: songTableBodyColumnDisplay.detail }}
                   >
                     <Typography noWrap textOverflow="ellipsis" fontSize={14} color="#a0a0a0">
                       {"album" in item.media ? (item.media.album?.title ?? "Unknown") : "Video"}
@@ -196,7 +180,7 @@ export function PlaylistItemsTable({
                   <PlaylistTableCell
                     data-testid="playlist-time-cell"
                     align="center"
-                    sx={{ display: { xs: "none", lg: "table-cell" } }}
+                    sx={{ display: songTableBodyColumnDisplay.metadata }}
                   >
                     <Typography fontSize={14} color="#919191">
                       {formatDuration(item.media.duration)}

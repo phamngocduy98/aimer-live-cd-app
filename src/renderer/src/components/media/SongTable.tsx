@@ -1,6 +1,5 @@
 import React from "react";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
-import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { Box, IconButton, TableBody, TableRow, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
@@ -20,6 +19,12 @@ import type { PlaySource } from "@features/player/types";
 import { isCurrentSourceItem, sourceItemKey } from "@features/player/types";
 import { ArtistLinks } from "./ArtistLinks";
 import { MediaTable, MediaTableCell, MediaTableHead, MediaTableRow } from "./MediaTable";
+import {
+  SongTableIndexCell,
+  SongTableTitleText,
+  songTableBodyColumnDisplay,
+  songTableHeadColumnDisplay
+} from "./SongTableShared";
 
 interface SongTableProps {
   songs: Song[];
@@ -92,16 +97,16 @@ export const SongTable: React.FC<SongTableProps> = ({
           <MediaTableCell>TITLE</MediaTableCell>
           {showArtist && <MediaTableCell>ARTIST</MediaTableCell>}
           {showAlbum && (
-            <MediaTableCell sx={{ display: { sm: "none", md: "table-cell" } }}>
+            <MediaTableCell sx={{ display: songTableHeadColumnDisplay.detail }}>
               ALBUM
             </MediaTableCell>
           )}
           {showQuality && (
-            <MediaTableCell align="center" sx={{ display: { sm: "none", lg: "table-cell" } }}>
+            <MediaTableCell align="center" sx={{ display: songTableHeadColumnDisplay.metadata }}>
               QUALITY
             </MediaTableCell>
           )}
-          <MediaTableCell align="center" sx={{ display: { sm: "none", lg: "table-cell" } }}>
+          <MediaTableCell align="center" sx={{ display: songTableHeadColumnDisplay.metadata }}>
             TIME
           </MediaTableCell>
           {showActions && (
@@ -134,15 +139,9 @@ export const SongTable: React.FC<SongTableProps> = ({
               }}
             >
               <MediaTableCell align="center" component="th" scope="row" width={30}>
-                {!isPlaying ? (
-                  <Typography fontSize="14px" fontWeight={500} color="#79777f">
-                    {getIndexLabel(song, index)}
-                  </Typography>
-                ) : (
-                  <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-                    <VolumeUpIcon className="now-playing-accent" sx={{ width: 16, height: 16 }} />
-                  </Box>
-                )}
+                <SongTableIndexCell active={isPlaying}>
+                  {getIndexLabel(song, index)}
+                </SongTableIndexCell>
               </MediaTableCell>
               <MediaTableCell>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
@@ -162,17 +161,7 @@ export const SongTable: React.FC<SongTableProps> = ({
                     />
                   )}
                   <Box sx={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-                    <Typography
-                      className={isPlaying ? "now-playing-accent" : undefined}
-                      noWrap
-                      textOverflow="ellipsis"
-                      sx={{
-                        fontSize: { xs: "14px", sm: "inherit" },
-                        fontWeight: 600
-                      }}
-                    >
-                      {song.title}
-                    </Typography>
+                    <SongTableTitleText active={isPlaying}>{song.title}</SongTableTitleText>
                     <Box sx={{ display: { xs: "block", sm: "none" } }}>
                       {mobileSubtitle === "artist" ? (
                         <ArtistLinks
@@ -197,12 +186,12 @@ export const SongTable: React.FC<SongTableProps> = ({
                 </Box>
               </MediaTableCell>
               {showArtist && (
-                <MediaTableCell sx={{ display: { xs: "none", sm: "table-cell" } }}>
+                <MediaTableCell sx={{ display: songTableBodyColumnDisplay.artist }}>
                   <ArtistLinks artists={song.artist} />
                 </MediaTableCell>
               )}
               {showAlbum && (
-                <MediaTableCell sx={{ display: { xs: "none", md: "table-cell" } }}>
+                <MediaTableCell sx={{ display: songTableBodyColumnDisplay.detail }}>
                   <MetadataLink
                     onClick={(event) => {
                       event.stopPropagation();
@@ -214,11 +203,14 @@ export const SongTable: React.FC<SongTableProps> = ({
                 </MediaTableCell>
               )}
               {showQuality && (
-                <MediaTableCell align="center" sx={{ display: { xs: "none", lg: "table-cell" } }}>
+                <MediaTableCell
+                  align="center"
+                  sx={{ display: songTableBodyColumnDisplay.metadata }}
+                >
                   <SongBitDepth song={song} />
                 </MediaTableCell>
               )}
-              <MediaTableCell align="center" sx={{ display: { xs: "none", lg: "table-cell" } }}>
+              <MediaTableCell align="center" sx={{ display: songTableBodyColumnDisplay.metadata }}>
                 <Typography fontSize="14px" color="#919191">
                   {formatDuration(song.duration)}
                 </Typography>
