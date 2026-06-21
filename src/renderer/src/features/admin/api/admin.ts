@@ -9,6 +9,8 @@ import type {
   AdminUser,
   AdminUserPayload,
   AdminVideo,
+  AdminRadioAction,
+  AdminRadioState,
   UploadResult,
   YoutubeVideoMetadataPreview
 } from "../types";
@@ -33,6 +35,13 @@ export const listAdminHosts = async (): Promise<AdminHost[]> =>
 
 export const listAdminUsers = async (): Promise<AdminUser[]> =>
   (await apiClient.get<AdminUser[]>("/admin/users")).data;
+
+export const controlAdminRadio = async (action: AdminRadioAction): Promise<AdminRadioState> =>
+  (await apiClient.post<AdminRadioState>("/admin/radio/control", { action })).data;
+
+export const deleteAdminRadioQueueItem = async (queueItemId: string): Promise<void> => {
+  await apiClient.delete(`/admin/radio/queue/${queueItemId}`);
+};
 
 export const createAdminUser = async (data: AdminUserPayload): Promise<AdminUser> =>
   (await apiClient.post<AdminUser>("/admin/users", data)).data;

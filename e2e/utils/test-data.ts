@@ -318,6 +318,7 @@ export async function seedE2eDatabase(): Promise<void> {
 
   await db.collection("playlists").insertOne({
     _id: testIds.playlistSeed,
+    userId: testIds.paidUser,
     name: "E2E Playlist Seed",
     description: "Seeded playlist for E2E",
     songs: [testIds.songOne, testIds.songTwo]

@@ -7,6 +7,7 @@ import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import { Box, InputAdornment, Snackbar, TextField, Typography } from "@mui/material";
 import { useNavigate, useParams } from "react-router-dom";
 
+import { useAppSelector } from "@app/hooks";
 import { ResponsiveActionMenu } from "@components/common/ResponsiveActionMenu";
 import { PageScaffold } from "@components/view/PageScaffold";
 import { formatArtists } from "@utils/artist";
@@ -19,6 +20,7 @@ import {
   DetailActionButton,
   DetailActions,
   DetailContent,
+  PageState,
   PrimaryActionGroup
 } from "@components/view/designSystem";
 import { mediaArtworkUrl } from "@utils/mediaArtwork";
@@ -28,7 +30,8 @@ export const PlaylistView: React.FC = () => {
   const playMedia = usePlaybackGate();
   const navigate = useNavigate();
   const { id = "" } = useParams();
-  const { data: playlist } = usePlaylist(id);
+  const isLoggedIn = useAppSelector((state) => Boolean(state.auth.session.user));
+  const { data: playlist, isError } = usePlaylist(id);
   const deletePlaylist = useDeletePlaylist();
   const removeItem = useRemoveItemFromPlaylist();
   const [filter, setFilter] = useState("");
@@ -53,8 +56,28 @@ export const PlaylistView: React.FC = () => {
     );
   }, [filter, playlist]);
 
+  if (!isLoggedIn) {
+    return (
+      <PageScaffold>
+        <PageState state="empty" message="Log in to view and manage your playlists." />
+      </PageScaffold>
+    );
+  }
+
+  if (isError) {
+    return (
+      <PageScaffold>
+        <PageState state="error" message="Playlist not found." />
+      </PageScaffold>
+    );
+  }
+
   if (!playlist) {
-    return <PageScaffold>{null}</PageScaffold>;
+    return (
+      <PageScaffold>
+        <PageState state="loading" />
+      </PageScaffold>
+    );
   }
 
   const playSource = {

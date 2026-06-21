@@ -10,7 +10,12 @@ import { pinoHttp } from "pino-http";
 import { dbClient } from "./db/Mongo.js";
 import { WebdavServer } from "./webdav/webdav.js";
 import { createLogger, getRootLogger, requestContext, randomReqId } from "./utils/log.js";
-import { attachSession, requireAdmin, requirePaidMedia } from "./middleware/auth.js";
+import {
+  attachSession,
+  requireAdmin,
+  requireAuthenticated,
+  requirePaidMedia
+} from "./middleware/auth.js";
 import { seedFirstAdmin } from "./services/authService.js";
 
 import {
@@ -98,6 +103,16 @@ import {
   handleMe,
   handleRefresh
 } from "./routes/auth.js";
+import {
+  handleAddRadioQueueItem,
+  handleAdminDeleteRadioQueueItem,
+  handleAdminRadioControl,
+  handleGetRadioState,
+  handleRadioEvents,
+  handleRadioListenerHeartbeat,
+  handleRemoveRadioListener,
+  handleRadioStream
+} from "./routes/radio.js";
 
 const rootDir = path.resolve();
 const webdavEnabled = process.env.VERCEL !== "1";
@@ -252,6 +267,12 @@ app.delete("/api/admin/songs/:id", requireAdmin, handleAdminDeleteSong);
 app.delete("/api/admin/videos/:id", requireAdmin, handleAdminDeleteVideo);
 app.delete("/api/admin/albums/:id", requireAdmin, handleAdminDeleteAlbum);
 app.delete("/api/admin/hosts/:id", requireAdmin, handleAdminDeleteHost);
+app.post("/api/admin/radio/control", requireAdmin, handleAdminRadioControl);
+app.delete(
+  "/api/admin/radio/queue/:queueItemId",
+  requireAdmin,
+  handleAdminDeleteRadioQueueItem
+);
 
 app.get("/api/hosts", handleGetHosts);
 
@@ -299,16 +320,31 @@ app.get("/api/artist/:name/videos", handleGetArtistVideos);
 
 app.get("/api/search", handleSearch);
 
+app.get("/api/radio/state", handleGetRadioState);
+app.get("/api/radio/events", handleRadioEvents);
+app.get("/api/radio/stream/:slotId", handleRadioStream);
+app.post("/api/radio/queue", requirePaidMedia, handleAddRadioQueueItem);
+app.post("/api/radio/listeners/heartbeat", handleRadioListenerHeartbeat);
+app.delete("/api/radio/listeners/:clientId", handleRemoveRadioListener);
+
 // Playlist routes
-app.get("/api/playlists", handleListPlaylists);
-app.post("/api/playlists", handleCreatePlaylist);
-app.get("/api/playlist/:id", handleGetPlaylist);
-app.put("/api/playlist/:id", handleUpdatePlaylist);
-app.delete("/api/playlist/:id", handleDeletePlaylist);
-app.post("/api/playlist/:id/songs", handleAddSongsToPlaylist);
-app.delete("/api/playlist/:id/songs/:songId", handleRemoveSongFromPlaylist);
-app.post("/api/playlist/:id/items", handleAddItemsToPlaylist);
-app.delete("/api/playlist/:id/items/:itemId", handleRemoveItemFromPlaylist);
+app.get("/api/playlists", requireAuthenticated, handleListPlaylists);
+app.post("/api/playlists", requireAuthenticated, handleCreatePlaylist);
+app.get("/api/playlist/:id", requireAuthenticated, handleGetPlaylist);
+app.put("/api/playlist/:id", requireAuthenticated, handleUpdatePlaylist);
+app.delete("/api/playlist/:id", requireAuthenticated, handleDeletePlaylist);
+app.post("/api/playlist/:id/songs", requireAuthenticated, handleAddSongsToPlaylist);
+app.delete(
+  "/api/playlist/:id/songs/:songId",
+  requireAuthenticated,
+  handleRemoveSongFromPlaylist
+);
+app.post("/api/playlist/:id/items", requireAuthenticated, handleAddItemsToPlaylist);
+app.delete(
+  "/api/playlist/:id/items/:itemId",
+  requireAuthenticated,
+  handleRemoveItemFromPlaylist
+);
 
 function handleCatchAll(_req, res) {
   res.sendFile(path.join(staticPath, "index.html"));

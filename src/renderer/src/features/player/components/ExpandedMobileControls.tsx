@@ -5,7 +5,8 @@ import {
   RepeatOne,
   Shuffle,
   SkipNext,
-  SkipPrevious
+  SkipPrevious,
+  StopRounded
 } from "@mui/icons-material";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import QueueMusicRoundedIcon from "@mui/icons-material/QueueMusicRounded";
@@ -15,8 +16,8 @@ import { useGlobalAudioPlayer } from "react-use-audio-player";
 import { useAppDispatch, useAppSelector } from "@app/hooks";
 import { isVideo } from "@features/library";
 import { formatDuration } from "@utils/formatDuration";
-import { toggleRepeat, toggleShuffleQueue } from "../store/playerSlice";
-import { togglePlayPauseVideo, videoOnSeek } from "../store/playerVideoControl";
+import { setRadioListening, toggleRepeat, toggleShuffleQueue } from "../store/playerSlice";
+import { stopVideo, togglePlayPauseVideo, videoOnSeek } from "../store/playerVideoControl";
 import { onNextTrack } from "../thunks/onNextTrack";
 import { onPrevTrack } from "../thunks/onPrevTrack";
 import { toggleView } from "../store/playerGuiSlice";
@@ -37,8 +38,9 @@ export function ExpandedMobileControls() {
     originQueue,
     repeat
   } = useAppSelector((state) => state.player);
+  const radio = useAppSelector((state) => state.player.radio);
   const currentChapter = chapters[currentChapterIdx ?? -1];
-  const { seek, isReady, isLoading, playing, togglePlayPause, getPosition } =
+  const { seek, isReady, isLoading, playing, togglePlayPause, getPosition, stop } =
     useGlobalAudioPlayer();
   const audioPosition = useAudioPosition(getPosition);
   const { videoPosition, videoIsReady, videoIsLoading, videoPlaying } = useAppSelector(
@@ -46,19 +48,33 @@ export function ExpandedMobileControls() {
   );
 
   const video = isVideo(playingTrack);
-  const position = video
-    ? currentChapter
-      ? videoPosition - currentChapter.time
-      : videoPosition
-    : audioPosition;
-  const duration = currentChapter
-    ? currentChapterDuration
-    : Math.max(playingTrack?.duration ?? 0, 0);
-  const ready = video ? videoIsReady : isReady;
+  const radioPosition = useLiveRadioPosition(
+    radio.serverTime,
+    radio.position,
+    radio.duration,
+    radio.paused
+  );
+  const position = radio.enabled
+    ? radioPosition
+    : video
+      ? currentChapter
+        ? videoPosition - currentChapter.time
+        : videoPosition
+      : audioPosition;
+  const duration = radio.enabled
+    ? radio.duration
+    : currentChapter
+      ? currentChapterDuration
+      : Math.max(playingTrack?.duration ?? 0, 0);
+  const ready = radio.enabled || (video ? videoIsReady : isReady);
   const [dragPosition, setDragPosition] = React.useState<number | null>(null);
   const sliderPosition = dragPosition ?? Math.min(Math.max(position, 0), duration);
-  const loading = video ? videoIsLoading : isLoading;
-  const isPlaying = video ? videoPlaying : playing;
+  const loading = radio.enabled ? false : video ? videoIsLoading : isLoading;
+  const isPlaying = radio.enabled
+    ? radio.listening && (video ? videoPlaying : playing)
+    : video
+      ? videoPlaying
+      : playing;
   const canPrevious = history.length > 0 || (currentChapterIdx ?? -1) > 0;
   const canNext = queue.length > 0 || (currentChapterIdx ?? -1) < chapters.length - 1;
 
@@ -80,10 +96,11 @@ export function ExpandedMobileControls() {
         min={0}
         max={Math.max(Math.floor(duration), 1)}
         step={1}
-        disabled={!ready}
+        disabled={radio.enabled || !ready}
         onChange={(_, value) => setDragPosition(value as number)}
         onChangeCommitted={(_, value) => {
           setDragPosition(null);
+          if (radio.enabled) return;
           handleSeek(value as number);
         }}
         sx={{
@@ -105,33 +122,58 @@ export function ExpandedMobileControls() {
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns: "repeat(5, 1fr)",
+          gridTemplateColumns: radio.enabled ? "repeat(3, 1fr)" : "repeat(5, 1fr)",
           alignItems: "center",
           mt: 2.75
         }}
       >
-        <ControlIcon
-          label="shuffle"
-          active={originQueue.length > 0}
-          onClick={() => dispatch(toggleShuffleQueue())}
-        >
-          <Shuffle />
-        </ControlIcon>
+        {!radio.enabled && (
+          <ControlIcon
+            label="shuffle"
+            active={originQueue.length > 0}
+            onClick={() => dispatch(toggleShuffleQueue())}
+          >
+            <Shuffle />
+          </ControlIcon>
+        )}
         <ControlIcon
           label="previous song"
-          disabled={!canPrevious}
+          disabled={radio.enabled || !canPrevious}
           iconSize={32}
           onClick={() => dispatch(onPrevTrack())}
         >
           <SkipPrevious />
         </ControlIcon>
         <IconButton
-          aria-label={isPlaying ? "pause" : "play"}
-          onClick={() => (video ? dispatch(togglePlayPauseVideo()) : togglePlayPause())}
+          aria-label={
+            radio.enabled ? (radio.listening ? "stop" : "play") : isPlaying ? "pause" : "play"
+          }
+          onClick={() => {
+            if (radio.enabled) {
+              if (radio.listening) {
+                dispatch(setRadioListening(false));
+                if (video) {
+                  dispatch(stopVideo());
+                } else {
+                  stop();
+                }
+              } else {
+                dispatch(setRadioListening(true));
+              }
+              return;
+            }
+            if (video) {
+              dispatch(togglePlayPauseVideo());
+            } else {
+              togglePlayPause();
+            }
+          }}
           sx={{ width: 68, height: 68, mx: "auto", color: "#fff" }}
         >
           {!ready || loading ? (
             <CircularProgress size={40} thickness={4} color="inherit" />
+          ) : radio.enabled && radio.listening ? (
+            <StopRounded sx={{ fontSize: 54 }} />
           ) : isPlaying ? (
             <PauseRounded sx={{ fontSize: 54 }} />
           ) : (
@@ -140,15 +182,17 @@ export function ExpandedMobileControls() {
         </IconButton>
         <ControlIcon
           label="next song"
-          disabled={!canNext}
+          disabled={radio.enabled || !canNext}
           iconSize={32}
           onClick={() => dispatch(onNextTrack({ isUser: true }))}
         >
           <SkipNext />
         </ControlIcon>
-        <ControlIcon label="repeat" active={repeat > 0} onClick={() => dispatch(toggleRepeat())}>
-          {repeat === 2 ? <RepeatOne /> : <Repeat />}
-        </ControlIcon>
+        {!radio.enabled && (
+          <ControlIcon label="repeat" active={repeat > 0} onClick={() => dispatch(toggleRepeat())}>
+            {repeat === 2 ? <RepeatOne /> : <Repeat />}
+          </ControlIcon>
+        )}
       </Box>
 
       <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2.75 }}>
@@ -239,6 +283,24 @@ function useAudioPosition(getPosition: () => number) {
   }, [getPosition]);
 
   return position;
+}
+
+function useLiveRadioPosition(
+  serverTime: string | null,
+  position = 0,
+  duration = 0,
+  paused = false
+) {
+  const [now, setNow] = React.useState(() => Date.now());
+
+  React.useEffect(() => {
+    const interval = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(interval);
+  }, []);
+
+  if (!serverTime) return 0;
+  const elapsed = paused ? position : position + (now - new Date(serverTime).getTime()) / 1000;
+  return Math.min(Math.max(Math.floor(elapsed), 0), Math.max(duration, 0));
 }
 
 function TimeLabel({ children }: React.PropsWithChildren) {

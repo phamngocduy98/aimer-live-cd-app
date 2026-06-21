@@ -50,6 +50,9 @@ const playerVideoControlSlice = createSlice({
     togglePlayPauseVideo(state) {
       state.videoPlaying = !state.videoPlaying;
     },
+    playVideo(state) {
+      state.videoPlaying = true;
+    },
     stopVideo(state) {
       state.videoPlaying = false;
     },
@@ -93,6 +96,7 @@ const playerVideoControlSlice = createSlice({
 export const {
   loadVideo,
   togglePlayPauseVideo,
+  playVideo,
   loopVideo,
   stopVideo,
   videoOnError,

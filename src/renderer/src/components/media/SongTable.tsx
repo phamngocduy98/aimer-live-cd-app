@@ -3,13 +3,15 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { Box, IconButton, TableBody, TableRow, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import type { Song } from "@features/library";
+import { isVideo, type Song, type Video } from "@features/library";
 import { useAppSelector } from "@app/hooks";
 import { formatArtists } from "@utils/artist";
 import { formatDuration } from "@utils/formatDuration";
 import { SongBitDepth } from "@features/player/components/SongBitDepth";
+import { VideoBitDepth } from "@features/player/components/SongBitDepth";
 import { AddToPlaylistDialog } from "@features/playlist";
 import { apiAssetUrl } from "@lib/axios";
+import { mediaArtworkUrl } from "@utils/mediaArtwork";
 import {
   type ActionMenuPosition,
   type ExtraMediaAction,
@@ -26,23 +28,30 @@ import {
   songTableHeadColumnDisplay
 } from "./SongTableShared";
 
-interface SongTableProps {
-  songs: Song[];
+interface SongTableProps<T extends Song | Video = Song> {
+  songs: T[];
   ariaLabel: string;
-  onPlayFromIndex: (index: number) => void;
-  getIndexLabel?: (song: Song, index: number) => React.ReactNode;
+  onPlayFromIndex?: (index: number) => void;
+  getIndexLabel?: (song: T, index: number) => React.ReactNode;
   showArtist?: boolean;
   showAlbum?: boolean;
   showQuality?: boolean;
   showActions?: boolean;
   showAddToPlaylist?: boolean;
   showArtwork?: boolean;
+  showRequestedBy?: boolean;
+  showPlayedAt?: boolean;
   mobileSubtitle?: "artist" | "album";
-  getExtraActions?: (song: Song) => ExtraMediaAction[];
+  getExtraActions?: (song: T) => ExtraMediaAction[];
+  getRowKey?: (song: T, index: number) => React.Key;
+  getIsActive?: (song: T, index: number) => boolean;
+  getRequestedByLabel?: (song: T, index: number) => React.ReactNode;
+  getPlayedAtLabel?: (song: T, index: number) => React.ReactNode;
   playSource?: PlaySource;
+  readOnly?: boolean;
 }
 
-export const SongTable: React.FC<SongTableProps> = ({
+export function SongTable<T extends Song | Video = Song>({
   songs,
   ariaLabel,
   onPlayFromIndex,
@@ -53,13 +62,20 @@ export const SongTable: React.FC<SongTableProps> = ({
   showActions = false,
   showAddToPlaylist = false,
   showArtwork = false,
+  showRequestedBy = false,
+  showPlayedAt = false,
   mobileSubtitle = "artist",
   getExtraActions,
-  playSource
-}): React.ReactElement => {
+  getRowKey,
+  getIsActive,
+  getRequestedByLabel,
+  getPlayedAtLabel,
+  playSource,
+  readOnly = false
+}: SongTableProps<T>): React.ReactElement {
   const navigate = useNavigate();
   const { playingTrack, currentEntry } = useAppSelector((state) => state.player);
-  const [contextSong, setContextSong] = React.useState<Song | null>(null);
+  const [contextSong, setContextSong] = React.useState<T | null>(null);
   const [playlistSong, setPlaylistSong] = React.useState<Song | null>(null);
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
   const [anchorPosition, setAnchorPosition] = React.useState<ActionMenuPosition | null>(null);
@@ -73,14 +89,16 @@ export const SongTable: React.FC<SongTableProps> = ({
       ariaLabel={ariaLabel}
       after={
         <>
-          <SongActionsMenu
-            track={contextSong}
-            open={Boolean(anchorEl || anchorPosition)}
-            anchorEl={anchorEl}
-            anchorPosition={anchorPosition}
-            onClose={closeActions}
-            extraActions={contextSong ? (getExtraActions?.(contextSong) ?? []) : []}
-          />
+          {!readOnly && (
+            <SongActionsMenu
+              track={contextSong}
+              open={Boolean(anchorEl || anchorPosition)}
+              anchorEl={anchorEl}
+              anchorPosition={anchorPosition}
+              onClose={closeActions}
+              extraActions={contextSong ? (getExtraActions?.(contextSong) ?? []) : []}
+            />
+          )}
           <AddToPlaylistDialog
             open={Boolean(playlistSong)}
             onClose={() => setPlaylistSong(null)}
@@ -106,6 +124,16 @@ export const SongTable: React.FC<SongTableProps> = ({
               QUALITY
             </MediaTableCell>
           )}
+          {showRequestedBy && (
+            <MediaTableCell sx={{ display: songTableHeadColumnDisplay.detail }}>
+              REQUESTED BY
+            </MediaTableCell>
+          )}
+          {showPlayedAt && (
+            <MediaTableCell align="center" sx={{ display: songTableHeadColumnDisplay.metadata }}>
+              PLAYED
+            </MediaTableCell>
+          )}
           <MediaTableCell align="center" sx={{ display: songTableHeadColumnDisplay.metadata }}>
             TIME
           </MediaTableCell>
@@ -117,21 +145,28 @@ export const SongTable: React.FC<SongTableProps> = ({
       <TableBody>
         {songs.map((song, index) => {
           const itemKey = playSource ? sourceItemKey(playSource, song, index) : undefined;
-          const isPlaying = playSource
-            ? isCurrentSourceItem(currentEntry, playSource, song, itemKey)
-            : song._id === playingTrack?._id;
+          const isPlaying =
+            getIsActive?.(song, index) ??
+            (playSource
+              ? isCurrentSourceItem(currentEntry, playSource, song, itemKey)
+              : song._id === playingTrack?._id);
           const mobileText =
-            mobileSubtitle === "album"
+            mobileSubtitle === "album" && !isVideo(song)
               ? (song.album?.title ?? "Unknown")
-              : formatArtists(song.artist);
+              : isVideo(song) && mobileSubtitle === "album"
+                ? "Video"
+                : formatArtists(song.artist);
+          const requestedByLabel = getRequestedByLabel?.(song, index);
+          const playedAtLabel = getPlayedAtLabel?.(song, index);
 
           return (
             <MediaTableRow
               hover
-              key={song._id}
+              key={getRowKey?.(song, index) ?? song._id}
               selected={isPlaying}
-              onDoubleClick={() => onPlayFromIndex(index)}
+              onDoubleClick={readOnly ? undefined : () => onPlayFromIndex?.(index)}
               onContextMenu={(event) => {
+                if (readOnly) return;
                 event.preventDefault();
                 setContextSong(song);
                 setAnchorEl(null);
@@ -148,7 +183,11 @@ export const SongTable: React.FC<SongTableProps> = ({
                   {showArtwork && (
                     <Box
                       component="img"
-                      src={apiAssetUrl(`/album/${song.album?._id}/cover`)}
+                      src={
+                        isVideo(song)
+                          ? mediaArtworkUrl(song)
+                          : apiAssetUrl(`/album/${song.album?._id}/cover`)
+                      }
                       alt=""
                       sx={{
                         width: { xs: 52, sm: 44 },
@@ -181,6 +220,19 @@ export const SongTable: React.FC<SongTableProps> = ({
                           {mobileText}
                         </Typography>
                       )}
+                      {(showRequestedBy || showPlayedAt) && (
+                        <Typography
+                          noWrap
+                          textOverflow="ellipsis"
+                          fontSize={13}
+                          color={"#777"}
+                          fontWeight={600}
+                        >
+                          {showRequestedBy && <>Requested by {requestedByLabel ?? "—"}</>}
+                          {showRequestedBy && showPlayedAt && " · "}
+                          {showPlayedAt && <>{playedAtLabel ?? "—"}</>}
+                        </Typography>
+                      )}
                     </Box>
                   </Box>
                 </Box>
@@ -192,14 +244,20 @@ export const SongTable: React.FC<SongTableProps> = ({
               )}
               {showAlbum && (
                 <MediaTableCell sx={{ display: songTableBodyColumnDisplay.detail }}>
-                  <MetadataLink
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      if (song.album?._id) navigate(`/album/${song.album._id}`);
-                    }}
-                  >
-                    {song.album?.title ?? "Unknown"}
-                  </MetadataLink>
+                  {isVideo(song) ? (
+                    <Typography noWrap textOverflow="ellipsis" fontSize="14px" color="#a0a0a0">
+                      Video
+                    </Typography>
+                  ) : (
+                    <MetadataLink
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        if (song.album?._id) navigate(`/album/${song.album._id}`);
+                      }}
+                    >
+                      {song.album?.title ?? "Unknown"}
+                    </MetadataLink>
+                  )}
                 </MediaTableCell>
               )}
               {showQuality && (
@@ -207,7 +265,24 @@ export const SongTable: React.FC<SongTableProps> = ({
                   align="center"
                   sx={{ display: songTableBodyColumnDisplay.metadata }}
                 >
-                  <SongBitDepth song={song} />
+                  {isVideo(song) ? <VideoBitDepth video={song} /> : <SongBitDepth song={song} />}
+                </MediaTableCell>
+              )}
+              {showRequestedBy && (
+                <MediaTableCell sx={{ display: songTableBodyColumnDisplay.detail }}>
+                  <Typography noWrap textOverflow="ellipsis" fontSize="14px" color="#a0a0a0">
+                    {requestedByLabel ?? "—"}
+                  </Typography>
+                </MediaTableCell>
+              )}
+              {showPlayedAt && (
+                <MediaTableCell
+                  align="center"
+                  sx={{ display: songTableBodyColumnDisplay.metadata }}
+                >
+                  <Typography fontSize="14px" color="#919191">
+                    {playedAtLabel ?? "—"}
+                  </Typography>
                 </MediaTableCell>
               )}
               <MediaTableCell align="center" sx={{ display: songTableBodyColumnDisplay.metadata }}>
@@ -225,9 +300,10 @@ export const SongTable: React.FC<SongTableProps> = ({
                     <IconButton
                       size="small"
                       aria-label={`Add ${song.title} to playlist`}
+                      disabled={isVideo(song)}
                       onClick={(event) => {
                         event.stopPropagation();
-                        setPlaylistSong(song);
+                        if (!isVideo(song)) setPlaylistSong(song);
                       }}
                     >
                       <AddRoundedIcon fontSize="medium" />
@@ -253,7 +329,7 @@ export const SongTable: React.FC<SongTableProps> = ({
       </TableBody>
     </MediaTable>
   );
-};
+}
 
 const MetadataLink: React.FC<
   React.PropsWithChildren<{ onClick: (event: React.MouseEvent) => void }>

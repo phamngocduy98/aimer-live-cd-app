@@ -6,6 +6,7 @@ import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import LibraryMusicOutlinedIcon from "@mui/icons-material/LibraryMusicOutlined";
 import MusicNoteOutlinedIcon from "@mui/icons-material/MusicNoteOutlined";
 import QueueMusicOutlinedIcon from "@mui/icons-material/QueueMusicOutlined";
+import RadioOutlinedIcon from "@mui/icons-material/RadioOutlined";
 import VideoLibraryOutlinedIcon from "@mui/icons-material/VideoLibraryOutlined";
 import { Box, Drawer, IconButton, List, ListItemButton, Tooltip, Typography } from "@mui/material";
 import { NavLink, useLocation } from "react-router-dom";
@@ -24,6 +25,7 @@ const primaryItems = [
   { label: "Albums", path: "/albums", icon: ExploreOutlinedIcon },
   { label: "Songs", path: "/songs", icon: MusicNoteOutlinedIcon },
   { label: "Videos", path: "/videos", icon: VideoLibraryOutlinedIcon },
+  { label: "Radio", path: "/radio", icon: RadioOutlinedIcon },
   { label: "Playlists", path: "/playlists", icon: LibraryMusicOutlinedIcon }
 ];
 

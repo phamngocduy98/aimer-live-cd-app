@@ -1,7 +1,14 @@
 import { Avatar, Button, Chip, Stack, Tooltip, Typography } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import PauseIcon from "@mui/icons-material/Pause";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import SkipNextIcon from "@mui/icons-material/SkipNext";
+import SkipPreviousIcon from "@mui/icons-material/SkipPrevious";
 import { artistImageUrl } from "@utils/artist";
+import { formatDuration } from "@utils/formatDuration";
+import { mediaArtworkUrl } from "@utils/mediaArtwork";
+import type { RadioRequester, RadioState } from "@features/radio";
 import type {
   AdminAlbum,
   AdminArtist,
@@ -31,6 +38,11 @@ function formatPartRanges(parts: number[]): string {
   }
   ranges.push(start === end ? `${start + 1}` : `${start + 1}-${end + 1}`);
   return ranges.join(", ");
+}
+
+function formatRequester(user?: RadioRequester): string {
+  if (!user) return "Radio";
+  return user.displayName || user.username || "Unknown user";
 }
 
 export function UploadsSection({
@@ -97,6 +109,129 @@ export function UploadsSection({
                 </Tooltip>
               );
             }
+          }
+        ]}
+      />
+    </Stack>
+  );
+}
+
+export function AdminRadioSection({
+  state,
+  loading,
+  controlling,
+  deletingId,
+  onControl,
+  onDeleteQueueItem
+}: {
+  state?: RadioState;
+  loading: boolean;
+  controlling: boolean;
+  deletingId?: string | null;
+  onControl: (action: "pause" | "resume" | "next" | "previous") => void;
+  onDeleteQueueItem: (queueItemId: string) => void;
+}) {
+  const current = state?.current;
+  const queue = state?.upcoming ?? [];
+
+  return (
+    <Stack sx={{ height: "100%" }} spacing={1.5}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
+        <Stack>
+          <Typography variant="h6">Radio</Typography>
+          <Typography color="text.secondary" fontSize={13}>
+            {state?.listenerCount ?? 0} active listeners
+            {state?.stationStatus.paused ? " · station paused" : ""}
+          </Typography>
+        </Stack>
+        <Stack direction="row" spacing={1}>
+          <Button
+            startIcon={<SkipPreviousIcon />}
+            disabled={controlling}
+            onClick={() => onControl("previous")}
+          >
+            Previous
+          </Button>
+          <Button
+            startIcon={state?.stationStatus.paused ? <PlayArrowIcon /> : <PauseIcon />}
+            variant="contained"
+            disabled={controlling}
+            onClick={() => onControl(state?.stationStatus.paused ? "resume" : "pause")}
+          >
+            {state?.stationStatus.paused ? "Resume" : "Pause"}
+          </Button>
+          <Button
+            endIcon={<SkipNextIcon />}
+            disabled={controlling}
+            onClick={() => onControl("next")}
+          >
+            Next
+          </Button>
+        </Stack>
+      </Stack>
+      {current && (
+        <Stack
+          direction="row"
+          spacing={1.5}
+          alignItems="center"
+          sx={{ p: 1.25, borderRadius: 1, bgcolor: "rgba(255,255,255,.05)" }}
+        >
+          <Avatar
+            variant="rounded"
+            src={mediaArtworkUrl(current.media)}
+            sx={{ width: 58, height: 58 }}
+          />
+          <Stack sx={{ minWidth: 0 }}>
+            <Typography noWrap fontWeight={700}>
+              {current.media.title}
+            </Typography>
+            <Typography noWrap color="text.secondary" fontSize={13}>
+              {current.media.artist.join(", ")}
+            </Typography>
+            <Typography color="text.secondary" fontSize={12}>
+              {formatDuration(current.position)} / {formatDuration(current.duration)}
+            </Typography>
+            {current.requestedByUser && (
+              <Typography color="text.secondary" fontSize={12}>
+                Requested by {formatRequester(current.requestedByUser)}
+              </Typography>
+            )}
+          </Stack>
+        </Stack>
+      )}
+      <AdminTable
+        ariaLabel="Admin radio queue table"
+        loading={loading}
+        rows={queue.map((item) => ({ ...item, _id: item.queueItemId }))}
+        columns={[
+          {
+            key: "position",
+            label: "#",
+            width: 60,
+            render: (row) => <Chip size="small" label={row.position} />
+          },
+          { key: "title", label: "Title", render: (row) => row.media.title },
+          { key: "artist", label: "Artist", render: (row) => row.media.artist.join(", ") },
+          {
+            key: "requestedBy",
+            label: "Requested by",
+            width: 160,
+            render: (row) => formatRequester(row.requestedByUser)
+          },
+          { key: "type", label: "Type", width: 90, render: (row) => row.mediaType },
+          {
+            key: "actions",
+            label: "",
+            width: 84,
+            render: (row) => (
+              <AdminActions
+                onDelete={
+                  deletingId === row.queueItemId
+                    ? undefined
+                    : () => onDeleteQueueItem(row.queueItemId)
+                }
+              />
+            )
           }
         ]}
       />

@@ -15,7 +15,7 @@ export const AlbumInfo: React.FC<{ album: AlbumDetail }> = ({ album }) => {
   const trackDuration = album.trackList.reduce((total, track) => total + track.duration, 0);
 
   const openArtist = () => {
-    dispatch(hideView("mobilePlayer"));
+    dispatch(hideView("expandedPlayer"));
     navigate(artistPath(album.artist));
   };
 

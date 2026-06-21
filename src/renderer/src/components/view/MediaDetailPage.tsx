@@ -63,7 +63,8 @@ export function MediaDetailIdentity({
   subtitle,
   summary,
   badges,
-  artworkTestId
+  artworkTestId,
+  hideArtwork = false
 }: {
   artwork: React.ReactNode;
   title: React.ReactNode;
@@ -71,6 +72,7 @@ export function MediaDetailIdentity({
   summary?: React.ReactNode;
   badges?: React.ReactNode;
   artworkTestId?: string;
+  hideArtwork?: boolean;
 }): React.ReactElement {
   return (
     <Box
@@ -83,23 +85,25 @@ export function MediaDetailIdentity({
         textAlign: { xs: "center", sm: "left" }
       }}
     >
-      <Box
-        data-testid={artworkTestId}
-        sx={(theme) => ({
-          width: { xs: 152, sm: 240, md: 250 },
-          aspectRatio: "1 / 1",
-          borderRadius: `${theme.design.radius.artwork}px`,
-          overflow: "hidden",
-          display: "grid",
-          placeItems: "center",
-          bgcolor: theme.design.color.surfaceRaised,
-          boxShadow: theme.design.shadow.heroArtwork,
-          flexShrink: 0,
-          "& img": { width: "100%", height: "100%", objectFit: "cover", display: "block" }
-        })}
-      >
-        {artwork}
-      </Box>
+      {!hideArtwork && (
+        <Box
+          data-testid={artworkTestId}
+          sx={(theme) => ({
+            width: { xs: 152, sm: 240, md: 250 },
+            aspectRatio: "1 / 1",
+            borderRadius: `${theme.design.radius.artwork}px`,
+            overflow: "hidden",
+            display: "grid",
+            placeItems: "center",
+            bgcolor: theme.design.color.surfaceRaised,
+            boxShadow: theme.design.shadow.heroArtwork,
+            flexShrink: 0,
+            "& img": { width: "100%", height: "100%", objectFit: "cover", display: "block" }
+          })}
+        >
+          {artwork}
+        </Box>
+      )}
       <Box
         sx={{
           minWidth: 0,

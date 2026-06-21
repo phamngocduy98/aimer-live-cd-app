@@ -30,6 +30,9 @@ test planning.
 
 - **Audio streaming:** `/api/stream/audio/:id` streams encrypted media parts as one playable response.
 - **Video streaming:** `/api/stream/video/:id` streams video media with the same failover behavior.
+- **Radio streaming:** `/api/radio/stream/:slotId` publicly streams only the
+  current shared radio slot, with short grace for an in-flight previous slot;
+  direct paid media stream routes remain subscription-gated.
 - **Legacy streaming:** `/api/stream/:id` remains available for backward compatibility.
 - **Part fetch:** `/api/part/:id/:fileName` fetches a raw part from any hosting provider serving the media.
 - **Hosting failover:** if one hosting provider fails, streaming attempts the next provider in `hostingList`.
@@ -94,24 +97,39 @@ test planning.
 
 ## 7. Playlist APIs
 
-- **Playlist list:** returns playlist summaries with media counts.
-- **Create/edit/delete:** supports playlist create, update, and delete.
-- **Detail:** returns playlist items with resolved song/video media.
+- **Playlist list:** requires login and returns the current user's playlist summaries with media counts.
+- **Create/edit/delete:** requires login and supports playlist create, update, and delete for the current user's playlists only.
+- **Detail:** requires login and returns the current user's playlist items with resolved song/video media.
 - **Mixed media items:** supports both audio and video playlist items.
 - **Legacy song routes:** song-only add/remove endpoints remain compatible with older playlist usage.
 - **Duplicate handling:** playlist item identity remains occurrence-based, not only media-ID based.
 
-## 8. Persistence And Cleanup Rules
+## 8. Radio APIs
+
+- **Radio state:** `/api/radio/state` returns server time, current song/video,
+  current timestamp, slot duration, source, stream URL, and recent history.
+- **Radio sync:** `/api/radio/events` sends server-authoritative slot changes
+  and periodic sync heartbeats for all listeners.
+- **Radio queue:** paid users and admins append songs/videos through
+  `/api/radio/queue`; queued items play FIFO before random fallback.
+- **Random fallback:** when no queued items are pending, the scheduler chooses a
+  random playable song/video and avoids immediate repeats when possible.
+- **Public listening:** guests may listen to the current radio slot, but cannot
+  use direct paid-media stream or part APIs.
+
+## 9. Persistence And Cleanup Rules
 
 - **Songs:** store media metadata, file extension, file count, IV, album reference, and hosting list.
 - **Videos:** store independent cover, title, artists, genres, year, chapters,
   file metadata, IV, and hosting list; they never store an album reference.
 - **Albums:** store cover, title, artist, genre, year, and song track list only.
 - **Artist profiles:** store image data keyed by canonical artist name.
+- **Radio:** stores pending/played radio queue items and playback slots with
+  media type, media ID, start time, duration, and source.
 - **Host credentials:** store encrypted FTP passwords in MongoDB.
 - **Reference cleanup:** deleting hosts, albums, songs, or videos must not leave stale album or playlist references.
 
-## 9. Backend Test Scenarios
+## 10. Backend Test Scenarios
 
 - Upload health aggregation: complete union, missing parts, unavailable hosts, unknown media.
 - Provider file parsing: first part is part `0`, suffix `_N` is part `N`.
@@ -122,6 +140,8 @@ test planning.
 - YouTube multipart metadata parsing and cover validation.
 - Artist video filtering and release sorting.
 - Playlist create/update/delete and mixed item resolution.
+- Radio clock position, slot expiration, FIFO queue scheduling, random
+  fallback, and public current-slot stream gating.
 - Stream failover across multiple hosting providers.
 - LRC parsing, LRCLIB normalization, duration matching, romaji generation,
   translation timestamp preservation, and atomic lyric-track updates.

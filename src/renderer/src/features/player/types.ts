@@ -10,6 +10,7 @@ export type PlaySourceType =
   | "songs"
   | "videos"
   | "video"
+  | "radio"
   | "home";
 
 export interface PlaySource {
@@ -24,6 +25,7 @@ export interface QueueEntry {
   media: MediaItem;
   playFrom: PlaySource;
   sourceItemKey: string;
+  sourceUrl?: string;
 }
 
 export interface PlayContextPayload {

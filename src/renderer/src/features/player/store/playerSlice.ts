@@ -9,6 +9,17 @@ type MSong = Song | Video;
 
 interface PlayerSlice {
   canAccessPaidMedia: boolean;
+  radio: {
+    enabled: boolean;
+    listening: boolean;
+    slotId: string | null;
+    startedAt: string | null;
+    serverTime: string | null;
+    position: number;
+    duration: number;
+    streamUrl: string | null;
+    paused: boolean;
+  };
   currentEntry: QueueEntry | null;
   playingTrack: MSong | null;
   queue: QueueEntry[];
@@ -21,6 +32,18 @@ interface PlayerSlice {
   favoriteTrackIds: string[];
 }
 
+const initialRadioState = {
+  enabled: false,
+  listening: false,
+  slotId: null,
+  startedAt: null,
+  serverTime: null,
+  position: 0,
+  duration: 0,
+  streamUrl: null,
+  paused: false
+};
+
 function isEntryPlayable(entry: QueueEntry, canAccessPaidMedia: boolean): boolean {
   return canAccessPaidMedia || (isVideo(entry.media) && Boolean(entry.media.youtubeUrl));
 }
@@ -29,6 +52,7 @@ const playerSlice = createSlice({
   name: "player",
   initialState: {
     canAccessPaidMedia: false,
+    radio: initialRadioState,
     currentEntry: null,
     playingTrack: null,
     queue: [],
@@ -59,17 +83,20 @@ const playerSlice = createSlice({
       );
     },
     playContext(state, action: PayloadAction<PlayContextPayload>) {
+      state.radio = { ...initialRadioState };
       const { items, playFrom, startIndex = 0, shuffle = false, sourceItemKeys } = action.payload;
-      const entries = items.map((item, index) => {
-        const type = mediaType(item);
-        const media = { ...item, type } as MSong;
-        return {
-          queueEntryId: nanoid(),
-          media,
-          playFrom,
-          sourceItemKey: sourceItemKeys?.[index] ?? sourceItemKey(playFrom, media, index)
-        };
-      }).filter((entry) => isEntryPlayable(entry, state.canAccessPaidMedia));
+      const entries = items
+        .map((item, index) => {
+          const type = mediaType(item);
+          const media = { ...item, type } as MSong;
+          return {
+            queueEntryId: nanoid(),
+            media,
+            playFrom,
+            sourceItemKey: sourceItemKeys?.[index] ?? sourceItemKey(playFrom, media, index)
+          };
+        })
+        .filter((entry) => isEntryPlayable(entry, state.canAccessPaidMedia));
       const ordered = shuffle ? shuffleArray(entries) : entries;
       const selectedIndex = shuffle ? 0 : Math.min(Math.max(startIndex, 0), ordered.length - 1);
 
@@ -91,6 +118,7 @@ const playerSlice = createSlice({
         type: "audio" | "video";
       }>
     ) {
+      state.radio = { ...initialRadioState };
       payload.payload.history = payload.payload.history?.map((h) => ({
         ...h,
         type: payload.payload.type
@@ -106,18 +134,22 @@ const playerSlice = createSlice({
         : payload.payload.songs;
 
       const playFrom = { type: "home" as const, label: "Queue", route: "/" };
-      const entries = songs.map((media, index) => ({
-        queueEntryId: nanoid(),
-        media,
-        playFrom,
-        sourceItemKey: sourceItemKey(playFrom, media, index)
-      })).filter((entry) => isEntryPlayable(entry, state.canAccessPaidMedia));
-      const history = (payload.payload.history ?? []).map((media, index) => ({
-        queueEntryId: nanoid(),
-        media,
-        playFrom,
-        sourceItemKey: sourceItemKey(playFrom, media, index)
-      })).filter((entry) => isEntryPlayable(entry, state.canAccessPaidMedia));
+      const entries = songs
+        .map((media, index) => ({
+          queueEntryId: nanoid(),
+          media,
+          playFrom,
+          sourceItemKey: sourceItemKey(playFrom, media, index)
+        }))
+        .filter((entry) => isEntryPlayable(entry, state.canAccessPaidMedia));
+      const history = (payload.payload.history ?? [])
+        .map((media, index) => ({
+          queueEntryId: nanoid(),
+          media,
+          playFrom,
+          sourceItemKey: sourceItemKey(playFrom, media, index)
+        }))
+        .filter((entry) => isEntryPlayable(entry, state.canAccessPaidMedia));
 
       state.currentEntry = entries[0] ?? null;
       state.playingTrack = state.currentEntry?.media ?? null;
@@ -128,7 +160,67 @@ const playerSlice = createSlice({
       else state.originQueue = [];
       state.history = history;
     },
+    playRadio(
+      state,
+      action: PayloadAction<{
+        media: MSong;
+        mediaType: "audio" | "video";
+        slotId: string;
+        startedAt: string;
+        serverTime: string;
+        position: number;
+        duration: number;
+        streamUrl: string;
+        paused?: boolean;
+        history?: {
+          slotId: string;
+          mediaType: "audio" | "video";
+          media: MSong;
+          startedAt: string;
+          duration: number;
+        }[];
+      }>
+    ) {
+      const media = { ...action.payload.media, type: action.payload.mediaType } as MSong;
+      const playFrom = { type: "radio" as const, label: "Radio", route: "/" };
+      state.radio = {
+        enabled: true,
+        listening: true,
+        slotId: action.payload.slotId,
+        startedAt: action.payload.startedAt,
+        serverTime: action.payload.serverTime,
+        position: action.payload.position,
+        duration: action.payload.duration,
+        streamUrl: action.payload.streamUrl,
+        paused: Boolean(action.payload.paused)
+      };
+      state.currentEntry = {
+        queueEntryId: action.payload.slotId,
+        media,
+        playFrom,
+        sourceItemKey: `radio:${action.payload.slotId}`,
+        sourceUrl: action.payload.streamUrl
+      };
+      state.playingTrack = media;
+      state.history = (action.payload.history ?? []).map((entry) => ({
+        queueEntryId: entry.slotId,
+        media: { ...entry.media, type: entry.mediaType } as MSong,
+        playFrom,
+        sourceItemKey: `radio:${entry.slotId}`
+      }));
+      state.queue = [];
+      state.originQueue = [];
+      state.repeat = 0;
+      state.chapters = isVideo(media) ? (media.chapters ?? []) : [];
+      state.currentChapterIdx = null;
+      state.currentChapterDuration = 0;
+    },
+    setRadioListening(state, action: PayloadAction<boolean>) {
+      if (!state.radio.enabled) return;
+      state.radio.listening = action.payload;
+    },
     toggleShuffleQueue(state) {
+      if (state.radio.enabled) return;
       if (state.originQueue.length === 0) {
         console.log("shuffle ON");
         state.originQueue = state.queue;
@@ -142,6 +234,7 @@ const playerSlice = createSlice({
       }
     },
     toggleRepeat(state) {
+      if (state.radio.enabled) return;
       state.repeat = (state.repeat + 1) % 3;
       if (state.repeat === 1 && state.history.length === 0 && state.queue.length === 0) {
         // the only one to repeat
@@ -149,6 +242,7 @@ const playerSlice = createSlice({
       }
     },
     nextTrack(state, payload: PayloadAction<{ skip?: number; isUser?: boolean } | undefined>) {
+      if (state.radio.enabled) return;
       const skip = payload.payload?.skip ?? 0;
       const isUser = payload.payload?.isUser ?? false;
 
@@ -185,6 +279,7 @@ const playerSlice = createSlice({
       state.queue = state.queue.slice(skip + 1);
     },
     prevTrack(state, payload: PayloadAction<{ skip?: number } | undefined>) {
+      if (state.radio.enabled) return;
       const skip = payload.payload?.skip ?? 0;
 
       if (
@@ -229,6 +324,8 @@ const playerSlice = createSlice({
 export const {
   setPlaybackAccess,
   playContext,
+  playRadio,
+  setRadioListening,
   nextTrack,
   prevTrack,
   deleteTrack,

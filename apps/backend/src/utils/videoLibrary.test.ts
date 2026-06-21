@@ -14,7 +14,13 @@ describe("video library rules", () => {
 
   it("preserves authored chapters", () => {
     const chapters = [{ time: 12, title: "Song", subTitle: "Artist" }];
-    expect(normalizeVideoChapters("Concert", chapters)).toBe(chapters);
+    expect(normalizeVideoChapters("Concert", chapters)).toEqual(chapters);
+  });
+
+  it("fills missing chapter subtitles with an empty string", () => {
+    expect(
+      normalizeVideoChapters("Concert", [{ time: 12, title: "Song" } as any])
+    ).toEqual([{ time: 12, title: "Song", subTitle: "" }]);
   });
 
   it("renames only the generated default chapter when the video title changes", () => {

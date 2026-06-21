@@ -3,18 +3,18 @@ import type { LyricPairId } from "@features/lyrics/types";
 
 interface PlayerGuiSlice {
   playingQueue: boolean;
-  mobilePlayer: boolean;
+  expandedPlayer: boolean;
   lyrics: boolean;
   lyricPair: LyricPairId;
 }
 
-type PlayerView = "playingQueue" | "mobilePlayer" | "lyrics";
+type PlayerView = "playingQueue" | "expandedPlayer" | "lyrics";
 
 const playerGuiSlice = createSlice({
   name: "playerGui",
   initialState: {
     playingQueue: false,
-    mobilePlayer: false,
+    expandedPlayer: false,
     lyrics: false,
     lyricPair: "ja-romaji"
   } as PlayerGuiSlice,

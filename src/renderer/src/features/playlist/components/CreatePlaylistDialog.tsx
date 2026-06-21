@@ -5,8 +5,10 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  TextField
+  TextField,
+  Typography
 } from "@mui/material";
+import { useAppSelector } from "@app/hooks";
 import { useAddItemsToPlaylist, useCreatePlaylist } from "../hooks/usePlaylists";
 import type { PlaylistItemInput } from "../types";
 
@@ -25,6 +27,7 @@ export const CreatePlaylistDialog: React.FC<CreatePlaylistDialogProps> = ({
 }) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const isLoggedIn = useAppSelector((state) => Boolean(state.auth.session.user));
   const createPlaylist = useCreatePlaylist();
   const addItems = useAddItemsToPlaylist();
   const isPending = createPlaylist.isPending || addItems.isPending;
@@ -38,7 +41,7 @@ export const CreatePlaylistDialog: React.FC<CreatePlaylistDialogProps> = ({
   };
 
   const handleSubmit = (): void => {
-    if (!name.trim()) return;
+    if (!isLoggedIn || !name.trim()) return;
     createPlaylist.mutate(
       { name: name.trim(), description: description.trim() },
       {
@@ -67,30 +70,40 @@ export const CreatePlaylistDialog: React.FC<CreatePlaylistDialogProps> = ({
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth sx={{ zIndex: 1800 }}>
       <DialogTitle>Create Playlist</DialogTitle>
       <DialogContent>
-        <TextField
-          autoFocus
-          margin="dense"
-          label="Playlist name"
-          fullWidth
-          required
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <TextField
-          margin="dense"
-          label="Description (optional)"
-          fullWidth
-          multiline
-          rows={2}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
+        {!isLoggedIn ? (
+          <Typography color="text.secondary">Log in to create and manage your playlists.</Typography>
+        ) : (
+          <>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Playlist name"
+              fullWidth
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+            <TextField
+              margin="dense"
+              label="Description (optional)"
+              fullWidth
+              multiline
+              rows={2}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </>
+        )}
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} disabled={isPending}>
           Cancel
         </Button>
-        <Button onClick={handleSubmit} variant="contained" disabled={!name.trim() || isPending}>
+        <Button
+          onClick={handleSubmit}
+          variant="contained"
+          disabled={!isLoggedIn || !name.trim() || isPending}
+        >
           Create
         </Button>
       </DialogActions>

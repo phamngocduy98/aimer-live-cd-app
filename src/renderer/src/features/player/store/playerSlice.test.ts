@@ -3,8 +3,10 @@ import reducer, {
   deleteTrack,
   nextTrack,
   playContext,
+  playRadio,
   prevTrack,
-  setPlaybackAccess
+  setPlaybackAccess,
+  setRadioListening
 } from "./playerSlice";
 import type { Song, Video } from "@features/library/types";
 import { mediaSourcePath } from "../types";
@@ -104,5 +106,92 @@ describe("player queue", () => {
 
     expect(state.playingTrack?._id).toBe("youtube-video");
     expect(state.queue).toHaveLength(0);
+  });
+
+  it("enters radio mode with current and history but no upcoming queue", () => {
+    const state = reducer(
+      paidState(),
+      playRadio({
+        media: song("live"),
+        mediaType: "audio",
+        slotId: "slot-live",
+        startedAt: "2026-06-21T00:00:00.000Z",
+        serverTime: "2026-06-21T00:00:12.000Z",
+        position: 12,
+        duration: 100,
+        streamUrl: "/radio/stream/slot-live",
+        history: [
+          {
+            slotId: "slot-prev",
+            mediaType: "video",
+            media: video("previous"),
+            startedAt: "2026-06-20T23:58:00.000Z",
+            duration: 120
+          }
+        ]
+      })
+    );
+
+    expect(state.radio.enabled).toBe(true);
+    expect(state.currentEntry?.playFrom.type).toBe("radio");
+    expect(state.currentEntry?.sourceUrl).toBe("/radio/stream/slot-live");
+    expect(state.history).toHaveLength(1);
+    expect(state.queue).toHaveLength(0);
+  });
+
+  it("prevents manual next and previous changes while listening to radio", () => {
+    let state = reducer(
+      paidState(),
+      playRadio({
+        media: song("live"),
+        mediaType: "audio",
+        slotId: "slot-live",
+        startedAt: "2026-06-21T00:00:00.000Z",
+        serverTime: "2026-06-21T00:00:12.000Z",
+        position: 12,
+        duration: 100,
+        streamUrl: "/radio/stream/slot-live",
+        history: [
+          {
+            slotId: "slot-prev",
+            mediaType: "audio",
+            media: song("previous"),
+            startedAt: "2026-06-20T23:58:00.000Z",
+            duration: 100
+          }
+        ]
+      })
+    );
+
+    state = reducer(state, prevTrack());
+    expect(state.playingTrack?._id).toBe("live");
+
+    state = reducer(state, nextTrack({ isUser: true }));
+    expect(state.playingTrack?._id).toBe("live");
+
+    state = reducer(state, setRadioListening(false));
+    expect(state.radio.listening).toBe(false);
+  });
+
+  it("keeps local listening state when the station is globally paused", () => {
+    const state = reducer(
+      paidState(),
+      playRadio({
+        media: song("paused-live"),
+        mediaType: "audio",
+        slotId: "slot-paused",
+        startedAt: "2026-06-21T00:00:00.000Z",
+        serverTime: "2026-06-21T00:00:12.000Z",
+        position: 12,
+        duration: 100,
+        streamUrl: "/radio/stream/slot-paused",
+        paused: true
+      })
+    );
+
+    expect(state.radio.enabled).toBe(true);
+    expect(state.radio.listening).toBe(true);
+    expect(state.radio.paused).toBe(true);
+    expect(state.currentEntry?.sourceUrl).toBe("/radio/stream/slot-paused");
   });
 });

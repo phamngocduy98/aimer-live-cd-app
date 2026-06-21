@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { useAppSelector } from "@app/hooks";
 import { usePlaylists } from "../hooks/usePlaylists";
 
 import Grid from "@mui/material/Grid";
@@ -9,6 +10,7 @@ import { CollectionContent, PageState } from "@components/view/designSystem";
 
 export const Playlists: React.FC = () => {
   const { data: playlists = [] } = usePlaylists();
+  const isLoggedIn = useAppSelector((state) => Boolean(state.auth.session.user));
   const [filter, setFilter] = useState("");
 
   const visiblePlaylists = useMemo(() => {
@@ -33,7 +35,9 @@ export const Playlists: React.FC = () => {
       />
 
       <CollectionContent>
-        {visiblePlaylists.length === 0 ? (
+        {!isLoggedIn ? (
+          <PageState state="empty" message="Log in to create and manage your playlists." />
+        ) : visiblePlaylists.length === 0 ? (
           <PageState
             state="empty"
             message={

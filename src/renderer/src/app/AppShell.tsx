@@ -8,6 +8,7 @@ import { LoadingFallback } from "@components/common/LoadingFallback";
 import { LoginDialog, SubscriptionRequiredDialog, useLogout, useSession } from "@features/auth";
 import { Player } from "@features/player";
 import { CreatePlaylistDialog } from "@features/playlist";
+import { RadioSync } from "@features/radio";
 
 const expandedDrawerWidth = 264;
 const collapsedDrawerWidth = 76;
@@ -44,6 +45,13 @@ export function AppShell() {
   }, [location.pathname, location.search]);
 
   const drawerWidth = isSidebarCollapsed ? collapsedDrawerWidth : expandedDrawerWidth;
+  const openCreatePlaylist = () => {
+    if (!session.user) {
+      setIsLoginOpen(true);
+      return;
+    }
+    setIsCreatePlaylistOpen(true);
+  };
 
   return (
     <Box sx={{ display: "flex", height: "100dvh", bgcolor: "#000" }}>
@@ -51,7 +59,7 @@ export function AppShell() {
         drawerWidth={drawerWidth}
         collapsed={isSidebarCollapsed}
         onToggleCollapsed={() => setIsSidebarCollapsed((collapsed) => !collapsed)}
-        onCreatePlaylist={() => setIsCreatePlaylistOpen(true)}
+        onCreatePlaylist={openCreatePlaylist}
       />
       <Box
         ref={contentRef}
@@ -91,6 +99,7 @@ export function AppShell() {
         onSearch={(query) => navigate(query ? `/search?q=${encodeURIComponent(query)}` : "/")}
       />
       <Player />
+      <RadioSync />
       {session.canAccessAdmin && isAdminDialogOpen && (
         <Suspense fallback={null}>
           <AdminDialog open={isAdminDialogOpen} onClose={() => setIsAdminDialogOpen(false)} />

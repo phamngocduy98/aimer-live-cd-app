@@ -30,7 +30,7 @@ export function MPlayerUI() {
   const dispatch = useAppDispatch();
   const { playingTrack } = useAppSelector((state) => state.player);
   const { videoUrl } = useAppSelector((state) => state.playerVideoControl);
-  const showMobilePlayer = useAppSelector((state) => state.playerGui.mobilePlayer);
+  const expandedPlayerOpen = useAppSelector((state) => state.playerGui.expandedPlayer);
   const lyricsOpen = useAppSelector((state) => state.playerGui.lyrics);
   const { error } = useGlobalAudioPlayer();
   const [actionsAnchor, setActionsAnchor] = React.useState<HTMLElement | null>(null);
@@ -73,11 +73,11 @@ export function MPlayerUI() {
         role="button"
         tabIndex={0}
         aria-label="Toggle full screen player"
-        onClick={() => dispatch(toggleView("mobilePlayer"))}
+        onClick={() => dispatch(toggleView("expandedPlayer"))}
         onKeyDown={(event) => {
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
-            dispatch(toggleView("mobilePlayer"));
+            dispatch(toggleView("expandedPlayer"));
           }
         }}
         sx={{
@@ -94,7 +94,7 @@ export function MPlayerUI() {
           item
           xs
           sx={{
-            display: { xs: showMobilePlayer ? "none" : "flex", sm: "flex" },
+            display: { xs: expandedPlayerOpen ? "none" : "flex", sm: "flex" },
             alignItems: "center",
             minWidth: 0,
             flex: { xs: "1 1 auto", sm: "1 1 34%" },

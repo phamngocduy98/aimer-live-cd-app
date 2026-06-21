@@ -26,6 +26,7 @@ import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
 import LyricsIcon from "@mui/icons-material/Lyrics";
 import MovieIcon from "@mui/icons-material/Movie";
+import RadioIcon from "@mui/icons-material/Radio";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import type { AdminTab } from "../types";
 
@@ -37,6 +38,7 @@ interface Column<T> {
 }
 
 const tabs: { id: AdminTab; label: string; icon: React.ReactNode }[] = [
+  { id: "radio", label: "Radio", icon: <RadioIcon /> },
   { id: "uploads", label: "Uploads", icon: <UploadFileIcon /> },
   { id: "songs", label: "Songs", icon: <LibraryMusicIcon /> },
   { id: "videos", label: "Videos", icon: <MovieIcon /> },

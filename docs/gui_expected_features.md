@@ -6,7 +6,7 @@
 - **Albums tab** → album view screen
 - **Songs tab** → play a song (open player)
 - **Videos tab** → play a video (open player)
-- **Home** → Featured albums, Featured videos, and artist shortcuts
+- **Home** → Radio, Featured albums, Featured videos, and artist shortcuts
 - **Artist detail** → top tracks, albums, and independent videos
 - **Search result page** — search a song, press Enter (or click _More results_) to navigate to full search result page
 - **Add/Edit Playlist dialog** (name/description) — verify input values reset after closing and reopening the dialog
@@ -59,6 +59,11 @@
   - Volume control
   - Navigate audio to album and all media to artist; video title navigation opens video detail
   - Seek bar
+- **Radio mode:**
+  - Everyone hears the same server-authoritative song/video at the same timestamp
+  - Player exposes Play/Stop only; no pause, seek, next, repeat, or shuffle controls
+  - Now playing surfaces show current and previous history only, not upcoming radio items
+  - Song/video changes arrive in real time while listening
 - **Player mode:** full-screen, minimized
 - **Now playing list:**
   - Slide the play queue from right to left when opening and reverse the motion
@@ -98,6 +103,8 @@
   song/video rows; import Japanese SRT or synchronized LRCLIB lyrics,
   automatically generate romaji, explicitly generate English/Vietnamese,
   edit all language cells, confirm replacement, and save all rows atomically
+- **Radio queueing:** paid users and admins can add songs/videos to the shared
+  FIFO radio queue from media action menus
 
 ## 5. Responsive Design
 

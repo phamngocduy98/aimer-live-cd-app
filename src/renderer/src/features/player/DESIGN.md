@@ -232,6 +232,6 @@ availability, and the return path from expanded mode. Preserve accessible
 control names because E2E tests and keyboard users rely on them.
 
 **References:** [`Player.tsx`](components/Player.tsx),
-[`MobilePlayerUI.tsx`](components/MobilePlayerUI.tsx),
+[`ExpandedPlayerUI.tsx`](components/ExpandedPlayerUI.tsx),
 [`ExpandedMobileControls.tsx`](components/ExpandedMobileControls.tsx),
 [`gui.spec.ts`](../../../../../e2e/gui.spec.ts)

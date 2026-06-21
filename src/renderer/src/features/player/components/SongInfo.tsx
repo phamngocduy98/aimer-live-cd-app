@@ -3,7 +3,9 @@ import React from "react";
 import { router } from "@app/router";
 import { useAppDispatch, useAppSelector } from "@app/hooks";
 import { hideView } from "../store/playerGuiSlice";
+import FiberManualRecordRoundedIcon from "@mui/icons-material/FiberManualRecordRounded";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
+import PauseRoundedIcon from "@mui/icons-material/PauseRounded";
 import { isVideo } from "@features/library";
 import { ArtistLinks } from "@components/media/ArtistLinks";
 
@@ -14,7 +16,8 @@ interface AlbumImageProps extends React.PropsWithChildren {
 export const AlbumImage: React.FC<AlbumImageProps> = ({ children, hideArtworkBelow = "sm" }) => {
   const dispatch = useAppDispatch();
   const playingTrack = useAppSelector((state) => state.player.playingTrack);
-  const showMobilePlayer = useAppSelector((state) => state.playerGui.mobilePlayer);
+  const radioEnabled = useAppSelector((state) => state.player.radio.enabled);
+  const expandedPlayerOpen = useAppSelector((state) => state.playerGui.expandedPlayer);
   const currentChapter = useAppSelector(
     (state) => state.player.chapters[state.player.currentChapterIdx ?? -1]
   );
@@ -25,11 +28,11 @@ export const AlbumImage: React.FC<AlbumImageProps> = ({ children, hideArtworkBel
         sx={{
           position: "relative",
           flexShrink: 0,
-          maxWidth: showMobilePlayer ? 0 : 112,
-          opacity: showMobilePlayer ? 0 : 1,
-          transform: showMobilePlayer ? "scale(.78) translateY(10px)" : "scale(1)",
+          maxWidth: expandedPlayerOpen ? 0 : 112,
+          opacity: expandedPlayerOpen ? 0 : 1,
+          transform: expandedPlayerOpen ? "scale(.78) translateY(10px)" : "scale(1)",
           overflow: "hidden",
-          transition: showMobilePlayer
+          transition: expandedPlayerOpen
             ? "max-width 170ms ease, opacity 110ms ease, transform 170ms ease"
             : "max-width 190ms ease, opacity 150ms 40ms ease, transform 190ms ease",
           ...(hideArtworkBelow === "md"
@@ -80,7 +83,7 @@ export const AlbumImage: React.FC<AlbumImageProps> = ({ children, hideArtworkBel
       <Box
         data-player-track-info
         sx={{
-          ml: showMobilePlayer ? 0 : { xs: 1.25, sm: 1.5 },
+          ml: expandedPlayerOpen ? 0 : { xs: 1.25, sm: 1.5 },
           minWidth: 0,
           display: "flex",
           flexDirection: "column",
@@ -89,6 +92,7 @@ export const AlbumImage: React.FC<AlbumImageProps> = ({ children, hideArtworkBel
           transition: "margin-left 170ms ease"
         }}
       >
+        <RadioLiveIndicator />
         <Typography
           component="span"
           noWrap
@@ -109,7 +113,7 @@ export const AlbumImage: React.FC<AlbumImageProps> = ({ children, hideArtworkBel
           color="text.secondary"
           fontSize={13}
           fontWeight={500}
-          onNavigate={() => dispatch(hideView("mobilePlayer"))}
+          onNavigate={() => dispatch(hideView("expandedPlayer"))}
           sx={{
             lineHeight: "20px",
             maxWidth: "100%",
@@ -128,7 +132,7 @@ export const AlbumImage: React.FC<AlbumImageProps> = ({ children, hideArtworkBel
           sx={{
             display: {
               xs: "none",
-              sm: "block"
+              sm: radioEnabled ? "none" : "block"
             }
           }}
         >
@@ -148,7 +152,7 @@ export const AlbumImage: React.FC<AlbumImageProps> = ({ children, hideArtworkBel
             }}
             onClick={(e) => {
               e.stopPropagation();
-              dispatch(hideView("mobilePlayer"));
+              dispatch(hideView("expandedPlayer"));
               if (isVideo(playingTrack)) router.navigate(`/video/${playingTrack._id}`);
               else if (playingTrack?.album?._id)
                 router.navigate(`/album/${playingTrack.album._id}`);
@@ -161,3 +165,34 @@ export const AlbumImage: React.FC<AlbumImageProps> = ({ children, hideArtworkBel
     </>
   );
 };
+
+export function RadioLiveIndicator(): React.ReactElement | null {
+  const radio = useAppSelector((state) => state.player.radio);
+  if (!radio.enabled) return null;
+
+  return (
+    <Box
+      component="span"
+      aria-label={radio.paused ? "Radio paused" : "Radio live"}
+      sx={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 0.5,
+        maxWidth: "100%",
+        color: "text.secondary",
+        fontSize: 12,
+        lineHeight: "18px",
+        fontWeight: 700,
+        textTransform: "uppercase"
+      }}
+    >
+      <span>Radio</span>
+      {radio.paused ? (
+        <PauseRoundedIcon sx={{ fontSize: 14, color: "text.secondary" }} />
+      ) : (
+        <FiberManualRecordRoundedIcon sx={{ fontSize: 9, color: "#ff3b30" }} />
+      )}
+      <span>{radio.paused ? "Paused" : "Live"}</span>
+    </Box>
+  );
+}

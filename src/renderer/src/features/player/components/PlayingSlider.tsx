@@ -9,8 +9,9 @@ import { isVideo } from "@features/library";
 
 export function PlayingSlider() {
   const dispatch = useAppDispatch();
-  const showMobilePlayer = useAppSelector((state) => state.playerGui.mobilePlayer);
+  const expandedPlayerOpen = useAppSelector((state) => state.playerGui.expandedPlayer);
   const { playingTrack, currentChapterDuration } = useAppSelector((state) => state.player);
+  const radio = useAppSelector((state) => state.player.radio);
 
   const currentChapter = useAppSelector(
     (state) => state.player.chapters[state.player.currentChapterIdx ?? -1]
@@ -22,20 +23,36 @@ export function PlayingSlider() {
   const { videoPosition, videoIsReady } = useAppSelector((state) => state.playerVideoControl);
   const [dragPosition, setDragPosition] = React.useState<number | null>(null);
 
-  const _position = isVideo(playingTrack)
-    ? currentChapter != null
-      ? videoPosition - currentChapter.time
-      : videoPosition
-    : position;
-  const _duration = currentChapter != null ? currentChapterDuration : (playingTrack?.duration ?? 0);
-  const _isReady = isVideo(playingTrack) ? videoIsReady : isReady;
+  const radioPosition = useLiveRadioPosition(
+    radio.serverTime,
+    radio.position,
+    radio.duration,
+    radio.paused
+  );
+  const _position = radio.enabled
+    ? radioPosition
+    : isVideo(playingTrack)
+      ? currentChapter != null
+        ? videoPosition - currentChapter.time
+        : videoPosition
+      : position;
+  const _duration = radio.enabled
+    ? radio.duration
+    : currentChapter != null
+      ? currentChapterDuration
+      : (playingTrack?.duration ?? 0);
+  const _isReady = radio.enabled || (isVideo(playingTrack) ? videoIsReady : isReady);
   const sliderPosition = dragPosition ?? Math.min(Math.max(_position, 0), _duration);
   const _remain = _duration - sliderPosition;
 
   const commitSeek = React.useCallback(
     (value: number) => {
       const newPos = (currentChapter?.time ?? 0) + value;
-      playingTrack?.type === "video" ? dispatch(videoOnSeek({ position: newPos })) : seek(newPos);
+      if (playingTrack?.type === "video") {
+        dispatch(videoOnSeek({ position: newPos }));
+      } else {
+        seek(newPos);
+      }
     },
     [currentChapter?.time, dispatch, playingTrack?.type, seek]
   );
@@ -48,20 +65,20 @@ export function PlayingSlider() {
         justifyContent="center"
         spacing={0}
         sx={{
-          display: { xs: showMobilePlayer ? "flex" : "none", sm: "flex" },
-          order: { xs: showMobilePlayer ? 0 : 1, sm: 1 },
+          display: { xs: expandedPlayerOpen ? "flex" : "none", sm: "flex" },
+          order: { xs: expandedPlayerOpen ? 0 : 1, sm: 1 },
           mt: "-2px",
           px: { sm: 0.75 }
         }}
       >
         <Grid
           item
-          xs={showMobilePlayer ? 6 : "auto"}
+          xs={expandedPlayerOpen ? 6 : "auto"}
           sm={"auto"}
           sx={{
             pr: { sm: 1 },
             order: {
-              xs: showMobilePlayer ? 1 : 0,
+              xs: expandedPlayerOpen ? 1 : 0,
               sm: 0
             }
           }}
@@ -70,15 +87,15 @@ export function PlayingSlider() {
         </Grid>
         <Grid
           item
-          xs={showMobilePlayer ? 12 : true}
+          xs={expandedPlayerOpen ? 12 : true}
           sm
-          order={showMobilePlayer ? 0 : 1}
+          order={expandedPlayerOpen ? 0 : 1}
           display={"flex"}
           alignItems={"center"}
           sx={{
             minWidth: 0,
             order: {
-              xs: showMobilePlayer ? 0 : 1,
+              xs: expandedPlayerOpen ? 0 : 1,
               sm: 1
             }
           }}
@@ -88,7 +105,7 @@ export function PlayingSlider() {
             value={Math.floor(sliderPosition)}
             min={0}
             step={1}
-            disabled={!_isReady}
+            disabled={radio.enabled || !_isReady}
             max={Math.max(Math.floor(_duration), 1)}
             onChange={(e, value) => {
               e.stopPropagation();
@@ -97,6 +114,7 @@ export function PlayingSlider() {
             onChangeCommitted={(e, value) => {
               e.stopPropagation();
               setDragPosition(null);
+              if (radio.enabled) return;
               commitSeek(value as number);
             }}
             sx={{
@@ -128,7 +146,7 @@ export function PlayingSlider() {
         </Grid>
         <Grid
           item
-          xs={showMobilePlayer ? 6 : "auto"}
+          xs={expandedPlayerOpen ? 6 : "auto"}
           sm={"auto"}
           order={2}
           sx={{
@@ -140,6 +158,24 @@ export function PlayingSlider() {
       </Grid>
     </div>
   );
+}
+
+function useLiveRadioPosition(
+  serverTime: string | null,
+  position = 0,
+  duration = 0,
+  paused = false
+) {
+  const [now, setNow] = React.useState(() => Date.now());
+
+  React.useEffect(() => {
+    const frame = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(frame);
+  }, []);
+
+  if (!serverTime) return 0;
+  const elapsed = paused ? position : position + (now - new Date(serverTime).getTime()) / 1000;
+  return Math.min(Math.max(Math.floor(elapsed), 0), Math.max(duration, 0));
 }
 
 function useAudioTime() {

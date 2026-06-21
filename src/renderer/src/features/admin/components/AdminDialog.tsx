@@ -24,12 +24,15 @@ import {
   useAdminUploads,
   useAdminUsers,
   useAdminVideos,
+  useControlAdminRadio,
   useDeleteAdminAlbum,
   useDeleteAdminHost,
+  useDeleteAdminRadioQueueItem,
   useDeleteAdminSong,
   useDeleteAdminVideo,
   useSaveAdminUser
 } from "../hooks/useAdmin";
+import { useRadioState } from "@features/radio";
 import type {
   AdminAlbum,
   AdminArtist,
@@ -53,6 +56,7 @@ import {
 import { AdminNavigation, ConfirmDialog } from "./AdminPrimitives";
 import {
   AlbumsSection,
+  AdminRadioSection,
   ArtistsSection,
   HostsSection,
   SongsSection,
@@ -82,6 +86,8 @@ export function AdminDialog({ open, onClose }: AdminDialogProps) {
   const deleteVideo = useDeleteAdminVideo();
   const deleteAlbum = useDeleteAdminAlbum();
   const deleteHost = useDeleteAdminHost();
+  const controlRadio = useControlAdminRadio();
+  const deleteRadioQueueItem = useDeleteAdminRadioQueueItem();
   const [songEdit, setSongEdit] = React.useState<AdminSong | null>(null);
   const [videoEdit, setVideoEdit] = React.useState<AdminVideo | null>(null);
   const [lyricsTarget, setLyricsTarget] = React.useState<
@@ -95,6 +101,7 @@ export function AdminDialog({ open, onClose }: AdminDialogProps) {
   const [uploadOpen, setUploadOpen] = React.useState(false);
   const [youtubeOpen, setYoutubeOpen] = React.useState(false);
   const [deleteTarget, setDeleteTarget] = React.useState<DeleteTarget | null>(null);
+  const [deletingRadioQueueId, setDeletingRadioQueueId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (!open) return;
@@ -111,12 +118,29 @@ export function AdminDialog({ open, onClose }: AdminDialogProps) {
   const artists = useAdminArtists(open && visitedTabs.has("artists"));
   const hosts = useAdminHosts(open && (visitedTabs.has("hosts") || uploadOpen));
   const users = useAdminUsers(open && visitedTabs.has("users"));
+  const radio = useRadioState({ subscribe: open && visitedTabs.has("radio") });
 
   const albumRows = albums.data ?? [];
   const hostRows = hosts.data ?? [];
 
   const renderContent = (): React.ReactNode => {
     switch (tab) {
+      case "radio":
+        return (
+          <AdminRadioSection
+            state={radio.data}
+            loading={radio.isLoading}
+            controlling={controlRadio.isPending}
+            deletingId={deletingRadioQueueId}
+            onControl={(action) => controlRadio.mutate(action)}
+            onDeleteQueueItem={(queueItemId) => {
+              setDeletingRadioQueueId(queueItemId);
+              deleteRadioQueueItem.mutate(queueItemId, {
+                onSettled: () => setDeletingRadioQueueId(null)
+              });
+            }}
+          />
+        );
       case "uploads":
         return (
           <UploadsSection

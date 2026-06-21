@@ -22,6 +22,10 @@ export const router = createHashRouter([
         lazy: () => import("@features/library").then((module) => ({ Component: module.Videos }))
       },
       {
+        path: "/radio",
+        lazy: () => import("@features/radio").then((module) => ({ Component: module.RadioPage }))
+      },
+      {
         path: "/album/:id",
         lazy: () => import("@features/album").then((module) => ({ Component: module.AlbumView }))
       },

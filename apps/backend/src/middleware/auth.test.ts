@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { requireAdmin, requirePaidMedia } from "./auth.js";
+import { requireAdmin, requireAuthenticated, requirePaidMedia } from "./auth.js";
 
 function response() {
   return {
@@ -13,6 +13,33 @@ function response() {
 }
 
 describe("auth middleware", () => {
+  test("rejects authenticated routes for guests", () => {
+    const res = response();
+    requireAuthenticated(
+      { auth: { user: null } } as any,
+      res as any,
+      () => {
+        throw new Error("next should not run");
+      }
+    );
+
+    expect(res.statusCode).toBe(401);
+    expect(res.body).toMatchObject({ message: "Authentication required" });
+  });
+
+  test("allows authenticated routes for logged-in users", () => {
+    let called = false;
+    requireAuthenticated(
+      { auth: { user: { _id: "user-1" } } } as any,
+      response() as any,
+      () => {
+        called = true;
+      }
+    );
+
+    expect(called).toBe(true);
+  });
+
   test("rejects admin routes for non-admin sessions", () => {
     const res = response();
     requireAdmin(

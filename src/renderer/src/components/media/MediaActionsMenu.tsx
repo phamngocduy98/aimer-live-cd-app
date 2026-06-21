@@ -10,8 +10,10 @@ import { isVideo } from "@features/library";
 import { AddToPlaylistDialog } from "@features/playlist";
 import { apiAssetUrl } from "@lib/axios";
 import { router } from "@app/router";
+import { useAppSelector } from "@app/hooks";
 import { artistPath, getPrimaryArtist } from "@utils/artist";
 import { mediaArtworkUrl } from "@utils/mediaArtwork";
+import { useAddToRadio } from "@features/radio";
 
 export type { ActionMenuPosition };
 
@@ -38,9 +40,25 @@ export function SongActionsMenu({
   extraActions = []
 }: SongActionsMenuProps) {
   const [addToPlaylistOpen, setAddToPlaylistOpen] = React.useState(false);
+  const canAccessPaidMedia = useAppSelector((state) => state.auth.session.canAccessPaidMedia);
+  const addToRadio = useAddToRadio();
   const actions = track
     ? [
         { label: "Play next" },
+        ...(canAccessPaidMedia
+          ? [
+              {
+                label: "Add to Radio",
+                onClick: () => {
+                  onClose();
+                  addToRadio.mutate({
+                    mediaType: isVideo(track) ? "video" : "audio",
+                    mediaId: track._id
+                  });
+                }
+              }
+            ]
+          : []),
         ...extraActions,
         {
           label: "Add to Playlist",

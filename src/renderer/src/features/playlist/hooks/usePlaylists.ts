@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useAppSelector } from "@app/hooks";
 import { queryClient } from "@lib/queryClient";
 import {
   addSongsToPlaylist,
@@ -14,17 +15,31 @@ import { listPlaylists } from "../api/playlists";
 
 export const playlistKeys = {
   all: ["playlists"] as const,
-  detail: (id: string) => ["playlists", "detail", id] as const
+  list: (userId: string) => ["playlists", "list", userId] as const,
+  detail: (userId: string, id: string) => ["playlists", "detail", userId, id] as const
 };
 
-export const usePlaylists = () => useQuery({ queryKey: playlistKeys.all, queryFn: listPlaylists });
+function usePlaylistUserId() {
+  return useAppSelector((state) => state.auth.session.user?._id ?? "");
+}
 
-export const usePlaylist = (id: string) =>
-  useQuery({
-    queryKey: playlistKeys.detail(id),
-    queryFn: () => getPlaylist(id),
-    enabled: Boolean(id)
+export const usePlaylists = () => {
+  const userId = usePlaylistUserId();
+  return useQuery({
+    queryKey: playlistKeys.list(userId),
+    queryFn: listPlaylists,
+    enabled: Boolean(userId)
   });
+};
+
+export const usePlaylist = (id: string) => {
+  const userId = usePlaylistUserId();
+  return useQuery({
+    queryKey: playlistKeys.detail(userId, id),
+    queryFn: () => getPlaylist(id),
+    enabled: Boolean(id && userId)
+  });
+};
 
 export const useCreatePlaylist = () =>
   useMutation({
@@ -36,9 +51,9 @@ export const useUpdatePlaylist = () =>
   useMutation({
     mutationFn: ({ id, data }: { id: string; data: { name?: string; description?: string } }) =>
       updatePlaylist(id, data),
-    onSuccess: (_data, { id }) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: playlistKeys.all });
-      queryClient.invalidateQueries({ queryKey: playlistKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: ["playlists", "detail"] });
     }
   });
 
@@ -52,9 +67,9 @@ export const useAddSongsToPlaylist = () =>
   useMutation({
     mutationFn: ({ playlistId, songIds }: { playlistId: string; songIds: string[] }) =>
       addSongsToPlaylist(playlistId, songIds),
-    onSuccess: (_data, { playlistId }) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: playlistKeys.all });
-      queryClient.invalidateQueries({ queryKey: playlistKeys.detail(playlistId) });
+      queryClient.invalidateQueries({ queryKey: ["playlists", "detail"] });
     }
   });
 
@@ -62,8 +77,7 @@ export const useRemoveSongFromPlaylist = () =>
   useMutation({
     mutationFn: ({ playlistId, songId }: { playlistId: string; songId: string }) =>
       removeSongFromPlaylist(playlistId, songId),
-    onSuccess: (_data, { playlistId }) =>
-      queryClient.invalidateQueries({ queryKey: playlistKeys.detail(playlistId) })
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["playlists", "detail"] })
   });
 
 export const useAddItemsToPlaylist = () =>
@@ -77,9 +91,9 @@ export const useAddItemsToPlaylist = () =>
       items: PlaylistItemInput[];
       allowDuplicates?: boolean;
     }) => addItemsToPlaylist(playlistId, items, allowDuplicates),
-    onSuccess: (_data, { playlistId }) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: playlistKeys.all });
-      queryClient.invalidateQueries({ queryKey: playlistKeys.detail(playlistId) });
+      queryClient.invalidateQueries({ queryKey: ["playlists", "detail"] });
     }
   });
 
@@ -87,6 +101,5 @@ export const useRemoveItemFromPlaylist = () =>
   useMutation({
     mutationFn: ({ playlistId, itemId }: { playlistId: string; itemId: string }) =>
       removeItemFromPlaylist(playlistId, itemId),
-    onSuccess: (_data, { playlistId }) =>
-      queryClient.invalidateQueries({ queryKey: playlistKeys.detail(playlistId) })
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["playlists", "detail"] })
   });

@@ -11,7 +11,10 @@ export function normalizeVideoChapters(
   if (!Array.isArray(chapters) || chapters.length === 0) {
     return [defaultVideoChapter(title)];
   }
-  return chapters;
+  return chapters.map((chapter) => ({
+    ...chapter,
+    subTitle: chapter.subTitle ?? ""
+  }));
 }
 
 export function syncDefaultVideoChapterTitle(

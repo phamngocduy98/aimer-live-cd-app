@@ -1,6 +1,8 @@
 import type { PublicUser, SubscriptionStatus, UserRole } from "@features/auth";
+import type { RadioState } from "@features/radio";
 
 export type AdminTab =
+  | "radio"
   | "uploads"
   | "songs"
   | "videos"
@@ -141,3 +143,6 @@ export interface AdminUserPayload {
     currentPeriodEnd?: string;
   };
 }
+
+export type AdminRadioState = RadioState;
+export type AdminRadioAction = "pause" | "resume" | "next" | "previous";

@@ -26,6 +26,14 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
+export function requireAuthenticated(req: Request, res: Response, next: NextFunction) {
+  const session = (req as AuthenticatedRequest).auth;
+  if (!session?.user) {
+    return fail(res, "Authentication required", 401);
+  }
+  next();
+}
+
 export function requirePaidMedia(req: Request, res: Response, next: NextFunction) {
   const session = (req as AuthenticatedRequest).auth;
   if (!session?.user) {

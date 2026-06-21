@@ -27,7 +27,7 @@ export interface Song {
 export interface IVideoChapter {
   time: number;
   title: string;
-  subTitle: string;
+  subTitle?: string;
 }
 
 export interface Video {

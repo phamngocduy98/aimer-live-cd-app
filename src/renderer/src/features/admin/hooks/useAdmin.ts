@@ -2,10 +2,12 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient } from "@lib/queryClient";
 import {
   createYoutubeVideo,
+  controlAdminRadio,
   createAdminUser,
   createAdminHost,
   deleteAdminAlbum,
   deleteAdminHost,
+  deleteAdminRadioQueueItem,
   deleteAdminSong,
   deleteAdminVideo,
   listAdminAlbums,
@@ -39,7 +41,8 @@ export const adminKeys = {
   albums: ["admin", "albums"] as const,
   artists: ["admin", "artists"] as const,
   hosts: ["admin", "hosts"] as const,
-  users: ["admin", "users"] as const
+  users: ["admin", "users"] as const,
+  radio: ["admin", "radio"] as const
 };
 
 const invalidateAdmin = async () => {
@@ -66,6 +69,25 @@ export const useAdminHosts = (enabled = true) =>
   useQuery({ queryKey: adminKeys.hosts, queryFn: listAdminHosts, enabled });
 export const useAdminUsers = (enabled = true) =>
   useQuery({ queryKey: adminKeys.users, queryFn: listAdminUsers, enabled });
+
+const invalidateRadio = async () => {
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: ["radio"] }),
+    queryClient.invalidateQueries({ queryKey: adminKeys.radio })
+  ]);
+};
+
+export const useControlAdminRadio = () =>
+  useMutation({
+    mutationFn: controlAdminRadio,
+    onSuccess: invalidateRadio
+  });
+
+export const useDeleteAdminRadioQueueItem = () =>
+  useMutation({
+    mutationFn: deleteAdminRadioQueueItem,
+    onSuccess: invalidateRadio
+  });
 
 export const useUpdateAdminSong = () =>
   useMutation({

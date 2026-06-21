@@ -11,6 +11,7 @@ import {
   Typography,
   DialogContentText
 } from "@mui/material";
+import { useAppSelector } from "@app/hooks";
 import { useAddItemsToPlaylist, usePlaylists } from "../hooks/usePlaylists";
 import type { PlaylistItemInput } from "../types";
 
@@ -28,11 +29,13 @@ export const AddToPlaylistDialog: React.FC<AddToPlaylistDialogProps> = ({
   items
 }) => {
   const { data: playlists = [], isLoading } = usePlaylists();
+  const isLoggedIn = useAppSelector((state) => Boolean(state.auth.session.user));
   const addItems = useAddItemsToPlaylist();
   const [duplicatePlaylistId, setDuplicatePlaylistId] = React.useState<string | null>(null);
   const mediaItems = items ?? songIds.map((mediaId) => ({ mediaType: "audio" as const, mediaId }));
 
   const handleAdd = (playlistId: string, allowDuplicates = false) => {
+    if (!isLoggedIn) return;
     addItems.mutate(
       { playlistId, items: mediaItems, allowDuplicates },
       {
@@ -48,7 +51,9 @@ export const AddToPlaylistDialog: React.FC<AddToPlaylistDialogProps> = ({
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
       <DialogTitle>Add to Playlist</DialogTitle>
       <DialogContent sx={{ minHeight: 120 }}>
-        {isLoading ? (
+        {!isLoggedIn ? (
+          <Typography color="text.secondary">Log in to manage your playlists.</Typography>
+        ) : isLoading ? (
           <Typography color="text.secondary">Loading playlists...</Typography>
         ) : playlists.length === 0 ? (
           <Typography color="text.secondary">No playlists yet. Create one first.</Typography>

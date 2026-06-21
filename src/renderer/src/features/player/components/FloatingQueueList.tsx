@@ -14,7 +14,9 @@ import {
   ListItemButton,
   ListItemText,
   Paper,
-  Typography
+  Typography,
+  useMediaQuery,
+  useTheme
 } from "@mui/material";
 import React from "react";
 import { useAppDispatch, useAppSelector } from "@app/hooks";
@@ -30,10 +32,12 @@ import { mediaArtworkUrl } from "@utils/mediaArtwork";
 import type { PlaySource } from "../types";
 
 export const FloatingQueueList = () => {
-  const { playingQueue, mobilePlayer } = useAppSelector((state) => state.playerGui);
+  const { playingQueue, expandedPlayer } = useAppSelector((state) => state.playerGui);
   const dispatch = useAppDispatch();
+  const theme = useTheme();
+  const desktop = useMediaQuery(theme.breakpoints.up("sm"));
 
-  if (mobilePlayer) return null;
+  if (expandedPlayer && !desktop) return null;
 
   return (
     <Box
@@ -61,9 +65,12 @@ export const FloatingQueueList = () => {
           overflow: "hidden",
           borderRadius: "22px",
           border: "1px solid rgba(255,255,255,.08)",
-          bgcolor: "rgba(24,22,19,.94)",
-          backgroundImage: "none",
-          boxShadow: "0 28px 70px rgba(0,0,0,.48)"
+          background: expandedPlayer
+            ? "linear-gradient(#0000004d 0%,#0006 100%)"
+            : "linear-gradient(#3c3c3c59 0%,#46464659 100%)",
+          backdropFilter: "blur(26px)",
+          WebkitBackdropFilter: "blur(26px)",
+          boxShadow: "0 10px 12px #00000026,inset 0 0 2px #ffffff14"
         }}
       >
         <QueuePanel
@@ -85,6 +92,7 @@ export function QueuePanel({ onClose, onClear, mobile = false }: QueuePanelProps
   const [tab, setTab] = React.useState<"queue" | "suggested">("queue");
   const [createPlaylistOpen, setCreatePlaylistOpen] = React.useState(false);
   const { playingTrack, queue } = useAppSelector((state) => state.player);
+  const radioEnabled = useAppSelector((state) => state.player.radio.enabled);
   const playlistItems = React.useMemo(
     () => [
       ...(playingTrack
@@ -117,17 +125,19 @@ export function QueuePanel({ onClose, onClear, mobile = false }: QueuePanelProps
           </Box>
         ) : (
           <Box sx={{ display: "flex", alignItems: "center", px: 2.5, pt: 2, pb: 1 }}>
-            <Typography component="h2" sx={{ flex: 1, fontSize: 24, fontWeight: 700 }}>
+            <Typography component="h2" sx={{ flex: 1, fontSize: 20, fontWeight: 700 }}>
               Play queue
             </Typography>
-            <IconButton
-              aria-label="Create playlist from queue"
-              size="small"
-              disabled={playlistItems.length === 0}
-              onClick={() => setCreatePlaylistOpen(true)}
-            >
-              <QueueMusicRoundedIcon />
-            </IconButton>
+            {!radioEnabled && (
+              <IconButton
+                aria-label="Create playlist from queue"
+                size="small"
+                disabled={playlistItems.length === 0}
+                onClick={() => setCreatePlaylistOpen(true)}
+              >
+                <QueueMusicRoundedIcon />
+              </IconButton>
+            )}
             {onClose && (
               <IconButton aria-label="Close play queue" size="small" onClick={onClose}>
                 <CloseIcon />
@@ -136,7 +146,11 @@ export function QueuePanel({ onClose, onClear, mobile = false }: QueuePanelProps
           </Box>
         )}
         <Box sx={{ flex: 1, minHeight: 0, overflowY: "auto", px: mobile ? 1 : 1.5 }}>
-          {tab === "queue" ? <QueueList onClear={onClear} /> : <SuggestedTracks />}
+          {tab === "queue" ? (
+            <QueueList onClear={radioEnabled ? undefined : onClear} />
+          ) : (
+            <SuggestedTracks />
+          )}
         </Box>
       </Box>
       <CreatePlaylistDialog
@@ -151,6 +165,7 @@ export function QueuePanel({ onClose, onClear, mobile = false }: QueuePanelProps
 export const QueueList: React.FC<{ onClear?: () => void }> = ({ onClear }) => {
   const dispatch = useAppDispatch();
   const { playingTrack, currentEntry, history, queue } = useAppSelector((state) => state.player);
+  const radioEnabled = useAppSelector((state) => state.player.radio.enabled);
   const currentChapterIdx = useAppSelector((state) => state.player.currentChapterIdx);
   const currentSourceTitle = queueSourceTitle("Playing from", currentEntry?.playFrom);
   const nextSourceTitle = queueSourceTitle("Next up from", queue[0]?.playFrom);
@@ -165,7 +180,11 @@ export const QueueList: React.FC<{ onClear?: () => void }> = ({ onClear }) => {
               track={entry.media}
               title={entry.media.title}
               artworkUrl={mediaArtworkUrl(entry.media)}
-              onClick={() => dispatch(prevTrack({ skip: history.length - idx - 1 }))}
+              onClick={
+                radioEnabled
+                  ? undefined
+                  : () => dispatch(prevTrack({ skip: history.length - idx - 1 }))
+              }
             />
           ))}
         </QueueSection>
@@ -193,25 +212,29 @@ export const QueueList: React.FC<{ onClear?: () => void }> = ({ onClear }) => {
               track={playingTrack}
               active={index === currentChapterIdx}
               title={chapter.title}
-              secondary={chapter.subTitle.trim() || null}
+              secondary={chapter.subTitle?.trim() || null}
               artworkUrl={mediaArtworkUrl(playingTrack)}
-              onClick={() => {
-                const nextChapterTime =
-                  playingTrack.chapters[index + 1]?.time ?? playingTrack.duration;
-                dispatch(
-                  setCurrentChapter({
-                    chapterIdx: index,
-                    duration: nextChapterTime - chapter.time
-                  })
-                );
-                dispatch(videoOnSeek({ position: chapter.time }));
-              }}
+              onClick={
+                radioEnabled
+                  ? undefined
+                  : () => {
+                      const nextChapterTime =
+                        playingTrack.chapters[index + 1]?.time ?? playingTrack.duration;
+                      dispatch(
+                        setCurrentChapter({
+                          chapterIdx: index,
+                          duration: nextChapterTime - chapter.time
+                        })
+                      );
+                      dispatch(videoOnSeek({ position: chapter.time }));
+                    }
+              }
             />
           ))}
         </QueueSection>
       )}
 
-      {queue.length > 0 && (
+      {!radioEnabled && queue.length > 0 && (
         <QueueSection title={nextSourceTitle}>
           {queue.map((entry, idx) => (
             <QueueRow

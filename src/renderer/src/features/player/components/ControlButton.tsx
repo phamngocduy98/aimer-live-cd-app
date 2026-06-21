@@ -5,13 +5,14 @@ import {
   RepeatOne,
   Shuffle,
   SkipNext,
-  SkipPrevious
+  SkipPrevious,
+  StopRounded
 } from "@mui/icons-material";
 import { Box, CircularProgress, IconButton, useTheme } from "@mui/material";
 import { useGlobalAudioPlayer } from "react-use-audio-player";
 import { useAppDispatch, useAppSelector } from "@app/hooks";
-import { toggleRepeat, toggleShuffleQueue } from "../store/playerSlice";
-import { togglePlayPauseVideo } from "../store/playerVideoControl";
+import { setRadioListening, toggleRepeat, toggleShuffleQueue } from "../store/playerSlice";
+import { stopVideo, togglePlayPauseVideo } from "../store/playerVideoControl";
 import { onNextTrack } from "../thunks/onNextTrack";
 import { onPrevTrack } from "../thunks/onPrevTrack";
 
@@ -19,21 +20,30 @@ export const ControlButton = () => {
   const dispatch = useAppDispatch();
   const { history, queue, originQueue, repeat, playingTrack, currentChapterIdx, chapters } =
     useAppSelector((state) => state.player);
+  const radio = useAppSelector((state) => state.player.radio);
 
-  const showMobilePlayer = useAppSelector((state) => state.playerGui.mobilePlayer);
+  const expandedPlayerOpen = useAppSelector((state) => state.playerGui.expandedPlayer);
 
   const canNext = queue.length > 0 || (currentChapterIdx ?? -1) < chapters.length - 1;
   const canPrev = history.length > 0 || (currentChapterIdx ?? -1) > 0;
 
-  const { togglePlayPause, isReady, isLoading, playing } = useGlobalAudioPlayer();
+  const { togglePlayPause, isReady, isLoading, playing, stop } = useGlobalAudioPlayer();
 
   const { videoPlaying, videoIsLoading, videoIsReady } = useAppSelector(
     (state) => state.playerVideoControl
   );
 
-  const _isLoading = playingTrack?.type === "video" ? videoIsLoading : isLoading;
-  const _isReady = playingTrack?.type === "video" ? videoIsReady : isReady;
-  const _playing = playingTrack?.type === "video" ? videoPlaying : playing;
+  const _isLoading = radio.enabled
+    ? false
+    : playingTrack?.type === "video"
+      ? videoIsLoading
+      : isLoading;
+  const _isReady = radio.enabled ? true : playingTrack?.type === "video" ? videoIsReady : isReady;
+  const _playing = radio.enabled
+    ? radio.listening && (playingTrack?.type === "video" ? videoPlaying : playing)
+    : playingTrack?.type === "video"
+      ? videoPlaying
+      : playing;
 
   const theme = useTheme();
   const mainIconColor = theme.palette.mode === "dark" ? "#fff" : "#000";
@@ -47,14 +57,15 @@ export const ControlButton = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: {
-          xs: showMobilePlayer ? "space-between" : "center",
+          xs: expandedPlayerOpen ? "space-between" : "center",
           sm: "center"
         },
         gap: { sm: 0.25, md: 0.75 },
-        order: { xs: showMobilePlayer ? 1 : 0, sm: 0 }
+        order: { xs: expandedPlayerOpen ? 1 : 0, sm: 0 }
       }}
     >
       <IconButton
+        disabled={radio.enabled}
         aria-label="shuffle"
         onClick={(e) => {
           e.stopPropagation();
@@ -63,12 +74,12 @@ export const ControlButton = () => {
         size="medium"
         sx={{
           "&:hover": {
-            backgroundColor: originQueue.length > 0 ? "#fcfcfc29" : undefined
+            backgroundColor: !radio.enabled && originQueue.length > 0 ? "#fcfcfc29" : undefined
           },
-          backgroundColor: originQueue.length > 0 ? "#fcfcfc29" : undefined,
+          backgroundColor: !radio.enabled && originQueue.length > 0 ? "#fcfcfc29" : undefined,
           display: {
-            xs: showMobilePlayer ? "inline-flex" : "none",
-            sm: "inline-flex"
+            xs: radio.enabled || !expandedPlayerOpen ? "none" : "inline-flex",
+            sm: radio.enabled ? "none" : "inline-flex"
           },
           fontSize: {
             xs: "24px",
@@ -80,7 +91,7 @@ export const ControlButton = () => {
         <Shuffle fontSize="inherit" />
       </IconButton>
       <IconButton
-        disabled={!canPrev}
+        disabled={radio.enabled || !canPrev}
         aria-label="previous song"
         onClick={(e) => {
           e.stopPropagation();
@@ -89,26 +100,49 @@ export const ControlButton = () => {
         size="medium"
         sx={{
           display: {
-            xs: showMobilePlayer ? "inline-flex" : "none",
+            xs: expandedPlayerOpen ? "inline-flex" : "none",
             sm: "inline-flex"
           },
           fontSize: {
             xs: "40px",
             sm: "28px"
           },
-          width: { xs: showMobilePlayer ? 54 : 42, sm: 48 },
-          height: { xs: showMobilePlayer ? 54 : 42, sm: 48 },
+          width: { xs: expandedPlayerOpen ? 54 : 42, sm: 48 },
+          height: { xs: expandedPlayerOpen ? 54 : 42, sm: 48 },
           p: 0
         }}
       >
-        <SkipPrevious fontSize="inherit" htmlColor={canPrev ? mainIconColor : disabledIconColor} />
+        <SkipPrevious
+          fontSize="inherit"
+          htmlColor={!radio.enabled && canPrev ? mainIconColor : disabledIconColor}
+        />
       </IconButton>
       <IconButton
-        aria-label={!_playing ? "play" : "pause"}
+        aria-label={
+          radio.enabled ? (radio.listening ? "stop" : "play") : !_playing ? "play" : "pause"
+        }
         onClick={(e) => {
           e.stopPropagation();
 
-          playingTrack?.type === "video" ? dispatch(togglePlayPauseVideo()) : togglePlayPause();
+          if (radio.enabled) {
+            if (radio.listening) {
+              dispatch(setRadioListening(false));
+              if (playingTrack?.type === "video") {
+                dispatch(stopVideo());
+              } else {
+                stop();
+              }
+            } else {
+              dispatch(setRadioListening(true));
+            }
+            return;
+          }
+
+          if (playingTrack?.type === "video") {
+            dispatch(togglePlayPauseVideo());
+          } else {
+            togglePlayPause();
+          }
         }}
         size="medium"
         sx={{
@@ -116,13 +150,15 @@ export const ControlButton = () => {
             xs: "42px",
             sm: "36px"
           },
-          width: { xs: showMobilePlayer ? 56 : 44, sm: 48 },
-          height: { xs: showMobilePlayer ? 56 : 44, sm: 48 },
+          width: { xs: expandedPlayerOpen ? 56 : 44, sm: 48 },
+          height: { xs: expandedPlayerOpen ? 56 : 44, sm: 48 },
           p: 0
         }}
       >
         {!_isReady || _isLoading ? (
-          <CircularProgress size={showMobilePlayer ? 36 : 26} thickness={4} />
+          <CircularProgress size={expandedPlayerOpen ? 36 : 26} thickness={4} />
+        ) : radio.enabled && radio.listening ? (
+          <StopRounded fontSize="inherit" htmlColor={mainIconColor} />
         ) : !_playing ? (
           <PlayArrowRounded fontSize="inherit" htmlColor={mainIconColor} />
         ) : (
@@ -130,7 +166,7 @@ export const ControlButton = () => {
         )}
       </IconButton>
       <IconButton
-        disabled={!canNext}
+        disabled={radio.enabled || !canNext}
         aria-label="next song"
         onClick={(e) => {
           e.stopPropagation();
@@ -139,17 +175,21 @@ export const ControlButton = () => {
         size="medium"
         sx={{
           fontSize: {
-            xs: showMobilePlayer ? "40px" : "28px",
+            xs: expandedPlayerOpen ? "40px" : "28px",
             sm: "28px"
           },
-          width: { xs: showMobilePlayer ? 54 : 42, sm: 48 },
-          height: { xs: showMobilePlayer ? 54 : 42, sm: 48 },
+          width: { xs: expandedPlayerOpen ? 54 : 42, sm: 48 },
+          height: { xs: expandedPlayerOpen ? 54 : 42, sm: 48 },
           p: 0
         }}
       >
-        <SkipNext fontSize="inherit" htmlColor={canNext ? mainIconColor : disabledIconColor} />
+        <SkipNext
+          fontSize="inherit"
+          htmlColor={!radio.enabled && canNext ? mainIconColor : disabledIconColor}
+        />
       </IconButton>
       <IconButton
+        disabled={radio.enabled}
         aria-label="repeat"
         onClick={(e) => {
           e.stopPropagation();
@@ -158,12 +198,12 @@ export const ControlButton = () => {
         size="medium"
         sx={{
           "&:hover": {
-            backgroundColor: repeat > 0 ? "#fcfcfc29" : undefined
+            backgroundColor: !radio.enabled && repeat > 0 ? "#fcfcfc29" : undefined
           },
-          backgroundColor: repeat > 0 ? "#fcfcfc29" : undefined,
+          backgroundColor: !radio.enabled && repeat > 0 ? "#fcfcfc29" : undefined,
           display: {
-            xs: showMobilePlayer ? "inline-flex" : "none",
-            sm: "inline-flex"
+            xs: radio.enabled || !expandedPlayerOpen ? "none" : "inline-flex",
+            sm: radio.enabled ? "none" : "inline-flex"
           },
           fontSize: {
             xs: "24px",

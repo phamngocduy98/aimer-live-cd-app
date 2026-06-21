@@ -1,7 +1,7 @@
 import { Box } from "@mui/material";
 import { useAppDispatch, useAppSelector } from "@app/hooks";
 import { MPlayerUI } from "./MPlayerUI";
-import { MobilePlayer } from "./MobilePlayerUI";
+import { ExpandedPlayer } from "./ExpandedPlayerUI";
 import { FloatingQueueList } from "./FloatingQueueList";
 import { ExpandedMobileControls } from "./ExpandedMobileControls";
 import { MobileNavigation } from "@components/layout/MobileNavigation";
@@ -16,15 +16,15 @@ const compactPlayerBackground =
 
 export function Player() {
   const dispatch = useAppDispatch();
-  const showMobilePlayer = useAppSelector((state) => state.playerGui.mobilePlayer);
+  const expandedPlayerOpen = useAppSelector((state) => state.playerGui.expandedPlayer);
   const playingTrack = useAppSelector((state) => state.player.playingTrack);
-  const desktopVideoOpen = showMobilePlayer && isVideo(playingTrack);
+  const desktopVideoOpen = expandedPlayerOpen && isVideo(playingTrack);
   const albumBackgroundColor = useAlbumBackgroundColor(playingTrack);
   const [desktopChromeVisible, setDesktopChromeVisible] = React.useState(true);
 
   React.useEffect(() => {
     if (!playingTrack) {
-      dispatch(hideView("mobilePlayer"));
+      dispatch(hideView("expandedPlayer"));
       dispatch(hideView("lyrics"));
     }
   }, [dispatch, playingTrack]);
@@ -95,30 +95,30 @@ export function Player() {
         data-testid="player-control-shell"
         sx={{
           position: "fixed",
-          bottom: { xs: showMobilePlayer ? 16 : 8, sm: 10 },
+          bottom: { xs: expandedPlayerOpen ? 16 : 8, sm: 10 },
           left: { xs: 8, sm: 10 },
           right: { xs: 8, sm: 10 },
-          zIndex: showMobilePlayer ? 1301 : 1202,
-          padding: showMobilePlayer? {xs: 0, sm: "16px"} : "16px",
+          zIndex: expandedPlayerOpen ? 1301 : 1202,
+          padding: expandedPlayerOpen ? { xs: 0, sm: "16px" } : "16px",
           userSelect: "none",
           overflow: "visible",
           display: "grid",
           gap: 2,
-          borderRadius: { xs: showMobilePlayer ? "26px" : "30px", sm: "24px" },
+          borderRadius: { xs: expandedPlayerOpen ? "26px" : "30px", sm: "24px" },
           border: {
-            xs: showMobilePlayer ? "none" : "1px solid rgba(255,255,255,.13)"
+            xs: expandedPlayerOpen ? "none" : "1px solid rgba(255,255,255,.13)"
           },
           background: {
-            sm: showMobilePlayer ? "#00000040" : compactPlayerBackground,
-            xs: showMobilePlayer ? "transparent" : compactPlayerBackground
+            sm: expandedPlayerOpen ? "#00000040" : compactPlayerBackground,
+            xs: expandedPlayerOpen ? "transparent" : compactPlayerBackground
           },
-          backdropFilter: { xs: showMobilePlayer ? "none" : "blur(26px)", sm: "blur(26px)" },
+          backdropFilter: { xs: expandedPlayerOpen ? "none" : "blur(26px)", sm: "blur(26px)" },
           WebkitBackdropFilter: {
-            xs: showMobilePlayer ? "none" : "blur(26px)",
+            xs: expandedPlayerOpen ? "none" : "blur(26px)",
             sm: "blur(26px)"
           },
           boxShadow: {
-            xs: showMobilePlayer ? "none" : "inset 0 0 0 .5px #ffffff14",
+            xs: expandedPlayerOpen ? "none" : "inset 0 0 0 .5px #ffffff14",
             sm: "inset 0 0 0 .5px #ffffff14"
           },
           opacity: {
@@ -136,15 +136,20 @@ export function Player() {
             "opacity 220ms ease, transform 220ms ease, background 220ms ease, width 220ms ease"
         }}
       >
-        <Box sx={{ display: { xs: showMobilePlayer ? "none" : "block", sm: "block" }, overflow: "hidden" }}>
+        <Box
+          sx={{
+            display: { xs: expandedPlayerOpen ? "none" : "block", sm: "block" },
+            overflow: "hidden"
+          }}
+        >
           <MPlayerUI />
         </Box>
-        {showMobilePlayer && (
+        {expandedPlayerOpen && (
           <Box sx={{ display: { xs: "block", sm: "none" } }}>
             <ExpandedMobileControls />
           </Box>
         )}
-        {!showMobilePlayer && (
+        {!expandedPlayerOpen && (
           <Box sx={{ display: { xs: "block", sm: "none" } }}>
             <MobileNavigation />
           </Box>
@@ -158,17 +163,17 @@ export function Player() {
           left: 0,
           right: 0,
           zIndex: 1300,
-          visibility: showMobilePlayer ? "visible" : "hidden",
-          opacity: showMobilePlayer ? 1 : 0,
-          transform: `translate3d(0, ${showMobilePlayer ? "0" : "100%"}, 0)`,
-          transition: showMobilePlayer
+          visibility: expandedPlayerOpen ? "visible" : "hidden",
+          opacity: expandedPlayerOpen ? 1 : 0,
+          transform: `translate3d(0, ${expandedPlayerOpen ? "0" : "100%"}, 0)`,
+          transition: expandedPlayerOpen
             ? "transform 240ms cubic-bezier(.22, 1, .36, 1), opacity 150ms ease, visibility 0s"
             : "transform 170ms cubic-bezier(.4, 0, 1, 1), opacity 120ms ease, visibility 0s 170ms",
-          pointerEvents: showMobilePlayer ? "auto" : "none",
-          willChange: showMobilePlayer ? "transform" : "auto"
+          pointerEvents: expandedPlayerOpen ? "auto" : "none",
+          willChange: expandedPlayerOpen ? "transform" : "auto"
         }}
       >
-        <MobilePlayer desktopChromeVisible={desktopChromeVisible} />
+        <ExpandedPlayer desktopChromeVisible={desktopChromeVisible} />
       </div>
 
       <FloatingQueueList />

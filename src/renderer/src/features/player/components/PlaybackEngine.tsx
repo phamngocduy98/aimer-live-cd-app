@@ -10,6 +10,7 @@ import { showView } from "../store/playerGuiSlice";
 import {
   loadVideo,
   loopVideo,
+  playVideo,
   stopVideo,
   videoOnBuffer,
   videoOnBufferEnd,
@@ -27,7 +28,9 @@ export function PlaybackEngine() {
   const [compactRect, setCompactRect] = React.useState<DOMRect | null>(null);
   const [naturalVideoSize, setNaturalVideoSize] = React.useState<NaturalVideoSize | null>(null);
   const playingTrack = useAppSelector((state) => state.player.playingTrack);
-  const expanded = useAppSelector((state) => state.playerGui.mobilePlayer);
+  const currentEntry = useAppSelector((state) => state.player.currentEntry);
+  const radio = useAppSelector((state) => state.player.radio);
+  const expanded = useAppSelector((state) => state.playerGui.expandedPlayer);
   const { repeat } = useAppSelector((state) => state.player);
   const {
     videoUrl,
@@ -39,7 +42,8 @@ export function PlaybackEngine() {
     videoLoadedMediaId,
     videoSeekMediaId
   } = useAppSelector((state) => state.playerVideoControl);
-  const { load, stop, loop, volume, src, playing } = useGlobalAudioPlayer();
+  const { load, stop, loop, volume, src, playing, seek, getPosition, play } =
+    useGlobalAudioPlayer();
   const videoSourceKey =
     playingTrack && isVideo(playingTrack) ? `${playingTrack._id}:${videoUrl ?? ""}` : "";
 
@@ -68,51 +72,127 @@ export function PlaybackEngine() {
   }, [videoSourceKey]);
 
   React.useEffect(() => {
+    const liveRadioPosition = () => {
+      if (!radio.enabled || !radio.serverTime) return 0;
+      if (radio.paused) return radio.position;
+      return Math.max(
+        0,
+        radio.position + (Date.now() - new Date(radio.serverTime).getTime()) / 1000
+      );
+    };
+
     if (!playingTrack) {
       if (playing) stop();
       if (videoPlaying) dispatch(stopVideo());
       return;
     }
 
+    if (radio.enabled && (!radio.listening || radio.paused)) {
+      if (playing) stop();
+      if (videoPlaying) dispatch(stopVideo());
+      return;
+    }
+
     const video = isVideo(playingTrack);
-    const sourcePath = mediaSourcePath(playingTrack);
+    const sourcePath =
+      radio.enabled && currentEntry?.sourceUrl
+        ? currentEntry.sourceUrl
+        : mediaSourcePath(playingTrack);
     const nextSource = sourcePath.startsWith("/") ? streamAssetUrl(sourcePath) : sourcePath;
 
     if (video) {
       if (playing) stop();
-      if (nextSource !== videoUrl)
+      if (nextSource !== videoUrl) {
         dispatch(loadVideo({ url: nextSource, mediaId: playingTrack._id }));
-      else dispatch(loopVideo({ loopOnOff: repeat === 2 }));
+        if (radio.enabled) {
+          dispatch(videoOnSeek({ position: liveRadioPosition(), mediaId: playingTrack._id }));
+        }
+      } else {
+        dispatch(loopVideo({ loopOnOff: !radio.enabled && repeat === 2 }));
+        if (radio.enabled) {
+          if (!videoPlaying) dispatch(playVideo());
+          const target = liveRadioPosition();
+          if (Math.abs((videoRef.current?.getCurrentTime?.() ?? 0) - target) > 1.5) {
+            dispatch(videoOnSeek({ position: target, mediaId: playingTrack._id }));
+          }
+        }
+      }
       return;
     }
 
     if (videoPlaying) dispatch(stopVideo());
     if (nextSource !== src) {
+      const initialRadioPosition = liveRadioPosition();
       load(nextSource, {
         autoplay: true,
         html5: true,
         initialVolume: volume,
         format: playingTrack.fileExtension,
-        loop: repeat === 2,
+        loop: !radio.enabled && repeat === 2,
+        onload: () => {
+          if (radio.enabled) seek(initialRadioPosition);
+        },
         onend: () => {
           dispatch(nextTrack());
         }
       });
     } else {
-      loop(repeat === 2);
+      loop(!radio.enabled && repeat === 2);
+      if (radio.enabled && !playing) {
+        seek(liveRadioPosition());
+        play();
+      }
     }
   }, [
     dispatch,
+    currentEntry?.sourceUrl,
     load,
     loop,
+    play,
     playing,
     playingTrack,
+    radio,
     repeat,
+    seek,
     src,
     stop,
     videoPlaying,
     videoUrl,
     volume
+  ]);
+
+  React.useEffect(() => {
+    if (!radio.enabled || !radio.listening || radio.paused || !playingTrack || !radio.serverTime) {
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      const livePosition =
+        radio.position + (Date.now() - new Date(radio.serverTime!).getTime()) / 1000;
+      if (isVideo(playingTrack)) {
+        if (Math.abs(videoSeekPosition ?? 0) > Number.MAX_SAFE_INTEGER) return;
+        if (Math.abs((videoRef.current?.getCurrentTime?.() ?? 0) - livePosition) > 1.5) {
+          dispatch(videoOnSeek({ position: livePosition, mediaId: playingTrack._id }));
+        }
+        return;
+      }
+      if (Math.abs(getPosition() - livePosition) > 1.5) {
+        seek(livePosition);
+      }
+    }, 5000);
+
+    return () => window.clearInterval(interval);
+  }, [
+    dispatch,
+    getPosition,
+    playingTrack,
+    radio.enabled,
+    radio.listening,
+    radio.paused,
+    radio.position,
+    radio.serverTime,
+    seek,
+    videoSeekPosition
   ]);
 
   React.useEffect(() => {
@@ -290,7 +370,7 @@ export function PlaybackEngine() {
           component="button"
           type="button"
           aria-label="Expand video player"
-          onClick={() => dispatch(showView("mobilePlayer"))}
+          onClick={() => dispatch(showView("expandedPlayer"))}
           sx={{
             position: "absolute",
             inset: 0,

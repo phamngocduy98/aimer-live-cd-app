@@ -8,8 +8,6 @@ import {
   Box,
   Button,
   IconButton,
-  Paper,
-  Popper,
   Typography,
   useMediaQuery,
   useTheme
@@ -23,25 +21,25 @@ import { QueuePanel } from "./FloatingQueueList";
 import { isVideo } from "@features/library";
 import { useLyrics } from "@features/lyrics";
 import { artistImageUrl, artistPath, getPrimaryArtist } from "@utils/artist";
-import { useArtist } from "@features/artist/hooks/useArtist";
 import { useAlbumBackgroundColor } from "../utils/albumBackground";
 import { LyricsExperience } from "@features/lyrics";
 import { toggleView } from "../store/playerGuiSlice";
 import { mediaArtworkUrl } from "@utils/mediaArtwork";
 import { ArtistLinks } from "@components/media/ArtistLinks";
 import { AddToPlaylistDialog, type PlaylistItemInput } from "@features/playlist";
+import { RadioLiveIndicator } from "./SongInfo";
 
-interface MobilePlayerProps {
+interface ExpandedPlayerProps {
   desktopChromeVisible?: boolean;
 }
 
-export const MobilePlayer: React.FC<MobilePlayerProps> = ({ desktopChromeVisible = true }) => {
+export const ExpandedPlayer: React.FC<ExpandedPlayerProps> = ({ desktopChromeVisible = true }) => {
   const dispatch = useAppDispatch();
   const theme = useTheme();
   const desktop = useMediaQuery(theme.breakpoints.up("sm"));
   const playingTrack = useAppSelector((state) => state.player.playingTrack);
   const queueOpen = useAppSelector((state) => state.playerGui.playingQueue);
-  const showMobilePlayer = useAppSelector((state) => state.playerGui.mobilePlayer);
+  const expandedPlayerOpen = useAppSelector((state) => state.playerGui.expandedPlayer);
   const lyricsOpen = useAppSelector((state) => state.playerGui.lyrics);
   const backgroundColor = useAlbumBackgroundColor(playingTrack);
   const desktopVideo = isVideo(playingTrack);
@@ -100,7 +98,7 @@ export const MobilePlayer: React.FC<MobilePlayerProps> = ({ desktopChromeVisible
         <MobileTrackDetails />
       </Box>
 
-      {showMobilePlayer && (
+      {expandedPlayerOpen && (
         <>
           {!desktop && (
             <Box
@@ -123,36 +121,6 @@ export const MobilePlayer: React.FC<MobilePlayerProps> = ({ desktopChromeVisible
               <QueuePanel mobile onClear={() => dispatch(reset({ songs: [], type: "audio" }))} />
             </Box>
           )}
-          {desktop && (
-            <Paper
-              data-testid="expanded-desktop-queue-transition"
-              sx={{
-                position: "absolute",
-                zIndex: 8,
-                top: 98,
-                right: 10,
-                bottom: 118,
-                width: 416,
-                overflow: "hidden",
-                borderRadius: "22px",
-                border: "1px solid rgba(255,255,255,.08)",
-                bgcolor: "rgba(27,24,19,.72)",
-                backgroundImage: "none",
-                opacity: queueOpen ? 1 : 0,
-                transform: queueOpen ? "translateX(0)" : "translateX(48px)",
-                visibility: queueOpen ? "visible" : "hidden",
-                pointerEvents: queueOpen ? "auto" : "none",
-                transition:
-                  "opacity 240ms ease, transform 300ms cubic-bezier(.22, 1, .36, 1), visibility 0s linear " +
-                  (queueOpen ? "0s" : "300ms")
-              }}
-            >
-              <QueuePanel
-                onClose={() => dispatch(hideView("playingQueue"))}
-                onClear={() => dispatch(reset({ songs: [], type: "audio" }))}
-              />
-            </Paper>
-          )}
         </>
       )}
     </Box>
@@ -171,11 +139,25 @@ function PlayerHeader({
   const dispatch = useAppDispatch();
   const lyricsOpen = useAppSelector((state) => state.playerGui.lyrics);
   const [fullscreen, setFullscreen] = React.useState(Boolean(document.fullscreenElement));
+  const [pictureInPicture, setPictureInPicture] = React.useState(
+    Boolean(document.pictureInPictureElement)
+  );
 
   React.useEffect(() => {
     const updateFullscreen = () => setFullscreen(Boolean(document.fullscreenElement));
     document.addEventListener("fullscreenchange", updateFullscreen);
     return () => document.removeEventListener("fullscreenchange", updateFullscreen);
+  }, []);
+
+  React.useEffect(() => {
+    const updatePictureInPicture = () =>
+      setPictureInPicture(Boolean(document.pictureInPictureElement));
+    document.addEventListener("enterpictureinpicture", updatePictureInPicture, true);
+    document.addEventListener("leavepictureinpicture", updatePictureInPicture, true);
+    return () => {
+      document.removeEventListener("enterpictureinpicture", updatePictureInPicture, true);
+      document.removeEventListener("leavepictureinpicture", updatePictureInPicture, true);
+    };
   }, []);
 
   const toggleFullscreen = async () => {
@@ -187,6 +169,24 @@ function PlayerHeader({
       }
     } catch (error) {
       console.error("Unable to toggle fullscreen", error);
+    }
+  };
+
+  const togglePictureInPicture = async () => {
+    try {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+        return;
+      }
+
+      const videoElement = document.querySelector<HTMLVideoElement>(
+        '[data-testid="persistent-video-runtime"] video'
+      );
+      if (!videoElement || videoElement.disablePictureInPicture) return;
+
+      await videoElement.requestPictureInPicture();
+    } catch (error) {
+      console.error("Unable to toggle picture-in-picture", error);
     }
   };
 
@@ -234,8 +234,6 @@ function PlayerHeader({
           Lyrics
         </Button>
         <Box sx={{ display: { xs: "none", sm: "flex" }, gap: 1 }}>
-          <HeaderPill>{video ? "Similar videos" : "Similar tracks"}</HeaderPill>
-          <HeaderPill>Credits</HeaderPill>
           <HeaderPill
             active={lyricsOpen}
             disabled={noLyrics}
@@ -246,8 +244,9 @@ function PlayerHeader({
         </Box>
         {video && (
           <IconButton
-            aria-label="Video display mode"
+            aria-label={pictureInPicture ? "Exit picture in picture" : "Enter picture in picture"}
             sx={{ display: { xs: "none", sm: "inline-flex" } }}
+            onClick={() => void togglePictureInPicture()}
           >
             <OndemandVideoOutlinedIcon />
           </IconButton>
@@ -259,7 +258,10 @@ function PlayerHeader({
         >
           <FullscreenIcon />
         </IconButton>
-        <IconButton aria-label="Minimize player" onClick={() => dispatch(hideView("mobilePlayer"))}>
+        <IconButton
+          aria-label="Minimize player"
+          onClick={() => dispatch(hideView("expandedPlayer"))}
+        >
           <KeyboardArrowDownIcon sx={{ fontSize: 28 }} />
         </IconButton>
       </Box>
@@ -269,35 +271,16 @@ function PlayerHeader({
 
 function ArtistIdentity() {
   const dispatch = useAppDispatch();
-  const theme = useTheme();
-  const desktop = useMediaQuery(theme.breakpoints.up("sm"));
   const playingTrack = useAppSelector((state) => state.player.playingTrack);
   const artist = getPrimaryArtist(playingTrack?.artist);
-  const { data } = useArtist(artist);
-  const [anchor, setAnchor] = React.useState<HTMLElement | null>(null);
-  const [following, setFollowing] = React.useState(false);
-  const closeTimer = React.useRef<ReturnType<typeof setTimeout>>();
-
-  const open = (target: HTMLElement) => {
-    if (!desktop) return;
-    if (closeTimer.current) clearTimeout(closeTimer.current);
-    setAnchor(target);
-  };
-  const scheduleClose = () => {
-    if (!desktop) return;
-    closeTimer.current = setTimeout(() => setAnchor(null), 120);
-  };
   const openArtist = () => {
-    setAnchor(null);
-    dispatch(hideView("mobilePlayer"));
+    dispatch(hideView("expandedPlayer"));
     router.navigate(artistPath(artist));
   };
 
   return (
     <>
       <Box
-        onMouseEnter={(event) => open(event.currentTarget)}
-        onMouseLeave={scheduleClose}
         onClick={openArtist}
         sx={{
           display: "flex",
@@ -335,53 +318,6 @@ function ArtistIdentity() {
           {artist}
         </Typography>
       </Box>
-      {desktop && (
-        <Popper
-          open={Boolean(anchor)}
-          anchorEl={anchor}
-          placement="bottom-start"
-          sx={{ zIndex: 1600 }}
-        >
-          <Paper
-            onMouseEnter={() => anchor && open(anchor)}
-            onMouseLeave={scheduleClose}
-            sx={{
-              mt: 1,
-              width: 420,
-              maxWidth: "calc(100dvw - 32px)",
-              p: 3,
-              borderRadius: "20px",
-              bgcolor: "#151515",
-              backgroundImage: "none",
-              boxShadow: "0 24px 70px rgba(0,0,0,.5)"
-            }}
-          >
-            <Typography sx={{ fontSize: 20, fontWeight: 700 }}>{artist}</Typography>
-            <Typography sx={{ mt: 0.75, color: "text.secondary", lineHeight: 1.55 }}>
-              Explore {artist} through {data?.songs.length ?? 0} tracks and{" "}
-              {data?.albums.length ?? 0} releases saved in your library.
-            </Typography>
-            <Box sx={{ display: "flex", gap: 1.25, mt: 2.25 }}>
-              <Button
-                variant="contained"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setFollowing((value) => !value);
-                }}
-                sx={{ borderRadius: "999px", bgcolor: "#2b2b2b", color: "#fff" }}
-              >
-                {following ? "Following" : "Follow"}
-              </Button>
-              <Button
-                onClick={openArtist}
-                sx={{ borderRadius: "999px", bgcolor: "#2b2b2b", color: "#fff" }}
-              >
-                Read more
-              </Button>
-            </Box>
-          </Paper>
-        </Popper>
-      )}
     </>
   );
 }
@@ -485,6 +421,7 @@ function MobileTrackDetails() {
         }}
       >
         <Box sx={{ flex: 1, minWidth: 0 }}>
+          <RadioLiveIndicator />
           <Typography noWrap sx={{ fontSize: 20, fontWeight: 700, lineHeight: 1.25 }}>
             {currentChapter
               ? [currentChapter.title, currentChapter.subTitle].filter(Boolean).join(" - ")
@@ -494,7 +431,7 @@ function MobileTrackDetails() {
             artists={playingTrack?.artist}
             color="text.secondary"
             fontSize={16}
-            onNavigate={() => dispatch(hideView("mobilePlayer"))}
+            onNavigate={() => dispatch(hideView("expandedPlayer"))}
             sx={{ mt: 0.25, lineHeight: 1.35, maxWidth: "100%" }}
           />
         </Box>

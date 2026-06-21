@@ -4,12 +4,23 @@ import { createLogger } from "../utils/log.js";
 import { Song } from "../models/Song.js";
 import { Video } from "../models/Video.js";
 import { findDuplicatePlaylistItems } from "./playlistLogic.js";
+import type { AuthenticatedRequest } from "../middleware/auth.js";
+import { Types } from "mongoose";
 
 const log = createLogger("Playlist");
 
+function currentUserId(req: AuthenticatedRequest): string {
+  return req.auth.user!._id;
+}
+
+function currentUserObjectId(req: AuthenticatedRequest): Types.ObjectId {
+  return new Types.ObjectId(currentUserId(req));
+}
+
 // GET /api/playlists
-export async function handleListPlaylists(_req, res) {
+export async function handleListPlaylists(req: AuthenticatedRequest, res) {
   const playlists = await Playlist.aggregate([
+    { $match: { userId: currentUserObjectId(req) } },
     {
       $project: {
         name: 1,
@@ -37,7 +48,11 @@ export async function handleCreatePlaylist(req, res) {
   if (!name?.trim()) return fail(res, "Name is required");
 
   try {
-    const playlist = new Playlist({ name: name.trim(), description: description?.trim() });
+    const playlist = new Playlist({
+      userId: currentUserId(req),
+      name: name.trim(),
+      description: description?.trim()
+    });
     await playlist.save();
     ok(res, playlist.id);
   } catch (e) {
@@ -51,16 +66,19 @@ export async function handleGetPlaylist(req, res) {
   if (req.params.id.length !== 12 && req.params.id.length !== 24)
     return fail(res, "Invalid request");
 
-  const playlist = await Playlist.findById(req.params.id, {
-    songs: 1,
-    items: 1,
-    name: 1,
-    description: 1,
-    createdAt: 1,
-    updatedAt: 1
-  }).exec();
+  const playlist = await Playlist.findOne(
+    { _id: req.params.id, userId: currentUserId(req) },
+    {
+      songs: 1,
+      items: 1,
+      name: 1,
+      description: 1,
+      createdAt: 1,
+      updatedAt: 1
+    }
+  ).exec();
 
-  if (playlist == null) return fail(res, "Playlist not found");
+  if (playlist == null) return fail(res, "Playlist not found", 404);
 
   if (playlist.items.length === 0 && playlist.songs.length > 0) {
     playlist.items = playlist.songs.map((song) => ({
@@ -122,8 +140,11 @@ export async function handleAddItemsToPlaylist(req, res) {
     return fail(res, "Invalid playlist items");
 
   try {
-    const playlist = await Playlist.findById(req.params.id).exec();
-    if (playlist == null) return fail(res, "Playlist not found");
+    const playlist = await Playlist.findOne({
+      _id: req.params.id,
+      userId: currentUserId(req)
+    }).exec();
+    if (playlist == null) return fail(res, "Playlist not found", 404);
 
     if (playlist.items.length === 0 && playlist.songs.length > 0) {
       playlist.items = playlist.songs.map((song) => ({
@@ -154,10 +175,10 @@ export async function handleRemoveItemFromPlaylist(req, res) {
     return fail(res, "Invalid request");
   try {
     const result = await Playlist.updateOne(
-      { _id: req.params.id },
+      { _id: req.params.id, userId: currentUserId(req) },
       { $pull: { items: { _id: req.params.itemId } } }
     ).exec();
-    if (result.matchedCount === 0) return fail(res, "Playlist not found");
+    if (result.matchedCount === 0) return fail(res, "Playlist not found", 404);
     ok(res);
   } catch (e) {
     log.error({ err: e }, "Failed to remove playlist item");
@@ -176,14 +197,14 @@ export async function handleUpdatePlaylist(req, res) {
   if (description != null) update.description = description.trim();
 
   try {
-    const playlist = await Playlist.findByIdAndUpdate(
-      req.params.id,
+    const playlist = await Playlist.findOneAndUpdate(
+      { _id: req.params.id, userId: currentUserId(req) },
       { $set: update },
       { new: true }
     )
       .lean()
       .exec();
-    if (playlist == null) return fail(res, "Playlist not found");
+    if (playlist == null) return fail(res, "Playlist not found", 404);
     ok(res, playlist._id.toString());
   } catch (e) {
     log.error({ err: e }, "Failed to update playlist");
@@ -196,8 +217,11 @@ export async function handleDeletePlaylist(req, res) {
   if (req.params.id.length !== 12 && req.params.id.length !== 24)
     return fail(res, "Invalid request");
 
-  const result = await Playlist.findByIdAndDelete(req.params.id).exec();
-  if (result == null) return fail(res, "Playlist not found");
+  const result = await Playlist.findOneAndDelete({
+    _id: req.params.id,
+    userId: currentUserId(req)
+  }).exec();
+  if (result == null) return fail(res, "Playlist not found", 404);
   ok(res);
 }
 
@@ -227,7 +251,7 @@ export async function handleRemoveSongFromPlaylist(req, res) {
 
   try {
     const result = await Playlist.updateOne(
-      { _id: req.params.id },
+      { _id: req.params.id, userId: currentUserId(req) },
       {
         $pull: {
           songs: req.params.songId,
@@ -235,7 +259,7 @@ export async function handleRemoveSongFromPlaylist(req, res) {
         }
       }
     ).exec();
-    if (result.matchedCount === 0) return fail(res, "Playlist not found");
+    if (result.matchedCount === 0) return fail(res, "Playlist not found", 404);
     ok(res);
   } catch (e) {
     log.error({ err: e }, "Failed to remove song from playlist");

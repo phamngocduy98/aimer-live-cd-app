@@ -11,6 +11,7 @@ import { apiAssetUrl } from "@lib/axios";
 import { useAlbums, useSongs, useVideos } from "../hooks/useLibrary";
 import { usePlayAlbum } from "@features/album";
 import { usePlaybackGate } from "@features/auth";
+import { RadioSection } from "@features/radio";
 
 export const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -56,6 +57,8 @@ export const Home: React.FC = () => {
           mx: "auto"
         }}
       >
+        <RadioSection />
+
         <SectionHeader
           title="Featured albums"
           action="View all"
