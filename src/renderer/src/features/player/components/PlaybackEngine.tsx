@@ -3,7 +3,7 @@ import ReactPlayer from "react-player";
 import { Box } from "@mui/material";
 import { useGlobalAudioPlayer } from "react-use-audio-player";
 import { useAppDispatch, useAppSelector } from "@app/hooks";
-import { streamAssetUrl } from "@lib/axios";
+import { directStreamAssetUrl, streamAssetUrl } from "@lib/axios";
 import { isVideo } from "@features/library";
 import { nextTrack } from "../store/playerSlice";
 import { showView } from "../store/playerGuiSlice";
@@ -19,7 +19,7 @@ import {
   videoOnSeek
 } from "../store/playerVideoControl";
 import { onVideoPostion } from "../thunks/onVideoPosition";
-import { mediaSourcePath } from "../types";
+import { directMediaSourcePath, mediaSourcePath } from "../types";
 import { NaturalVideoSize, resolveVideoSize } from "../videoAspect";
 
 export function PlaybackEngine() {
@@ -98,7 +98,9 @@ export function PlaybackEngine() {
       radio.enabled && currentEntry?.sourceUrl
         ? currentEntry.sourceUrl
         : mediaSourcePath(playingTrack);
-    const nextSource = sourcePath.startsWith("/") ? streamAssetUrl(sourcePath) : sourcePath;
+    const directSourcePath = !radio.enabled ? directMediaSourcePath(playingTrack) : null;
+    const directSource = directSourcePath ? directStreamAssetUrl(directSourcePath) : null;
+    const nextSource = directSource ?? (sourcePath.startsWith("/") ? streamAssetUrl(sourcePath) : sourcePath);
 
     if (video) {
       if (playing) stop();

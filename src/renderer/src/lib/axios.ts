@@ -2,6 +2,7 @@ import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios"
 
 export const apiClient = axios.create({ withCredentials: true })
 let streamBaseUrl = import.meta.env.VITE_STREAM_BASE_URL || import.meta.env.VITE_API_BASE_URL || "/api"
+let directStreamBaseUrl: string | null = null
 
 interface RetryableRequestConfig extends InternalAxiosRequestConfig {
   _retryAfterRefresh?: boolean
@@ -33,12 +34,14 @@ apiClient.interceptors.response.use(
 
 export async function configureApiBaseUrl(): Promise<void> {
   if (window.electronAPI) {
-    const [apiBaseUrl, electronStreamBaseUrl] = await Promise.all([
+    const [apiBaseUrl, electronStreamBaseUrl, electronDirectStreamBaseUrl] = await Promise.all([
       window.electronAPI.getApiBaseUrl(),
-      window.electronAPI.getStreamBaseUrl()
+      window.electronAPI.getStreamBaseUrl(),
+      window.electronAPI.getDirectStreamBaseUrl()
     ])
     apiClient.defaults.baseURL = apiBaseUrl
     streamBaseUrl = electronStreamBaseUrl
+    directStreamBaseUrl = electronDirectStreamBaseUrl
     return
   }
   apiClient.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || "/api"
@@ -49,3 +52,6 @@ export const apiAssetUrl = (path: string): string =>
   `${apiClient.defaults.baseURL ?? "/api"}${path}`
 
 export const streamAssetUrl = (path: string): string => `${streamBaseUrl}${path}`
+
+export const directStreamAssetUrl = (path: string): string | null =>
+  directStreamBaseUrl ? `${directStreamBaseUrl}${path}` : null

@@ -1,9 +1,20 @@
 import path from "node:path";
+import fs from "node:fs";
 import pino from "pino";
 
 let rootLogger: pino.Logger | null = null;
 
-export function initLogger(options?: { logDir?: string }): void {
+export function initLogger(options?: { logDir?: string; pretty?: boolean }): void {
+  if (options?.logDir && !options.pretty) {
+    fs.mkdirSync(options.logDir, { recursive: true });
+    const destination = pino.destination({
+      dest: path.join(options.logDir, "app.log"),
+      sync: false
+    });
+    rootLogger = pino({ level: process.env.LOG_LEVEL || "info" }, destination);
+    return;
+  }
+
   const targets: pino.TransportTargetOptions[] = [
     {
       target: "pino-pretty",

@@ -38,7 +38,13 @@ import {
   handleGetArtistVideos,
   handleSearch
 } from "./routes/metadata.js";
-import { handleDeprecatedStream, handleStreamAudio, handleStreamVideo } from "./routes/stream.js";
+import {
+  handleDeprecatedStream,
+  handleDirectStreamAudioManifest,
+  handleDirectStreamVideoManifest,
+  handleStreamAudio,
+  handleStreamVideo
+} from "./routes/stream.js";
 import {
   handleAdminGetLyricsProviders,
   handleAdminImportLyrics,
@@ -310,6 +316,10 @@ app.get("/api/part/:id/:fileName", requirePaidMedia, handleGetPart);
 app.get("/api/stream/audio/:id", requirePaidMedia, handleStreamAudio);
 
 app.get("/api/stream/video/:id", requirePaidMedia, handleStreamVideo);
+
+app.get("/api/stream/direct/audio/:id", requirePaidMedia, handleDirectStreamAudioManifest);
+
+app.get("/api/stream/direct/video/:id", requirePaidMedia, handleDirectStreamVideoManifest);
 
 app.get("/api/song/:id/cover", handleGetSongCover);
 

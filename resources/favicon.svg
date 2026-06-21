@@ -1,3 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white">
-  <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55C7.79 13 6 14.79 6 17s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" fill="#050505"/>
+  <rect x="6.3" y="33.1" width="16.3" height="16.3" fill="#fcfcfc" transform="rotate(45 14.1 42.2)"/>
+  <rect x="23.9" y="13.7" width="16.3" height="16.3" fill="#fcfcfc" transform="rotate(45 32 21.8)"/>
+  <rect x="41.4" y="33.1" width="16.3" height="16.3" fill="#fcfcfc" transform="rotate(45 49.9 42.2)"/>
 </svg>

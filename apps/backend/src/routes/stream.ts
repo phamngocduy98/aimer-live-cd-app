@@ -3,6 +3,9 @@ import { Video } from "../models/Video.js";
 import { SongStream } from "../services/stream/SongStream.js";
 import { fail } from "../utils/reqUtils.js";
 import { createLogger } from "../utils/log.js";
+import { PARTSIZE } from "../config/const.js";
+import { contentType } from "../services/stream/content-type.js";
+import { IHosting, IHttpStreamConfig, StreamStrategy } from "../models/Hosting.js";
 
 const log = createLogger("Stream");
 
@@ -98,6 +101,91 @@ export async function handleStreamAudio(req, res) {
   }
 
   fail(res, errorMessages.join(". "), status);
+}
+
+function getPartSize(hosting: IHosting): number {
+  if (hosting.stream.type === StreamStrategy.HTTP) {
+    return (hosting.stream as IHttpStreamConfig).partSize;
+  }
+  return PARTSIZE;
+}
+
+function directHostUrl(hosting: IHosting): string | null {
+  if (hosting.stream.type !== StreamStrategy.HTTP) return null;
+  const stream = hosting.stream as IHttpStreamConfig;
+  const path = stream.path.startsWith("/") ? stream.path : `/${stream.path}`;
+  return `http://${stream.host}${path}`;
+}
+
+function directPartFileNames(id: string, fileCount: number, fileExtension: string): string[] {
+  return Array.from({ length: fileCount }, (_value, index) => {
+    const suffix = index > 0 ? `_${index}` : "";
+    return `${id}${suffix}.${fileExtension}`;
+  });
+}
+
+async function handleDirectStreamManifest(req, res, mediaType: "audio" | "video") {
+  if (req.params.id.length !== 12 && req.params.id.length !== 24) {
+    return fail(res, "Invalid request");
+  }
+
+  const media =
+    mediaType === "audio"
+      ? await Song.findById(req.params.id).populate("hostingList").exec()
+      : await Video.findById(req.params.id).populate("hostingList").exec();
+
+  if (media == null) {
+    return fail(res, mediaType === "audio" ? "Song not found" : "Video not found", 404);
+  }
+
+  const key = process.env.AES_PW;
+  if (!key) {
+    return fail(res, "Direct streaming key is not configured", 500);
+  }
+
+  const hostingList = (media.hostingList ?? [])
+    .map((hosting) => ({
+      id: (hosting as any)._id?.toString?.() ?? hosting.name,
+      name: hosting.name,
+      provider: hosting.provider,
+      urlBase: directHostUrl(hosting)
+    }))
+    .filter((hosting) => hosting.urlBase);
+
+  if (hostingList.length === 0) {
+    return fail(res, "No direct HTTP hosting available", 404);
+  }
+
+  const partSize = Math.min(
+    PARTSIZE,
+    media.hostingList.length > 0 ? getPartSize(media.hostingList[0]) : PARTSIZE
+  );
+  const id = String((media as any)._id);
+
+  res.json({
+    id,
+    mediaType,
+    key,
+    iv: media.iv,
+    size: media.size,
+    fileCount: media.fileCount,
+    fileExtension: media.fileExtension,
+    format: media.format,
+    partSize,
+    contentType: contentType.getContentType(media.fileExtension ?? media.format),
+    files: directPartFileNames(id, media.fileCount, media.fileExtension),
+    hosts: hostingList
+  });
+}
+
+// GET /api/stream/direct/audio/:id
+export async function handleDirectStreamAudioManifest(req, res) {
+  return handleDirectStreamManifest(req, res, "audio");
+}
+
+// GET /api/stream/direct/video/:id
+export async function handleDirectStreamVideoManifest(req, res) {
+  return handleDirectStreamManifest(req, res, "video");
 }
 
 // GET /api/stream/video/:id

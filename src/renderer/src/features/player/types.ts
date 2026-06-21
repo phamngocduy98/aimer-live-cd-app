@@ -44,6 +44,11 @@ export const mediaSourcePath = (media: MediaItem): string =>
     ? media.youtubeUrl
     : `/stream/${isVideo(media) ? "video" : "audio"}/${media._id}`;
 
+export const directMediaSourcePath = (media: MediaItem): string | null =>
+  isVideo(media) && media.youtubeUrl
+    ? null
+    : `/${isVideo(media) ? "video" : "audio"}/${media._id}`;
+
 export const sourceItemKey = (source: PlaySource, media: MediaItem, index: number): string =>
   `${source.type}:${source.id ?? source.route}:${mediaType(media)}:${media._id}:${index}`;
 

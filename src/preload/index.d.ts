@@ -3,6 +3,7 @@ declare global {
     electronAPI: {
       getApiBaseUrl: () => Promise<string>;
       getStreamBaseUrl: () => Promise<string>;
+      getDirectStreamBaseUrl: () => Promise<string | null>;
       storeAesPassword: (password: string) => Promise<void>;
       hasStoredAesPassword: () => Promise<boolean>;
       clearStoredAesPassword: () => Promise<void>;

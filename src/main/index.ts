@@ -4,11 +4,14 @@ import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import icon from "../../resources/icon.png?asset";
 import Store from "electron-store";
 import { createLogger, getRootLogger, initLogger } from "./utils/log.js";
+import { startDirectStreamServer } from "./direct-stream-server.js";
 
 let isInitializing = true;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let log: any = { info: () => {}, error: () => {} };
+let directStreamBaseUrl: string | null = null;
+let stopDirectStreamServer: (() => Promise<void>) | null = null;
 
 // Định nghĩa interface cho cấu hình
 interface AppConfig {
@@ -44,7 +47,7 @@ function getApiBaseUrl(): string {
   return (
     process.env.API_BASE_URL ||
     process.env.VITE_API_BASE_URL ||
-    (is.dev ? "http://localhost:3001/api" : "https://music.btxa.io.vn/api")
+    (is.dev ? "http://localhost:3001/api" : "https://aimer.btxa.io.vn/api")
   );
 }
 
@@ -81,7 +84,7 @@ function clearStoredAesPassword(): void {
 }
 
 async function initializeApp(): Promise<void> {
-  initLogger({ logDir: join(app.getPath("userData"), "logs") });
+  initLogger({ logDir: join(app.getPath("userData"), "logs"), pretty: is.dev });
   log = createLogger("Main");
 
   try {
@@ -97,6 +100,15 @@ async function initializeApp(): Promise<void> {
   // Set app user model id for windows
   electronApp.setAppUserModelId("vn.io.btxa.music.aimer");
 
+  try {
+    const directStreamServer = await startDirectStreamServer(getApiBaseUrl());
+    directStreamBaseUrl = directStreamServer.baseUrl;
+    stopDirectStreamServer = directStreamServer.close;
+    log.info({ directStreamBaseUrl }, "Direct stream server started");
+  } catch (error) {
+    log.error({ err: error }, "Failed to start direct stream server");
+  }
+
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
   // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
@@ -106,6 +118,7 @@ async function initializeApp(): Promise<void> {
 
   ipcMain.handle("get-api-base-url", () => getApiBaseUrl());
   ipcMain.handle("get-stream-base-url", () => getStreamBaseUrl());
+  ipcMain.handle("get-direct-stream-base-url", () => directStreamBaseUrl);
   ipcMain.handle("store-aes-password", (_event, password: string) => storeAesPassword(password));
   ipcMain.handle("has-stored-aes-password", () => hasStoredAesPassword());
   ipcMain.handle("clear-stored-aes-password", () => clearStoredAesPassword());
@@ -158,6 +171,14 @@ function createWindow(): void {
 }
 
 async function gracefulShutdown(): Promise<void> {
+  if (stopDirectStreamServer) {
+    try {
+      await stopDirectStreamServer();
+      stopDirectStreamServer = null;
+    } catch (err) {
+      console.error("Failed to stop direct stream server:", err);
+    }
+  }
   try {
     getRootLogger().flush();
     log.info("Logger flushed");
