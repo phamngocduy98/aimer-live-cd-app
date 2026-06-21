@@ -5,7 +5,8 @@ import { fail } from "../utils/reqUtils.js";
 import { createLogger } from "../utils/log.js";
 import { PARTSIZE } from "../config/const.js";
 import { contentType } from "../services/stream/content-type.js";
-import { IHosting, IHttpStreamConfig, StreamStrategy } from "../models/Hosting.js";
+import { HostingProvider, IHosting, IHttpStreamConfig, StreamStrategy } from "../models/Hosting.js";
+import { byPassHosting } from "../services/stream/part-provider/http-stream/bypass/bypass.js";
 
 const log = createLogger("Stream");
 
@@ -117,6 +118,19 @@ function directHostUrl(hosting: IHosting): string | null {
   return `http://${stream.host}${path}`;
 }
 
+async function directHostRequestHeaders(
+  hosting: IHosting
+): Promise<Record<string, string> | undefined> {
+  if (hosting.stream.type !== StreamStrategy.HTTP) return undefined;
+
+  const stream = hosting.stream as IHttpStreamConfig;
+  const provider = hosting.provider ?? stream.antiHotlink;
+  if (provider !== HostingProvider.INFINITVE_FREE) return undefined;
+
+  const token = await byPassHosting.refreshToken(`http://${stream.host}`);
+  return { Cookie: `__test=${token}` };
+}
+
 function directPartFileNames(id: string, fileCount: number, fileExtension: string): string[] {
   return Array.from({ length: fileCount }, (_value, index) => {
     const suffix = index > 0 ? `_${index}` : "";
@@ -143,14 +157,23 @@ async function handleDirectStreamManifest(req, res, mediaType: "audio" | "video"
     return fail(res, "Direct streaming key is not configured", 500);
   }
 
-  const hostingList = (media.hostingList ?? [])
-    .map((hosting) => ({
-      id: (hosting as any)._id?.toString?.() ?? hosting.name,
-      name: hosting.name,
-      provider: hosting.provider,
-      urlBase: directHostUrl(hosting)
-    }))
-    .filter((hosting) => hosting.urlBase);
+  const hostingList = (
+    await Promise.all(
+      (media.hostingList ?? []).map(async (hosting) => {
+        const stream = hosting.stream as IHttpStreamConfig;
+        const urlBase = directHostUrl(hosting);
+        if (!urlBase) return null;
+
+        return {
+          id: (hosting as any)._id?.toString?.() ?? hosting.name,
+          name: hosting.name,
+          provider: hosting.provider ?? stream.antiHotlink,
+          urlBase,
+          requestHeaders: await directHostRequestHeaders(hosting)
+        };
+      })
+    )
+  ).filter((hosting): hosting is NonNullable<typeof hosting> => Boolean(hosting));
 
   if (hostingList.length === 0) {
     return fail(res, "No direct HTTP hosting available", 404);

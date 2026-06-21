@@ -153,6 +153,8 @@ function corsOptions(
   const origin = req.get("origin");
   if (
     !origin ||
+    origin === "file://" ||
+    origin === "null" ||
     configuredCorsOrigins === true ||
     configuredCorsOrigins.has(origin) ||
     origin === requestOrigin(req)
