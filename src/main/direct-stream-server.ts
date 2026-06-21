@@ -31,6 +31,11 @@ interface StreamPart {
   partByteEnd: number;
 }
 
+interface PreparedPart {
+  part: StreamPart;
+  stream: Readable;
+}
+
 function parseRange(rangeHeader: string | undefined, size: number): ByteRange {
   let match = rangeHeader?.match(/bytes=(\d+)-(\d+)/);
   if (match) {
@@ -109,6 +114,7 @@ function decryptPart(input: Readable, manifest: DirectStreamManifest): Readable 
     Buffer.from(manifest.key, "hex"),
     Buffer.from(manifest.iv, "hex")
   );
+  input.on("error", (error) => decipher.destroy(error));
   return input.pipe(decipher);
 }
 
@@ -156,6 +162,9 @@ async function proxyBackendStream(
   });
 
   res.writeHead(response.status, response.statusText, response.headers as http.OutgoingHttpHeaders);
+  response.data.on("error", () => {
+    if (!res.destroyed) res.end();
+  });
   response.data.pipe(res);
 }
 
@@ -172,6 +181,7 @@ async function fetchEncryptedPart(
         `${urlBase}/${encodeURIComponent(part.fileName)}`,
         {
           responseType: "stream",
+          timeout: 15000,
           headers: {
             Range: `bytes=0-${Number.MAX_SAFE_INTEGER}`,
             "User-Agent":
@@ -191,14 +201,20 @@ async function fetchEncryptedPart(
 async function pipeParts(
   output: PassThrough,
   manifest: DirectStreamManifest,
-  parts: StreamPart[]
+  parts: StreamPart[],
+  preparedFirstPart?: PreparedPart
 ): Promise<void> {
-  for (const part of parts) {
-    const encrypted = await fetchEncryptedPart(manifest, part);
+  for (const [index, part] of parts.entries()) {
+    const encrypted =
+      index === 0 && preparedFirstPart?.part === part
+        ? preparedFirstPart.stream
+        : await fetchEncryptedPart(manifest, part);
     const decrypted = decryptPart(encrypted, manifest);
     const trimmed = trimDecryptedPart(decrypted, part);
 
     await new Promise<void>((resolve, reject) => {
+      encrypted.on("error", reject);
+      decrypted.on("error", reject);
       trimmed.on("error", reject);
       trimmed.on("end", resolve);
       trimmed.pipe(output, { end: false });
@@ -247,7 +263,23 @@ export async function startDirectStreamServer(apiBaseUrl: string): Promise<{
       }
 
       const parts = partsForRange(manifest, range);
+      let preparedFirstPart: PreparedPart | undefined;
+      if (parts[0]) {
+        try {
+          preparedFirstPart = {
+            part: parts[0],
+            stream: await fetchEncryptedPart(manifest, parts[0])
+          };
+        } catch {
+          await proxyBackendStream(apiBaseUrl, mediaType, id, req, res);
+          return;
+        }
+      }
+
       const body = new PassThrough();
+      body.on("error", () => {
+        if (!res.destroyed) res.end();
+      });
       res.writeHead(req.headers.range ? 206 : 200, {
         "Accept-Ranges": "bytes",
         "Content-Type": manifest.contentType,
@@ -257,9 +289,9 @@ export async function startDirectStreamServer(apiBaseUrl: string): Promise<{
         "Access-Control-Allow-Origin": "*"
       });
       body.pipe(res);
-      pipeParts(body, manifest, parts).catch((error) => {
-        body.destroy(error);
-        res.destroy(error);
+      pipeParts(body, manifest, parts, preparedFirstPart).catch(() => {
+        body.end();
+        if (!res.destroyed) res.end();
       });
     } catch (error) {
       const status = axios.isAxiosError(error) ? (error.response?.status ?? 500) : 500;
