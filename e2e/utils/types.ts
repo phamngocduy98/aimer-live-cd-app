@@ -5,6 +5,7 @@ export type ElectronApp = Awaited<ReturnType<typeof electron.launch>>;
 export interface ElectronTestContext {
   electronApp: ElectronApp;
   mainWindow: Page;
+  rendererErrors: string[];
 }
 
 export interface LaunchOptions {

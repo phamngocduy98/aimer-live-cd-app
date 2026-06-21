@@ -3,6 +3,13 @@ import { HttpStreamProvider } from "../HttpStreamProvider.js";
 import { byPassHosting } from "./bypass/bypass.js";
 import { AxiosResponse } from "axios";
 
+function headerValueIncludes(value: AxiosResponse["headers"][string], search: string): boolean {
+  if (typeof value === "string") return value.includes(search);
+  if (Array.isArray(value)) return value.some((entry) => entry.includes(search));
+  if (typeof value === "number" || typeof value === "boolean") return String(value).includes(search);
+  return false;
+}
+
 export class InfinitiveFreeHosting extends HttpStreamProvider {
   token: string = "";
   async get(
@@ -33,7 +40,7 @@ export class InfinitiveFreeHosting extends HttpStreamProvider {
   ) {
     const superres = await super.handleResponse(statusCode, res, responseType);
 
-    if (res.headers["content-type"]?.includes("text/html")) {
+    if (headerValueIncludes(res.headers["content-type"], "text/html")) {
       if (superres.data.includes("aes.js")) {
         this.token = await byPassHosting.refreshToken(`http://${this.host}`);
         throw Error("Token refreshed. Please try again");

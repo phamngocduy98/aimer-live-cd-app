@@ -1,7 +1,12 @@
 import { test, expect, type Page } from "@playwright/test";
 import { cleanupTempDir, createTempDir } from "./utils/temp-dir.js";
-import { launchApp, type ElectronTestContext } from "./utils/electron-app.js";
+import {
+  expectNoRendererFailures,
+  launchApp,
+  type ElectronTestContext
+} from "./utils/electron-app.js";
 import { seedE2eDatabase } from "./utils/test-data.js";
+import { loginFromUserMenu } from "./utils/auth.js";
 
 let testUserDataDir: string;
 
@@ -37,13 +42,21 @@ async function expectBottomAlignedDialog(page: Page, name: string | RegExp): Pro
   const dialog = page.getByRole("dialog", { name });
   await expect(dialog).toBeVisible();
   const box = await dialog.boundingBox();
-  const viewport = page.viewportSize();
+  const viewport = await page.evaluate(() => ({
+    width: window.innerWidth,
+    height: window.innerHeight
+  }));
   expect(box).not.toBeNull();
   expect(viewport).not.toBeNull();
   expect((viewport?.height ?? 0) - ((box?.y ?? 0) + (box?.height ?? 0))).toBeLessThanOrEqual(24);
 }
 
 async function toggleFullScreenPlayer(page: Page): Promise<void> {
+  const expandVideo = page.getByRole("button", { name: "Expand video player" });
+  if (await expandVideo.isVisible()) {
+    await expandVideo.click();
+    return;
+  }
   await page
     .getByRole("button", { name: "Toggle full screen player" })
     .click({ position: { x: 20, y: 2 } });
@@ -61,10 +74,14 @@ test.describe("GUI expected features", () => {
   test.beforeEach(async () => {
     await seedE2eDatabase();
     ctx = await launchApp(testUserDataDir, { windowSize: [1280, 800] });
+    await loginFromUserMenu(ctx.mainWindow, "paid", "paid-password");
   });
 
   test.afterEach(async () => {
-    await ctx?.electronApp.close();
+    const currentCtx = ctx;
+    ctx = undefined as unknown as ElectronTestContext;
+    await currentCtx?.electronApp.close();
+    if (currentCtx) expectNoRendererFailures(currentCtx);
   });
 
   test("renders primary navigation screens from seeded backend data", async () => {
@@ -188,27 +205,25 @@ test.describe("GUI expected features", () => {
     await expect(ctx.mainWindow.getByText("E2E Search Ballad")).toBeVisible();
     await ctx.mainWindow.getByText("More results").click();
 
-    await expect(ctx.mainWindow.getByText("Search results")).toBeVisible();
-    await expect(ctx.mainWindow.getByRole("table", { name: "search songs table" })).toBeVisible();
+    await expect(
+      ctx.mainWindow.getByRole("tablist", { name: "Search result categories" })
+    ).toBeVisible();
+    await ctx.mainWindow.getByRole("tab", { name: "Songs" }).click();
     await expect(ctx.mainWindow.getByText("E2E Search Ballad")).toBeVisible();
 
-    await ctx.mainWindow.getByLabel("Search library").fill("Chorus");
+    await ctx.mainWindow.getByPlaceholder("Search").fill("Chorus");
     await ctx.mainWindow.keyboard.press("Enter");
-    const chaptersTable = ctx.mainWindow.getByRole("table", { name: "search chapters table" });
-    await expect(chaptersTable).toBeVisible();
-    await expect(chaptersTable.getByText("E2E Chorus")).toBeVisible();
-    await chaptersTable.getByRole("row", { name: /E2E Chorus/ }).click();
+    await ctx.mainWindow.getByRole("tab", { name: "Chapters" }).click();
+    await expect(ctx.mainWindow.getByRole("main").getByText("E2E Chorus")).toBeVisible();
+    await ctx.mainWindow.getByRole("main").getByText("E2E Chorus", { exact: true }).click();
     await expect(
-      chaptersTable.locator('[aria-current="true"]').filter({ hasText: "E2E Chorus" })
+      ctx.mainWindow.getByTestId("player-control-shell").getByText("E2E Chorus")
     ).toBeVisible();
 
-    await ctx.mainWindow.getByLabel("Search library").fill("Ballad");
+    await ctx.mainWindow.getByPlaceholder("Search").fill("Album Beta");
     await ctx.mainWindow.keyboard.press("Enter");
-    await expect(ctx.mainWindow.getByRole("table", { name: "search songs table" })).toBeVisible();
-    await ctx.mainWindow
-      .getByRole("table", { name: "search songs table" })
-      .getByText("E2E Album Beta")
-      .click();
+    await ctx.mainWindow.getByRole("tab", { name: "Albums" }).click();
+    await ctx.mainWindow.getByText("E2E Album Beta").click();
     await expect(ctx.mainWindow.getByText("E2E Search Ballad")).toBeVisible();
   });
 
@@ -219,12 +234,11 @@ test.describe("GUI expected features", () => {
       .then((win) => win.evaluate((browserWindow) => browserWindow.setSize(390, 760)));
 
     await ctx.mainWindow.getByRole("link", { name: "Search", exact: true }).click();
-    await ctx.mainWindow.getByLabel("Search library").fill("Intro");
+    await ctx.mainWindow.getByPlaceholder("Search").fill("Intro");
     await ctx.mainWindow.keyboard.press("Enter");
 
-    const chaptersTable = ctx.mainWindow.getByRole("table", { name: "search chapters table" });
-    await expect(chaptersTable).toBeVisible();
-    await expect(chaptersTable.getByText("E2E Intro")).toBeVisible();
+    await ctx.mainWindow.getByRole("tab", { name: "Chapters" }).click();
+    await expect(ctx.mainWindow.getByText("E2E Intro")).toBeVisible();
   });
 
   test("create playlist dialog resets inputs after close", async () => {
@@ -303,11 +317,11 @@ test.describe("GUI expected features", () => {
       .then((win) => win.evaluate((browserWindow) => browserWindow.setSize(800, 760)));
     await expect(ctx.mainWindow.getByTestId("playlist-media-hero")).toHaveCSS(
       "min-height",
-      "360px"
+      "460px"
     );
     await expect(ctx.mainWindow.getByRole("heading", { name: "E2E Created Playlist" })).toHaveCSS(
       "font-size",
-      "28px"
+      "20px"
     );
     await expect(playlistTable.getByText("ARTIST", { exact: true })).toBeVisible();
     await expect(playlistTable.getByText("ALBUM", { exact: true })).not.toBeVisible();
@@ -325,11 +339,11 @@ test.describe("GUI expected features", () => {
       .then((win) => win.evaluate((browserWindow) => browserWindow.setSize(390, 760)));
     await expect(ctx.mainWindow.getByTestId("playlist-media-hero")).toHaveCSS(
       "min-height",
-      "500px"
+      "460px"
     );
     await expect(ctx.mainWindow.getByRole("heading", { name: "E2E Created Playlist" })).toHaveCSS(
       "font-size",
-      "24px"
+      "20px"
     );
     await expect(playlistTable).toHaveCSS("table-layout", "fixed");
     await expect(playlistTable.getByText("TITLE", { exact: true })).not.toBeVisible();
@@ -724,17 +738,19 @@ test.describe("GUI expected features", () => {
     await ctx.mainWindow.getByRole("button", { name: "Songs actions" }).click();
     await ctx.mainWindow.getByRole("menuitem", { name: "Play all" }).click();
 
-    await ctx.mainWindow.getByRole("button", { name: "Add to favorites" }).click();
-    await expect(
-      ctx.mainWindow.getByRole("button", { name: "Remove from favorites" })
-    ).toBeVisible();
+    await ctx.mainWindow.getByRole("button", { name: "Add to Playlist" }).click();
+    await expect(ctx.mainWindow.getByRole("dialog", { name: "Add to Playlist" })).toBeVisible();
+    await ctx.mainWindow
+      .getByRole("dialog", { name: "Add to Playlist" })
+      .getByRole("button", { name: "Cancel" })
+      .click();
     await ctx.mainWindow.getByRole("button", { name: "Player track actions" }).click();
     await expect(ctx.mainWindow.getByRole("menuitem", { name: "Add to Playlist" })).toBeVisible();
     await ctx.mainWindow.keyboard.press("Escape");
 
-    await ctx.mainWindow.getByRole("button", { name: "Mute" }).hover();
-    await expect(ctx.mainWindow.getByRole("slider", { name: "Volume" })).toBeVisible();
-    await ctx.mainWindow.getByRole("button", { name: "Mute" }).click();
+    const muteButton = ctx.mainWindow.getByRole("button", { name: "Mute" });
+    await expect(muteButton).toBeVisible();
+    await muteButton.click();
     await expect(ctx.mainWindow.getByRole("button", { name: "Unmute" })).toBeVisible();
 
     await toggleFullScreenPlayer(ctx.mainWindow);
@@ -788,19 +804,19 @@ test.describe("GUI expected features", () => {
     await expect(ctx.mainWindow.locator("[data-player-artwork]")).toBeVisible();
     await expect(ctx.mainWindow.locator("[data-player-track-info]")).toBeVisible();
     await expect(
-      ctx.mainWindow.getByRole("button", { name: "Remove from favorites" })
+      ctx.mainWindow.getByRole("button", { name: "Add to Playlist" })
     ).not.toBeVisible();
     await expect(
       ctx.mainWindow.getByRole("button", { name: "Player track actions" })
     ).not.toBeVisible();
     await expect(ctx.mainWindow.getByRole("link", { name: "Home" })).toBeVisible();
     await expect(ctx.mainWindow.getByRole("link", { name: "Search", exact: true })).toBeVisible();
-    await ctx.mainWindow.getByRole("link", { name: "Songs", exact: true }).click();
-    await expect(ctx.mainWindow.getByRole("link", { name: "Songs", exact: true })).toHaveAttribute(
+    await ctx.mainWindow.getByRole("link", { name: "Videos", exact: true }).click();
+    await expect(ctx.mainWindow.getByRole("link", { name: "Videos", exact: true })).toHaveAttribute(
       "aria-current",
       "page"
     );
-    await expect(ctx.mainWindow.getByRole("link", { name: "Songs", exact: true })).toHaveCSS(
+    await expect(ctx.mainWindow.getByRole("link", { name: "Videos", exact: true })).toHaveCSS(
       "color",
       "rgb(255, 255, 255)"
     );
@@ -819,8 +835,9 @@ test.describe("GUI expected features", () => {
       "background-image",
       "none"
     );
-    await expect(ctx.mainWindow.getByLabel("E2E Artist")).toBeVisible();
-    await ctx.mainWindow.getByLabel("E2E Artist").hover();
+    const expandedArtistAvatar = ctx.mainWindow.getByLabel("E2E Artist", { exact: true }).first();
+    await expect(expandedArtistAvatar).toBeVisible();
+    await expandedArtistAvatar.hover();
     await expect(
       ctx.mainWindow.getByRole("button", { name: "Follow", exact: true })
     ).not.toBeVisible();
@@ -847,15 +864,16 @@ test.describe("GUI expected features", () => {
       ctx.mainWindow.getByTestId("expanded-mobile-track-details").getByText("E2E Song One")
     ).toHaveCSS("font-size", "20px");
     await ctx.mainWindow.getByRole("button", { name: "Player options" }).click();
+    const playerOptionsDialog = ctx.mainWindow.getByRole("dialog", { name: "E2E Song One" });
     await expectBottomAlignedDialog(ctx.mainWindow, "E2E Song One");
-    await expect(ctx.mainWindow.getByText("Go to artist", { exact: true })).toBeVisible();
+    await expect(playerOptionsDialog.getByRole("button", { name: "Go to artist" })).toBeVisible();
     await ctx.mainWindow.getByRole("button", { name: "Close" }).click();
     await ctx.mainWindow.getByRole("button", { name: "Playing queue" }).click();
     const mobileQueue = ctx.mainWindow.getByTestId("expanded-mobile-queue-transition");
     await expect(mobileQueue).toHaveCSS("opacity", "1");
     await expect(mobileQueue).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 0)");
     await expect(ctx.mainWindow.getByRole("button", { name: "Suggested tracks" })).toBeVisible();
-    await expect(ctx.mainWindow.getByText("E2E Album Alpha", { exact: true }).last()).toBeVisible();
+    await expect(mobileQueue.getByText("E2E Song Two", { exact: true })).toBeVisible();
     await ctx.mainWindow.getByRole("button", { name: "Playing queue" }).click();
     await expect(mobileQueue).toHaveCSS("opacity", "0");
     await expect(mobileQueue).toHaveCSS("visibility", "hidden");

@@ -5,7 +5,6 @@ import QueueMusicRoundedIcon from "@mui/icons-material/QueueMusicRounded";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import { NOW_PLAYING_BACKGROUND, NOW_PLAYING_COLOR } from "@components/media/nowPlayingStyles";
 import {
-  Avatar,
   Box,
   Button,
   IconButton,

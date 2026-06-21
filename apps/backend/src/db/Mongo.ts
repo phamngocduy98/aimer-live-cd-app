@@ -3,6 +3,7 @@ import { Aes } from "../utils/crypto/aes.js";
 import { DbDocument } from "../types/type.js";
 import { Hosting, IHosting } from "../models/Hosting.js";
 import { createLogger } from "../utils/log.js";
+import { assertSafeTestDbName, resolveE2eDbName } from "../config/databaseSafety.js";
 
 const log = createLogger("MongoDB");
 
@@ -47,8 +48,16 @@ class DbClient {
     try {
       mongoose.set("strictQuery", true);
       const uri = `mongodb+srv://${dbusername}:${dbpassword}@${dbhost}/?retryWrites=true&w=majority`;
+      const dbName =
+        process.env.E2E_TEST_MODE === "true"
+          ? resolveE2eDbName()
+          : process.env.MONGO_DB_NAME || "musicbtxa";
+      if (process.env.E2E_TEST_MODE === "true") {
+        assertSafeTestDbName(dbName);
+        process.env.MONGO_DB_NAME = dbName;
+      }
       await connect(uri, {
-        dbName: process.env.MONGO_DB_NAME || "musicbtxa"
+        dbName
       });
       this._isConnected = true;
       log.info("Connected to MongoDB");

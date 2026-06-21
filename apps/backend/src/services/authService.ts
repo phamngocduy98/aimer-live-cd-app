@@ -38,9 +38,12 @@ export const authCookieName = SESSION_COOKIE;
 export const refreshCookieName = REFRESH_COOKIE;
 
 function cookieAttributes(maxAgeSeconds: number): string {
+  const isE2e = process.env.E2E_TEST_MODE === "true";
   const sameSite =
+    isE2e ? "None" :
     process.env.AUTH_COOKIE_SAMESITE ?? (process.env.NODE_ENV === "production" ? "None" : "Lax");
   const secure =
+    isE2e ? true :
     process.env.AUTH_COOKIE_SECURE === "true" ||
     (process.env.AUTH_COOKIE_SECURE !== "false" && sameSite.toLowerCase() === "none");
   return [

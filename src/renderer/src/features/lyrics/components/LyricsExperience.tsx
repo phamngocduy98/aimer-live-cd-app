@@ -21,7 +21,9 @@ export function LyricsExperience({ videoOverlay = false }: { videoOverlay?: bool
   const { data, isLoading } = useLyrics(mediaType, playingTrack?._id, Boolean(playingTrack));
   const pair = lyricPairs.find((item) => item.id === pairId) ?? lyricPairs[0];
   const primary = (data?.rows ?? []).filter((row) => Boolean(row[pair.primary]));
-  const positionMs = (isVideo(playingTrack) ? videoPosition : audioPosition) * 1000;
+  const mediaPositionMs = (isVideo(playingTrack) ? videoPosition : audioPosition) * 1000;
+  const [optimisticPositionMs, setOptimisticPositionMs] = React.useState<number | null>(null);
+  const positionMs = optimisticPositionMs ?? mediaPositionMs;
   const activeIndex = findActiveCueIndex(primary, positionMs);
   const activeRow = activeIndex >= 0 ? primary[activeIndex] : undefined;
   const activePrimary = activeRow?.[pair.primary];
@@ -36,10 +38,17 @@ export function LyricsExperience({ videoOverlay = false }: { videoOverlay?: bool
       } else {
         seek(position);
       }
+      setOptimisticPositionMs(startMs);
       setSyncEnabled(true);
     },
     [dispatch, playingTrack, seek]
   );
+
+  React.useEffect(() => {
+    if (optimisticPositionMs == null) return;
+    const timeout = window.setTimeout(() => setOptimisticPositionMs(null), 800);
+    return () => window.clearTimeout(timeout);
+  }, [optimisticPositionMs]);
 
   React.useEffect(() => {
     if (syncEnabled && activeIndex >= 0) {
@@ -47,7 +56,10 @@ export function LyricsExperience({ videoOverlay = false }: { videoOverlay?: bool
     }
   }, [activeIndex, syncEnabled]);
 
-  React.useEffect(() => setSyncEnabled(true), [playingTrack?._id]);
+  React.useEffect(() => {
+    setSyncEnabled(true);
+    setOptimisticPositionMs(null);
+  }, [playingTrack?._id]);
 
   React.useEffect(() => {
     if (!isLoading && primary.length === 0) {

@@ -38,10 +38,11 @@ export const PlaylistView: React.FC = () => {
 
   const visibleItems = useMemo(() => {
     if (!playlist) return [];
+    const items = playlist.items ?? [];
     const query = filter.trim().toLocaleLowerCase();
-    if (!query) return playlist.items;
+    if (!query) return items;
 
-    return playlist.items.filter((item) =>
+    return items.filter((item) =>
       [
         item.media.title,
         formatArtists(item.media.artist),
@@ -62,8 +63,9 @@ export const PlaylistView: React.FC = () => {
     label: playlist.name,
     route: `/playlist/${playlist._id}`
   };
-  const coverUrl = mediaArtworkUrl(playlist.items[0]?.media) ?? "";
-  const totalDuration = playlist.items.reduce((total, item) => total + item.media.duration, 0);
+  const playlistItems = playlist.items ?? [];
+  const coverUrl = mediaArtworkUrl(playlistItems[0]?.media) ?? "";
+  const totalDuration = playlistItems.reduce((total, item) => total + item.media.duration, 0);
 
   const play = (shuffle = false): void => {
     if (visibleItems.length === 0) return;
@@ -143,7 +145,7 @@ export const PlaylistView: React.FC = () => {
           }
           summary={
             <>
-              <span>{playlist.items.length} items</span>
+              <span>{playlistItems.length} items</span>
               <span>·</span>
               <span>{formatDuration(totalDuration)}</span>
             </>
@@ -231,7 +233,7 @@ export const PlaylistView: React.FC = () => {
           />
         ) : (
           <Typography color="#a7a7a7" sx={{ py: 5, textAlign: "center" }}>
-            {playlist.items.length === 0 ? "This playlist is empty." : `No items match “${filter}”`}
+            {playlistItems.length === 0 ? "This playlist is empty." : `No items match “${filter}”`}
           </Typography>
         )}
       </DetailContent>

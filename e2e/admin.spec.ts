@@ -1,7 +1,12 @@
 import { test, expect } from "@playwright/test";
 import { createTempDir, cleanupTempDir } from "./utils/temp-dir.js";
-import { launchApp, type ElectronTestContext } from "./utils/electron-app.js";
+import {
+  expectNoRendererFailures,
+  launchApp,
+  type ElectronTestContext
+} from "./utils/electron-app.js";
 import { seedE2eDatabase } from "./utils/test-data.js";
+import { loginFromUserMenu } from "./utils/auth.js";
 
 let testUserDataDir: string;
 
@@ -19,7 +24,10 @@ test.describe("Admin dialog", () => {
   });
 
   test.afterEach(async () => {
-    await ctx?.electronApp.close();
+    const currentCtx = ctx;
+    ctx = undefined as unknown as ElectronTestContext;
+    await currentCtx?.electronApp.close();
+    if (currentCtx) expectNoRendererFailures(currentCtx);
   });
 
   test("admin dialog opens from avatar menu", async () => {
@@ -264,17 +272,8 @@ test.describe("Admin dialog", () => {
 });
 
 async function openAdmin(ctx: ElectronTestContext) {
+  await loginFromUserMenu(ctx.mainWindow, "admin", "admin-password");
   await ctx.mainWindow.getByRole("button", { name: "User menu" }).click();
-  const loginMenu = ctx.mainWindow.getByRole("menuitem", { name: "Login" });
-  if (await loginMenu.isVisible()) {
-    await loginMenu.click();
-    const login = ctx.mainWindow.getByRole("dialog", { name: "Login" });
-    await login.getByLabel("Username").fill("admin");
-    await login.getByLabel("Password").fill("admin-password");
-    await login.getByRole("button", { name: "Login" }).click();
-    await expect(login).not.toBeVisible();
-    await ctx.mainWindow.getByRole("button", { name: "User menu" }).click();
-  }
   await ctx.mainWindow.getByRole("menuitem", { name: "Admin" }).click();
   return ctx.mainWindow.getByRole("dialog", { name: "Admin" });
 }

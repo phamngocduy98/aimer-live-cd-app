@@ -1,10 +1,11 @@
 import dotenv from "dotenv";
 import mongoose, { Types } from "mongoose";
+import { assertSafeTestDbName, resolveE2eDbName } from "../../apps/backend/src/config/databaseSafety.js";
 import { hashPassword } from "../../apps/backend/src/services/authService.js";
 
 dotenv.config();
 
-export const E2E_DB_NAME = process.env.MONGO_DB_NAME || "musicbtxa_e2e";
+export const E2E_DB_NAME = resolveE2eDbName();
 
 export const testIds = {
   host: new Types.ObjectId("665000000000000000000001"),
@@ -26,17 +27,9 @@ const tinyPng = Buffer.from(
   "base64"
 );
 
-function assertSafeDbName(dbName: string): void {
-  if (!/(?:_e2e|_test)$/i.test(dbName)) {
-    throw new Error(
-      `Refusing to seed unsafe database "${dbName}". Use a name ending with _e2e or _test.`
-    );
-  }
-}
-
 async function connectToTestDatabase(): Promise<void> {
   process.env.MONGO_DB_NAME = E2E_DB_NAME;
-  assertSafeDbName(E2E_DB_NAME);
+  assertSafeTestDbName(E2E_DB_NAME);
 
   const dbhost = process.env.MONGO_DB_HOST;
   const dbusername = process.env.MONGO_DB_USER;

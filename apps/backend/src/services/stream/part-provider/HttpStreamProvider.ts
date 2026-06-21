@@ -8,6 +8,18 @@ import { createLogger } from "../../../utils/log.js";
 
 const log = createLogger("HTTP");
 
+function headerValueToString(value: AxiosResponse["headers"][string]): string | undefined {
+  if (value == null) return undefined;
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (Array.isArray(value)) return value.join(", ");
+  return undefined;
+}
+
+function headerValueIncludes(value: AxiosResponse["headers"][string], search: string): boolean {
+  return headerValueToString(value)?.includes(search) ?? false;
+}
+
 export class HttpStreamProvider extends StreamProvider {
   constructor(
     protected streamConfig: IHttpStreamConfig,
@@ -88,7 +100,7 @@ export class HttpStreamProvider extends StreamProvider {
       throw Error("Audio not found");
     }
     if (statusCode != null && statusCode >= 200 && statusCode < 300) {
-      if (res.headers["content-type"]?.includes("text/html")) {
+      if (headerValueIncludes(res.headers["content-type"], "text/html")) {
         if (responseType === "text") {
           log.warn(`HTML response: ${res.data.slice(0, 150)}`);
         } else {
@@ -112,12 +124,11 @@ export class HttpStreamProvider extends StreamProvider {
     fileName: string
   ): Promise<{ data: Readable; contentType?: string; contentLength?: number }> {
     const res = await this.get(fileName);
+    const contentLength = headerValueToString(res.headers["content-length"]);
     return {
       data: res.data,
-      contentType: res.headers["content-type"],
-      contentLength: res.headers["content-length"]
-        ? parseInt(res.headers["content-length"])
-        : undefined
+      contentType: headerValueToString(res.headers["content-type"]),
+      contentLength: contentLength ? parseInt(contentLength) : undefined
     };
   }
 
