@@ -8,3 +8,12 @@ await mkdir(resolve(root, "dist", "scripts"), { recursive: true });
 await cp(resolve(root, "src", "scripts", "php"), resolve(root, "dist", "scripts", "php"), {
   recursive: true
 });
+
+await mkdir(
+  resolve(root, "dist", "services", "stream", "part-provider", "http-stream", "bypass"),
+  { recursive: true }
+);
+await cp(
+  resolve(root, "src", "services", "stream", "part-provider", "http-stream", "bypass", "aes.js"),
+  resolve(root, "dist", "services", "stream", "part-provider", "http-stream", "bypass", "aes.js")
+);
