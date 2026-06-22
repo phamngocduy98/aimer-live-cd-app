@@ -14,7 +14,7 @@ const expandedDrawerWidth = 264;
 const collapsedDrawerWidth = 76;
 const AdminDialog = React.lazy(() => import("@features/admin"));
 
-export function AppShell() {
+export function AppShell(): JSX.Element {
   const theme = useTheme();
   const desktopUp = useMediaQuery(theme.breakpoints.up("lg"));
   const mediumUp = useMediaQuery(theme.breakpoints.up("md"));
@@ -45,7 +45,7 @@ export function AppShell() {
   }, [location.pathname, location.search]);
 
   const drawerWidth = isSidebarCollapsed ? collapsedDrawerWidth : expandedDrawerWidth;
-  const openCreatePlaylist = () => {
+  const openCreatePlaylist = (): void => {
     if (!session.user) {
       setIsLoginOpen(true);
       return;
@@ -106,7 +106,7 @@ export function AppShell() {
         </Suspense>
       )}
       <LoginDialog open={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
-      <SubscriptionRequiredDialog />
+      <SubscriptionRequiredDialog onLoginClick={() => setIsLoginOpen(true)} />
       <CreatePlaylistDialog
         open={isCreatePlaylistOpen}
         onClose={() => setIsCreatePlaylistOpen(false)}

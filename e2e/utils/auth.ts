@@ -5,17 +5,15 @@ export async function loginFromUserMenu(
   username: string,
   password: string
 ): Promise<void> {
-  await page.getByRole("button", { name: "User menu" }).click();
-  const loginMenu = page.getByRole("menuitem", { name: "Login" });
-  if (!(await loginMenu.isVisible())) {
-    await page.keyboard.press("Escape");
+  const loginButton = page.getByRole("button", { name: "Login" }).first();
+  if (!(await loginButton.isVisible())) {
     return;
   }
 
-  await loginMenu.click();
+  await loginButton.click();
   const login = page.getByRole("dialog", { name: "Login" });
   await login.getByLabel("Username").fill(username);
   await login.getByLabel("Password").fill(password);
-  await login.getByRole("button", { name: "Login" }).click();
+  await login.getByRole("button", { name: "Log In" }).click();
   await expect(login).not.toBeVisible();
 }

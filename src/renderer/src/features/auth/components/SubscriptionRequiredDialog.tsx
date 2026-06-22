@@ -27,7 +27,11 @@ const MobileSlideTransition = React.forwardRef(function MobileSlideTransition(
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export function SubscriptionRequiredDialog() {
+export function SubscriptionRequiredDialog({
+  onLoginClick
+}: {
+  onLoginClick: () => void;
+}): JSX.Element {
   const dispatch = useAppDispatch();
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -39,7 +43,13 @@ export function SubscriptionRequiredDialog() {
   const backgroundColor = useMediaBackgroundColor(media);
   const coverAlt = media ? `${media.title} cover` : "Media cover";
 
-  const close = () => dispatch(hideSubscriptionPrompt());
+  const close = (): void => {
+    dispatch(hideSubscriptionPrompt());
+  };
+  const handleLoginClick = (): void => {
+    close();
+    onLoginClick();
+  };
 
   return (
     <Dialog
@@ -59,8 +69,8 @@ export function SubscriptionRequiredDialog() {
       PaperProps={{
         sx: {
           m: { xs: 0, sm: 4 },
-          width: { xs: 1, sm: 520 },
-          maxWidth: { xs: "100%", sm: 520 },
+          width: { xs: 1, sm: 550 },
+          maxWidth: { xs: "100%", sm: 600 },
           overflow: "hidden",
           borderRadius: { xs: "28px 28px 0 0", sm: "22px" },
           border: "1px solid rgba(255,255,255,.1)",
@@ -139,7 +149,7 @@ export function SubscriptionRequiredDialog() {
             sx={{
               color: "rgba(255,255,255,.68)",
               fontSize: { xs: 14, sm: 15 },
-              fontWeight: 700,
+              fontWeight: 500,
               lineHeight: 1.35,
               letterSpacing: 0
             }}
@@ -151,6 +161,7 @@ export function SubscriptionRequiredDialog() {
 
       <DialogActions
         sx={{
+          flexDirection: "column",
           justifyContent: "center",
           px: { xs: 3, sm: 6 },
           pt: 2,
@@ -175,6 +186,40 @@ export function SubscriptionRequiredDialog() {
         >
           Got it
         </Button>
+        <Typography
+          sx={{
+            mt: 4,
+            color: "rgba(255,255,255,.58)",
+            fontSize: 14,
+            fontWeight: 500,
+            lineHeight: 1.35,
+            textAlign: "center"
+          }}
+        >
+          Already have an account?{" "}
+          <Button
+            variant="text"
+            onClick={handleLoginClick}
+            sx={{
+              minWidth: 0,
+              p: 0,
+              color: "#fff",
+              fontSize: "inherit",
+              fontWeight: 700,
+              lineHeight: "inherit",
+              textDecoration: "underline",
+              textUnderlineOffset: "3px",
+              textTransform: "none",
+              verticalAlign: "baseline",
+              "&:hover": {
+                bgcolor: "transparent",
+                textDecoration: "underline"
+              }
+            }}
+          >
+            Login
+          </Button>
+        </Typography>
       </DialogActions>
     </Dialog>
   );

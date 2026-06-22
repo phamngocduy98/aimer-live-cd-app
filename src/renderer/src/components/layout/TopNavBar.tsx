@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Debouncer } from "@tanstack/pacer";
-import { Box, Grid, IconButton, useMediaQuery, useTheme } from "@mui/material";
+import { Box, Button, Grid, IconButton, useMediaQuery, useTheme } from "@mui/material";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import SearchIcon from "@mui/icons-material/Search";
 import PersonIcon from "@mui/icons-material/Person";
@@ -12,6 +12,9 @@ import type { SearchResult } from "@renderer/types/shared";
 import { search } from "@features/search";
 import type { SessionState } from "@features/auth";
 import { BrandMark } from "./BrandMark";
+
+const DOWNLOAD_APP_URL =
+  "https://github.com/phamngocduy98/aimer-live-cd-app/releases/latest/download/aimer-live-cd-app-1.0.0-setup.exe";
 
 const BootstrapInput = styled(InputBase)({
   "& .MuiInputAdornment-positionStart": {
@@ -102,6 +105,9 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const mobileSearchOnly = isMobile && isSearchRoute;
+  const isElectron = Boolean(window.electronAPI);
+  const showLoggedOutActions = !session.user;
+  const showDownloadApp = showLoggedOutActions && !isElectron;
   const [searchInput, setSearchInput] = useState(initialSearchQuery);
   const [previewResult, setPreviewResult] = useState<SearchResult | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -139,7 +145,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
     );
   }
 
-  const closeDropdown = () => {
+  const closeDropdown = (): void => {
     setIsDropdownOpen(false);
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
@@ -153,10 +159,10 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return (): void => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent): void => {
     if (e.key === "Enter") {
       closeDropdown();
       onSearchRef.current(searchInput.trim());
@@ -165,7 +171,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
     }
   };
 
-  const handleSearchChange = (value: string) => {
+  const handleSearchChange = (value: string): void => {
     setSearchInput(value);
     if (mobileSearchOnly) {
       setIsDropdownOpen(false);
@@ -175,7 +181,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
     debouncedPreviewRef.current.maybeExecute(value);
   };
 
-  const handleSearchBlur = () => {
+  const handleSearchBlur = (): void => {
     closeDropdown();
   };
 
@@ -239,7 +245,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           )}
           <Grid
             item
-            xs={mobileSearchOnly ? 12 : "auto"}
+            xs={mobileSearchOnly && showLoggedOutActions ? true : mobileSearchOnly ? 12 : "auto"}
             sx={{ display: { xs: mobileSearchOnly ? "block" : "none", sm: "unset" } }}
           >
             <Box ref={containerRef} sx={{ position: "relative" }}>
@@ -285,13 +291,73 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             item
             xs="auto"
             sx={{
-              marginLeft: 2,
-              display: { xs: mobileSearchOnly ? "none" : "block", sm: "block" }
+              marginLeft: { xs: mobileSearchOnly ? 1 : 2, sm: 2 },
+              display: "flex",
+              alignItems: "center",
+              gap: { xs: 1, sm: 1.5 }
             }}
           >
-            <IconButton aria-label="User menu" onClick={onMenuOpen} size="small">
-              <PersonIcon />
-            </IconButton>
+            {showDownloadApp && (
+              <Button
+                component="a"
+                href={DOWNLOAD_APP_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                download
+                variant="contained"
+                sx={{
+                  display: { xs: "none", sm: "inline-flex" },
+                  height: 44,
+                  minWidth: 0,
+                  px: 2.5,
+                  borderRadius: "999px",
+                  bgcolor: "rgba(255,255,255,.09)",
+                  color: "#fff",
+                  boxShadow: "none",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  lineHeight: 1,
+                  whiteSpace: "nowrap",
+                  textTransform: "none",
+                  "&:hover": {
+                    bgcolor: "rgba(255,255,255,.14)",
+                    boxShadow: "none"
+                  }
+                }}
+              >
+                Download App
+              </Button>
+            )}
+            {showLoggedOutActions ? (
+              <Button
+                onClick={onLoginClick}
+                variant="contained"
+                sx={{
+                  height: 44,
+                  minWidth: 0,
+                  px: { xs: 2, sm: 2.5 },
+                  borderRadius: "999px",
+                  bgcolor: "#fff",
+                  color: "#111",
+                  boxShadow: "none",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  lineHeight: 1,
+                  whiteSpace: "nowrap",
+                  textTransform: "none",
+                  "&:hover": {
+                    bgcolor: "rgba(255,255,255,.86)",
+                    boxShadow: "none"
+                  }
+                }}
+              >
+                Login
+              </Button>
+            ) : (
+              <IconButton aria-label="User menu" onClick={onMenuOpen} size="small">
+                <PersonIcon />
+              </IconButton>
+            )}
           </Grid>
         </Grid>
       </Box>
