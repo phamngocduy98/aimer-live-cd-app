@@ -116,6 +116,7 @@ import {
   handleGetRadioState,
   handleRadioEvents,
   handleRadioListenerHeartbeat,
+  handleRadioDirectStreamManifest,
   handleRemoveRadioListener,
   handleRadioStream
 } from "./routes/radio.js";
@@ -334,6 +335,7 @@ app.get("/api/search", handleSearch);
 
 app.get("/api/radio/state", handleGetRadioState);
 app.get("/api/radio/events", handleRadioEvents);
+app.get("/api/radio/direct/:slotId", handleRadioDirectStreamManifest);
 app.get("/api/radio/stream/:slotId", handleRadioStream);
 app.post("/api/radio/queue", requirePaidMedia, handleAddRadioQueueItem);
 app.post("/api/radio/listeners/heartbeat", handleRadioListenerHeartbeat);

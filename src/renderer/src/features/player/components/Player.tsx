@@ -139,7 +139,7 @@ export function Player() {
         <Box
           sx={{
             display: { xs: expandedPlayerOpen ? "none" : "block", sm: "block" },
-            overflow: "hidden"
+            overflow: "visible"
           }}
         >
           <MPlayerUI />

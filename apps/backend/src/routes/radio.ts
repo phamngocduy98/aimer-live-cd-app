@@ -18,6 +18,7 @@ import {
 import { fail } from "../utils/reqUtils.js";
 import { createLogger } from "../utils/log.js";
 import { AuthenticatedRequest } from "../middleware/auth.js";
+import { sendDirectStreamManifest } from "./stream.js";
 
 const log = createLogger("Radio");
 
@@ -117,7 +118,8 @@ export async function handleAddRadioQueueItem(req: AuthenticatedRequest, res) {
   const result = await addRadioQueueItem({
     mediaType,
     mediaId,
-    requestedBy: req.auth?.user?._id
+    requestedBy: req.auth?.user?._id,
+    canBypassDailyLimit: Boolean(req.auth?.canAccessAdmin)
   });
   if (!result) return fail(res, "Media not found", 404);
   if ("limitReached" in result) return fail(res, "Daily radio request limit reached", 429);
@@ -192,4 +194,16 @@ export async function handleRadioStream(req, res) {
     log.error({ err: error }, "Radio stream failed");
     fail(res, (error as Error).message, (error as any).status || 404);
   }
+}
+
+export async function handleRadioDirectStreamManifest(req, res) {
+  const slot = await findPublicStreamSlot(req.params.slotId);
+  if (!slot) return fail(res, "Radio slot not available", 404);
+
+  const media =
+    slot.mediaType === "audio"
+      ? await Song.findById(slot.mediaId).populate("hostingList").exec()
+      : await Video.findById(slot.mediaId).populate("hostingList").exec();
+
+  return sendDirectStreamManifest(res, media, slot.mediaType);
 }

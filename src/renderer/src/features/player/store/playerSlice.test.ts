@@ -6,10 +6,11 @@ import reducer, {
   playRadio,
   prevTrack,
   setPlaybackAccess,
+  setCurrentChapter,
   setRadioListening
 } from "./playerSlice";
 import type { Song, Video } from "@features/library/types";
-import { mediaSourcePath } from "../types";
+import { directRadioSourcePath, mediaSourcePath } from "../types";
 
 const song = (id: string): Song => ({
   _id: id,
@@ -95,6 +96,11 @@ describe("player queue", () => {
     const youtubeVideo = { ...video("youtube-video"), youtubeUrl: "https://youtu.be/example" };
 
     expect(mediaSourcePath(youtubeVideo)).toBe("https://youtu.be/example");
+  });
+
+  it("maps public radio stream slots to the local direct stream route", () => {
+    expect(directRadioSourcePath("/radio/stream/slot-live")).toBe("/radio/slot-live");
+    expect(directRadioSourcePath("https://youtu.be/example")).toBeNull();
   });
 
   it("filters restricted media from a guest queue", () => {
@@ -193,5 +199,46 @@ describe("player queue", () => {
     expect(state.radio.listening).toBe(true);
     expect(state.radio.paused).toBe(true);
     expect(state.currentEntry?.sourceUrl).toBe("/radio/stream/slot-paused");
+  });
+
+  it("preserves the active video chapter when radio sync refreshes the same slot", () => {
+    const liveVideo = {
+      ...video("live-video"),
+      chapters: [
+        { title: "Intro", time: 0 },
+        { title: "Chorus", subTitle: "Live", time: 30 }
+      ]
+    };
+    let state = reducer(
+      paidState(),
+      playRadio({
+        media: liveVideo,
+        mediaType: "video",
+        slotId: "slot-live-video",
+        startedAt: "2026-06-21T00:00:00.000Z",
+        serverTime: "2026-06-21T00:00:35.000Z",
+        position: 35,
+        duration: 120,
+        streamUrl: "/radio/stream/slot-live-video"
+      })
+    );
+    state = reducer(state, setCurrentChapter({ chapterIdx: 1, duration: 90 }));
+
+    state = reducer(
+      state,
+      playRadio({
+        media: liveVideo,
+        mediaType: "video",
+        slotId: "slot-live-video",
+        startedAt: "2026-06-21T00:00:00.000Z",
+        serverTime: "2026-06-21T00:00:45.000Z",
+        position: 45,
+        duration: 120,
+        streamUrl: "/radio/stream/slot-live-video"
+      })
+    );
+
+    expect(state.currentChapterIdx).toBe(1);
+    expect(state.currentChapterDuration).toBe(90);
   });
 });

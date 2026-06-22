@@ -39,7 +39,8 @@ const playerVideoControlSlice = createSlice({
       state.videoLoadedMediaId = payload.payload.mediaId;
       state.videoPlaying = true;
       state.videoIsReady = false;
-      state.videoIsLoading = false;
+      state.videoIsLoading = true;
+      state.videoError = null;
       state.videoPosition = 0;
       if (state.videoSeekMediaId !== payload.payload.mediaId) {
         state.videoSeekPosition = null;

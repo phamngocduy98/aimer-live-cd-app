@@ -1,10 +1,15 @@
 import axios from "axios";
 import { session } from "electron";
+import MultiStream from "multistream";
 import http from "node:http";
 import crypto from "node:crypto";
 import { Readable } from "node:stream";
+import { createLogger } from "./utils/log.js";
 
 type MediaType = "audio" | "video";
+type DirectStreamTarget =
+  | { type: "media"; mediaType: MediaType; id: string }
+  | { type: "radio"; slotId: string };
 
 interface DirectStreamManifest {
   id: string;
@@ -46,6 +51,77 @@ interface ParsedSetCookie {
   expirationDate?: number;
   sameSite?: "unspecified" | "no_restriction" | "lax" | "strict";
 }
+
+const maxCurrentMediaCacheBytes = 128 * 1024 * 1024;
+const log = createLogger("DirectStream");
+
+class CurrentMediaPartCache {
+  private entries = new Map<
+    string,
+    { targetKey: string; partKey: string; data: Buffer; size: number }
+  >();
+  private totalBytes = 0;
+
+  private key(targetKey: string, partKey: string): string {
+    return `${targetKey}\0${partKey}`;
+  }
+
+  get(targetKey: string, partKey: string): Buffer | null {
+    const cacheKey = this.key(targetKey, partKey);
+    const entry = this.entries.get(cacheKey);
+    if (!entry) {
+      log.debug(
+        { targetKey, partKey, entries: this.entries.size, totalBytes: this.totalBytes },
+        "Direct stream cache miss"
+      );
+      return null;
+    }
+    this.entries.delete(cacheKey);
+    this.entries.set(cacheKey, entry);
+    log.debug({ targetKey, partKey, bytes: entry.size }, "Direct stream cache hit");
+    return entry.data;
+  }
+
+  set(targetKey: string, partKey: string, data: Buffer): void {
+    if (data.length > maxCurrentMediaCacheBytes) {
+      log.debug(
+        { targetKey, partKey, bytes: data.length },
+        "Skip direct stream cache set; part too large"
+      );
+      return;
+    }
+    const cacheKey = this.key(targetKey, partKey);
+    const existing = this.entries.get(cacheKey);
+    if (existing) this.totalBytes -= existing.size;
+    this.entries.delete(cacheKey);
+    this.entries.set(cacheKey, { targetKey, partKey, data, size: data.length });
+    this.totalBytes += data.length;
+    log.debug(
+      { targetKey, partKey, bytes: data.length, totalBytes: this.totalBytes },
+      "Stored direct stream cache part"
+    );
+
+    while (this.totalBytes > maxCurrentMediaCacheBytes) {
+      const oldest = this.entries.entries().next().value as
+        | [string, { targetKey: string; partKey: string; data: Buffer; size: number }]
+        | undefined;
+      if (!oldest) break;
+      this.entries.delete(oldest[0]);
+      this.totalBytes -= oldest[1].size;
+      log.debug(
+        {
+          targetKey: oldest[1].targetKey,
+          partKey: oldest[1].partKey,
+          bytes: oldest[1].size,
+          totalBytes: this.totalBytes
+        },
+        "Evicted direct stream cache part"
+      );
+    }
+  }
+}
+
+const partCache = new CurrentMediaPartCache();
 
 function localMediaHeaders(headers: http.OutgoingHttpHeaders = {}): http.OutgoingHttpHeaders {
   return {
@@ -120,20 +196,6 @@ function partsForRange(manifest: DirectStreamManifest, range: ByteRange): Stream
   }
 
   return parts;
-}
-
-function trimDecryptedPart(input: Buffer, part: StreamPart): Buffer {
-  if (part.partByteStart === 0 && part.partByteEnd === part.partSize - 1) return input;
-  return input.subarray(part.partByteStart, part.partByteEnd + 1);
-}
-
-function decryptPart(input: Buffer, manifest: DirectStreamManifest): Buffer {
-  const decipher = crypto.createDecipheriv(
-    "aes-256-ctr",
-    Buffer.from(manifest.key, "hex"),
-    Buffer.from(manifest.iv, "hex")
-  );
-  return Buffer.concat([decipher.update(input), decipher.final()]);
 }
 
 function apiOrigin(apiBaseUrl: string): string {
@@ -218,21 +280,26 @@ async function refreshAuthCookies(apiBaseUrl: string): Promise<boolean> {
 
 async function fetchManifest(
   apiBaseUrl: string,
-  mediaType: MediaType,
-  id: string,
+  target: DirectStreamTarget,
   refreshed = false
 ): Promise<DirectStreamManifest> {
   const cookie = await cookieHeaderFor(apiBaseUrl);
-  const response = await axios.get<DirectStreamManifest>(
-    `${apiBaseUrl}/stream/direct/${mediaType}/${id}`,
-    {
-      headers: cookie ? { Cookie: cookie } : undefined,
-      validateStatus: () => true
-    }
-  );
+  const manifestPath =
+    target.type === "radio"
+      ? `/radio/direct/${target.slotId}`
+      : `/stream/direct/${target.mediaType}/${target.id}`;
+  log.debug({ target, manifestPath, refreshed }, "Fetch direct stream manifest");
+  const response = await axios.get<DirectStreamManifest>(`${apiBaseUrl}${manifestPath}`, {
+    headers: cookie ? { Cookie: cookie } : undefined,
+    validateStatus: () => true
+  });
 
   if (response.status === 401 && !refreshed && (await refreshAuthCookies(apiBaseUrl))) {
-    return fetchManifest(apiBaseUrl, mediaType, id, true);
+    log.info(
+      { target, manifestPath },
+      "Direct stream manifest unauthorized; refreshed auth cookies"
+    );
+    return fetchManifest(apiBaseUrl, target, true);
   }
   if (response.status < 200 || response.status >= 300) {
     throw new axios.AxiosError(
@@ -244,19 +311,34 @@ async function fetchManifest(
     );
   }
 
+  log.debug(
+    {
+      target,
+      mediaType: response.data.mediaType,
+      mediaId: response.data.id,
+      hosts: response.data.hosts.map((host) => host.name),
+      size: response.data.size,
+      partSize: response.data.partSize
+    },
+    "Direct stream manifest ready"
+  );
   return response.data;
 }
 
 async function proxyBackendStream(
   apiBaseUrl: string,
-  mediaType: MediaType,
-  id: string,
+  target: DirectStreamTarget,
   req: http.IncomingMessage,
   res: http.ServerResponse,
   refreshed = false
 ): Promise<void> {
   const cookie = await cookieHeaderFor(apiBaseUrl);
-  const response = await axios.get<Readable>(`${apiBaseUrl}/stream/${mediaType}/${id}`, {
+  const streamPath =
+    target.type === "radio"
+      ? `/radio/stream/${target.slotId}`
+      : `/stream/${target.mediaType}/${target.id}`;
+  log.info({ target, streamPath, refreshed }, "Proxy direct stream request to backend stream");
+  const response = await axios.get<Readable>(`${apiBaseUrl}${streamPath}`, {
     responseType: "stream",
     headers: {
       ...(cookie ? { Cookie: cookie } : {}),
@@ -267,11 +349,13 @@ async function proxyBackendStream(
 
   if (response.status === 401 && !refreshed && (await refreshAuthCookies(apiBaseUrl))) {
     response.data.destroy();
-    await proxyBackendStream(apiBaseUrl, mediaType, id, req, res, true);
+    log.info({ target, streamPath }, "Backend stream proxy unauthorized; refreshed auth cookies");
+    await proxyBackendStream(apiBaseUrl, target, req, res, true);
     return;
   }
   if (response.status < 200 || response.status >= 300) {
     response.data.destroy();
+    log.warn({ target, streamPath, status: response.status }, "Backend stream proxy failed");
     res.writeHead(response.status, response.statusText, localMediaHeaders({ "Content-Length": 0 }));
     res.end();
     return;
@@ -283,17 +367,37 @@ async function proxyBackendStream(
     localMediaHeaders(response.headers as http.OutgoingHttpHeaders)
   );
   response.data.on("error", () => {
+    log.warn({ target, streamPath }, "Backend stream proxy response error");
     if (!res.destroyed) res.end();
   });
   response.data.pipe(res);
 }
 
-async function fetchEncryptedPart(
+function trimDecryptedPart(input: Buffer, part: StreamPart): Buffer {
+  if (part.partByteStart === 0 && part.partByteEnd === part.partSize - 1) return input;
+  return input.subarray(part.partByteStart, part.partByteEnd + 1);
+}
+
+function directCacheTargetKey(manifest: DirectStreamManifest): string {
+  return `${manifest.mediaType}:${manifest.id}:${manifest.iv}:${manifest.size}`;
+}
+
+function decryptPartBuffer(manifest: DirectStreamManifest, encrypted: Buffer): Buffer {
+  const decipher = crypto.createDecipheriv(
+    "aes-256-ctr",
+    Buffer.from(manifest.key, "hex"),
+    Buffer.from(manifest.iv, "hex")
+  );
+  return Buffer.concat([decipher.update(encrypted), decipher.final()]);
+}
+
+async function fetchDecryptedPartBuffer(
   manifest: DirectStreamManifest,
   part: StreamPart
 ): Promise<Buffer> {
   if (manifest.hosts.length === 0) throw new Error("No direct stream hosts available");
 
+  const targetKey = directCacheTargetKey(manifest);
   let lastError: unknown;
 
   const attempts = manifest.hosts.length * 2;
@@ -301,6 +405,17 @@ async function fetchEncryptedPart(
     const host = manifest.hosts[attempt % manifest.hosts.length];
     try {
       const urlBase = host.urlBase.replace(/\/+$/, "");
+      log.debug(
+        {
+          targetKey,
+          partKey: part.fileName,
+          host: host.name,
+          attempt: attempt + 1,
+          attempts,
+          range: `${part.partByteStart}-${part.partByteEnd}/${part.partSize}`
+        },
+        "Fetch direct stream part"
+      );
       const response = await axios.get<ArrayBuffer>(
         `${urlBase}/${encodeURIComponent(part.fileName)}`,
         {
@@ -317,19 +432,43 @@ async function fetchEncryptedPart(
         }
       );
       const contentType = responseHeader(response.headers["content-type"])?.toLowerCase();
-      const buffer = Buffer.from(response.data);
+      const contentLength = Number(responseHeader(response.headers["content-length"]));
+      const encrypted = Buffer.from(response.data);
 
       if (contentType?.includes("text/html")) {
         throw new Error(`${host.name} returned HTML instead of encrypted media part`);
       }
-      if (buffer.length < part.partSize) {
+      if (
+        (Number.isFinite(contentLength) && contentLength < part.partSize) ||
+        encrypted.length < part.partSize
+      ) {
         throw new Error(
-          `${host.name} returned ${buffer.length} bytes for ${part.fileName}; expected ${part.partSize}`
+          `${host.name} returned ${encrypted.length} bytes for ${part.fileName}; expected ${part.partSize}`
         );
       }
 
-      return buffer;
+      log.debug(
+        {
+          targetKey,
+          partKey: part.fileName,
+          host: host.name,
+          contentLength: Number.isFinite(contentLength) ? contentLength : undefined
+        },
+        "Direct stream part ready"
+      );
+      return decryptPartBuffer(manifest, encrypted.subarray(0, part.partSize));
     } catch (error) {
+      log.warn(
+        {
+          err: error,
+          targetKey,
+          partKey: part.fileName,
+          host: host.name,
+          attempt: attempt + 1,
+          attempts
+        },
+        "Direct stream part fetch failed"
+      );
       lastError = error;
     }
   }
@@ -337,14 +476,46 @@ async function fetchEncryptedPart(
   throw lastError instanceof Error ? lastError : new Error(`Unable to fetch ${part.fileName}`);
 }
 
-async function pipeParts(manifest: DirectStreamManifest, parts: StreamPart[]): Promise<Buffer> {
-  const buffers: Buffer[] = [];
-  for (const part of parts) {
-    const encrypted = await fetchEncryptedPart(manifest, part);
-    const decrypted = decryptPart(encrypted, manifest);
-    buffers.push(trimDecryptedPart(decrypted, part));
-  }
-  return Buffer.concat(buffers);
+async function openDecryptedPartStream(
+  manifest: DirectStreamManifest,
+  part: StreamPart
+): Promise<Readable> {
+  const targetKey = directCacheTargetKey(manifest);
+  const cached = partCache.get(targetKey, part.fileName);
+  if (cached) return Readable.from(trimDecryptedPart(cached, part));
+
+  const decrypted = await fetchDecryptedPartBuffer(manifest, part);
+  partCache.set(targetKey, part.fileName, decrypted);
+  return Readable.from(trimDecryptedPart(decrypted, part));
+}
+
+async function openDirectRangeStream(
+  manifest: DirectStreamManifest,
+  parts: StreamPart[]
+): Promise<Readable> {
+  const first = parts[0];
+  if (!first) return Readable.from([]);
+
+  const firstStream = await openDecryptedPartStream(manifest, first);
+  let partIndex = 1;
+  const streamFactory = async (
+    callback: (error: Error | null, stream: Readable | null) => void
+  ): Promise<void> => {
+    if (partIndex >= parts.length) {
+      callback(null, null);
+      return;
+    }
+
+    try {
+      const stream = await openDecryptedPartStream(manifest, parts[partIndex]);
+      partIndex += 1;
+      callback(null, stream);
+    } catch (error) {
+      callback(error instanceof Error ? error : new Error("Unable to stream direct part"), null);
+    }
+  };
+
+  return new MultiStream([firstStream, new MultiStream(streamFactory)]) as Readable;
 }
 
 function respondError(res: http.ServerResponse, status: number, message: string): void {
@@ -369,23 +540,32 @@ export async function startDirectStreamServer(apiBaseUrl: string): Promise<{
       }
 
       const requestUrl = new URL(req.url ?? "/", "http://127.0.0.1");
-      const [, mediaType, id] = requestUrl.pathname.split("/");
-      if ((mediaType !== "audio" && mediaType !== "video") || !id) {
+      const [, targetType, id] = requestUrl.pathname.split("/");
+      const target =
+        targetType === "radio" && id
+          ? ({ type: "radio", slotId: id } as const)
+          : (targetType === "audio" || targetType === "video") && id
+            ? ({ type: "media", mediaType: targetType, id } as const)
+            : null;
+      if (!target) {
         respondError(res, 404, "Not found");
         return;
       }
 
       let manifest: DirectStreamManifest;
       try {
-        manifest = await fetchManifest(apiBaseUrl, mediaType, id);
+        manifest = await fetchManifest(apiBaseUrl, target);
       } catch (error) {
         if (axios.isAxiosError(error) && error.response?.status === 404) {
-          await proxyBackendStream(apiBaseUrl, mediaType, id, req, res);
+          log.info(
+            { target },
+            "Direct stream manifest not available; falling back to backend stream"
+          );
+          await proxyBackendStream(apiBaseUrl, target, req, res);
           return;
         }
         throw error;
       }
-
       const requestedRange = parseRange(req.headers.range, manifest.size);
       const range = capRange(requestedRange, manifest.size, manifest.partSize);
       if (range.start > range.end || range.start >= manifest.size) {
@@ -394,11 +574,25 @@ export async function startDirectStreamServer(apiBaseUrl: string): Promise<{
       }
 
       const parts = partsForRange(manifest, range);
-      let body: Buffer;
+      log.info(
+        {
+          target,
+          targetKey: directCacheTargetKey(manifest),
+          range: `${range.start}-${range.end}/${manifest.size}`,
+          partCount: parts.length,
+          parts: parts.map((part) => part.fileName)
+        },
+        "Direct stream range request"
+      );
+      let body: Readable;
       try {
-        body = await pipeParts(manifest, parts);
-      } catch {
-        await proxyBackendStream(apiBaseUrl, mediaType, id, req, res);
+        body = await openDirectRangeStream(manifest, parts);
+      } catch (error) {
+        log.warn(
+          { err: error, target },
+          "Direct stream open failed; falling back to backend stream"
+        );
+        await proxyBackendStream(apiBaseUrl, target, req, res);
         return;
       }
 
@@ -406,12 +600,28 @@ export async function startDirectStreamServer(apiBaseUrl: string): Promise<{
         ...localMediaHeaders({
           "Accept-Ranges": "bytes",
           "Content-Type": manifest.contentType,
-          "Content-Length": body.length,
+          "Content-Length": range.end - range.start + 1,
           "Content-Range": `bytes ${range.start}-${range.end}/${manifest.size}`,
-          "Cache-Control": "no-store"
+          "Cache-Control": "private, max-age=86400"
         })
       });
-      res.end(req.method === "HEAD" ? undefined : body);
+      if (req.method === "HEAD") {
+        body.destroy();
+        res.end();
+        log.debug({ target, range: `${range.start}-${range.end}` }, "Direct stream HEAD served");
+        return;
+      }
+      body.on("error", (error) => {
+        log.warn(
+          { err: error, target, range: `${range.start}-${range.end}` },
+          "Direct stream body error"
+        );
+        if (!res.destroyed) res.destroy(error);
+      });
+      body.on("end", () => {
+        log.debug({ target, range: `${range.start}-${range.end}` }, "Direct stream body ended");
+      });
+      body.pipe(res);
     } catch (error) {
       const status = axios.isAxiosError(error) ? (error.response?.status ?? 500) : 500;
       respondError(res, status, error instanceof Error ? error.message : "Stream error");

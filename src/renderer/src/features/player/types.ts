@@ -45,9 +45,12 @@ export const mediaSourcePath = (media: MediaItem): string =>
     : `/stream/${isVideo(media) ? "video" : "audio"}/${media._id}`;
 
 export const directMediaSourcePath = (media: MediaItem): string | null =>
-  isVideo(media) && media.youtubeUrl
-    ? null
-    : `/${isVideo(media) ? "video" : "audio"}/${media._id}`;
+  isVideo(media) && media.youtubeUrl ? null : `/${isVideo(media) ? "video" : "audio"}/${media._id}`;
+
+export const directRadioSourcePath = (sourceUrl: string | null | undefined): string | null => {
+  const match = sourceUrl?.match(/^\/radio\/stream\/([^/?#]+)/);
+  return match ? `/radio/${match[1]}` : null;
+};
 
 export const sourceItemKey = (source: PlaySource, media: MediaItem, index: number): string =>
   `${source.type}:${source.id ?? source.route}:${mediaType(media)}:${media._id}:${index}`;

@@ -2,12 +2,30 @@ import React from "react";
 import { useAppDispatch, useAppSelector } from "@app/hooks";
 import { playRadio } from "@features/player/store/playerSlice";
 import { useRadioListenerHeartbeat, useRadioState } from "../hooks/useRadio";
+import type { CurrentRadioItem, RadioState } from "../types";
+
+export function radioPlaybackSyncKey(
+  current: CurrentRadioItem | null,
+  data: RadioState | undefined
+): string | null {
+  if (!current || !data) return null;
+  return [
+    current.slotId,
+    current.mediaType,
+    current.media._id,
+    current.startedAt,
+    current.duration,
+    current.streamUrl,
+    data.stationStatus.paused ? "paused" : "live"
+  ].join(":");
+}
 
 export function RadioSync() {
   const dispatch = useAppDispatch();
   const radio = useAppSelector((state) => state.player.radio);
   const { data, refetch } = useRadioState();
   const current = data?.current ?? null;
+  const appliedPlaybackKey = React.useRef<string | null>(null);
   useRadioListenerHeartbeat(radio.enabled && radio.listening);
 
   React.useEffect(() => {
@@ -26,6 +44,9 @@ export function RadioSync() {
 
   React.useEffect(() => {
     if (!radio.enabled || !radio.listening || !current || !data) return;
+    const playbackKey = radioPlaybackSyncKey(current, data);
+    if (playbackKey === appliedPlaybackKey.current) return;
+    appliedPlaybackKey.current = playbackKey;
     dispatch(
       playRadio({
         media: current.media,

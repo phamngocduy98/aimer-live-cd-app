@@ -25,6 +25,35 @@ function SlideTransition(props: SlideProps) {
   return <Slide {...props} direction="up" />;
 }
 
+function normalizeAudioPlayerError(error: unknown): string {
+  if (typeof error === "string" || typeof error === "number") return String(error).trim();
+  if (error instanceof Error) return error.message.trim();
+  if (error && typeof error === "object" && "message" in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === "string" || typeof message === "number") {
+      return String(message).trim();
+    }
+  }
+  return "";
+}
+
+function formatAudioPlayerError(error: unknown): string {
+  const normalizedError = normalizeAudioPlayerError(error);
+
+  switch (normalizedError) {
+    case "1":
+      return "Playback was interrupted before the track could load.";
+    case "2":
+      return "The track could not be loaded because of a network problem.";
+    case "3":
+      return "The track could not be decoded by this player.";
+    case "4":
+      return "The track could not be loaded or the audio format is not supported.";
+    default:
+      return normalizedError || "The track could not be played.";
+  }
+}
+
 export function MPlayerUI() {
   const timeoutRef = React.useRef<any>();
   const dispatch = useAppDispatch();
@@ -33,6 +62,7 @@ export function MPlayerUI() {
   const expandedPlayerOpen = useAppSelector((state) => state.playerGui.expandedPlayer);
   const lyricsOpen = useAppSelector((state) => state.playerGui.lyrics);
   const { error } = useGlobalAudioPlayer();
+  const playerErrorMessage = React.useMemo(() => formatAudioPlayerError(error), [error]);
   const [actionsAnchor, setActionsAnchor] = React.useState<HTMLElement | null>(null);
   const [addToPlaylistOpen, setAddToPlaylistOpen] = React.useState(false);
   const playlistItems = React.useMemo<PlaylistItemInput[]>(() => {
@@ -48,12 +78,12 @@ export function MPlayerUI() {
   React.useEffect(() => {
     clearTimeout(timeoutRef.current);
     if (error != null) {
-      console.log("error", error);
+      console.log("player error", playerErrorMessage, { error });
       timeoutRef.current = setTimeout(() => {
         dispatch(nextTrack());
       }, 5000);
     }
-  }, [error]);
+  }, [dispatch, error, playerErrorMessage]);
 
   if (playingTrack == null) return null;
   return (
@@ -65,7 +95,7 @@ export function MPlayerUI() {
         autoHideDuration={5000}
       >
         <Alert severity="error" variant="filled" sx={{ width: "100%" }}>
-          {error}
+          {playerErrorMessage}
         </Alert>
       </Snackbar>
       <Grid

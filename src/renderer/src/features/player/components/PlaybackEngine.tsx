@@ -19,12 +19,17 @@ import {
   videoOnSeek
 } from "../store/playerVideoControl";
 import { onVideoPostion } from "../thunks/onVideoPosition";
-import { directMediaSourcePath, mediaSourcePath } from "../types";
+import { directMediaSourcePath, directRadioSourcePath, mediaSourcePath } from "../types";
 import { NaturalVideoSize, resolveVideoSize } from "../videoAspect";
+
+const youtubeEmbedOrigin = "https://music.btxa.io.vn";
 
 export function PlaybackEngine() {
   const dispatch = useAppDispatch();
   const videoRef = React.useRef<ReactPlayer | null>(null);
+  const requestedAudioSourceRef = React.useRef<string | null>(null);
+  const activeRadioAudioSourceKeyRef = React.useRef<string | null>(null);
+  const stopAudioRef = React.useRef<() => void>(() => undefined);
   const [compactRect, setCompactRect] = React.useState<DOMRect | null>(null);
   const [naturalVideoSize, setNaturalVideoSize] = React.useState<NaturalVideoSize | null>(null);
   const playingTrack = useAppSelector((state) => state.player.playingTrack);
@@ -46,6 +51,17 @@ export function PlaybackEngine() {
     useGlobalAudioPlayer();
   const videoSourceKey =
     playingTrack && isVideo(playingTrack) ? `${playingTrack._id}:${videoUrl ?? ""}` : "";
+
+  React.useEffect(() => {
+    stopAudioRef.current = stop;
+  }, [stop]);
+
+  React.useEffect(() => {
+    return () => {
+      requestedAudioSourceRef.current = null;
+      stopAudioRef.current();
+    };
+  }, []);
 
   const syncNaturalVideoSize = React.useCallback(() => {
     const internalPlayer = videoRef.current?.getInternalPlayer();
@@ -82,6 +98,8 @@ export function PlaybackEngine() {
     };
 
     if (!playingTrack) {
+      requestedAudioSourceRef.current = null;
+      activeRadioAudioSourceKeyRef.current = null;
       if (playing) stop();
       if (videoPlaying) dispatch(stopVideo());
       return;
@@ -98,11 +116,16 @@ export function PlaybackEngine() {
       radio.enabled && currentEntry?.sourceUrl
         ? currentEntry.sourceUrl
         : mediaSourcePath(playingTrack);
-    const directSourcePath = !radio.enabled ? directMediaSourcePath(playingTrack) : null;
+    const directSourcePath = radio.enabled
+      ? directRadioSourcePath(currentEntry?.sourceUrl)
+      : directMediaSourcePath(playingTrack);
     const directSource = directSourcePath ? directStreamAssetUrl(directSourcePath) : null;
-    const nextSource = directSource ?? (sourcePath.startsWith("/") ? streamAssetUrl(sourcePath) : sourcePath);
+    const nextSource =
+      directSource ?? (sourcePath.startsWith("/") ? streamAssetUrl(sourcePath) : sourcePath);
 
     if (video) {
+      requestedAudioSourceRef.current = null;
+      activeRadioAudioSourceKeyRef.current = null;
       if (playing) stop();
       if (nextSource !== videoUrl) {
         dispatch(loadVideo({ url: nextSource, mediaId: playingTrack._id }));
@@ -123,8 +146,19 @@ export function PlaybackEngine() {
     }
 
     if (videoPlaying) dispatch(stopVideo());
-    if (nextSource !== src) {
+    const radioAudioSourceKey =
+      radio.enabled && radio.slotId ? `${radio.slotId}:${playingTrack._id}:${nextSource}` : null;
+    const sameActiveRadioSource =
+      radioAudioSourceKey != null && radioAudioSourceKey === activeRadioAudioSourceKeyRef.current;
+    if (
+      !sameActiveRadioSource &&
+      nextSource !== src &&
+      nextSource !== requestedAudioSourceRef.current
+    ) {
       const initialRadioPosition = liveRadioPosition();
+      requestedAudioSourceRef.current = nextSource;
+      activeRadioAudioSourceKeyRef.current = radioAudioSourceKey;
+      if (playing || src) stop();
       load(nextSource, {
         autoplay: true,
         html5: true,
@@ -139,6 +173,8 @@ export function PlaybackEngine() {
         }
       });
     } else {
+      requestedAudioSourceRef.current = nextSource;
+      activeRadioAudioSourceKeyRef.current = radioAudioSourceKey;
       loop(!radio.enabled && repeat === 2);
       if (radio.enabled && !playing) {
         seek(liveRadioPosition());
@@ -349,8 +385,12 @@ export function PlaybackEngine() {
                 fs: 0,
                 iv_load_policy: 3,
                 modestbranding: 1,
+                origin: youtubeEmbedOrigin,
                 playsinline: 1,
                 rel: 0
+              },
+              embedOptions: {
+                referrerPolicy: "strict-origin-when-cross-origin"
               }
             }
           }}

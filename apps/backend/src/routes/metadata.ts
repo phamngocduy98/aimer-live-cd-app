@@ -2,6 +2,7 @@ import path from "node:path";
 import { Readable } from "node:stream";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
+import { createHash } from "node:crypto";
 import { PARTSIZE } from "../config/const.js";
 import { Aes } from "../utils/crypto/aes.js";
 import { Album } from "../models/Album.js";
@@ -23,6 +24,38 @@ const log = createLogger("Metadata");
 
 const routeDir = path.dirname(fileURLToPath(import.meta.url));
 const phpAssetDir = path.resolve(routeDir, "..", "scripts", "php");
+const revalidatedImageCacheControl = "public, max-age=0, must-revalidate";
+
+function imageEtag(buffer: Buffer): string {
+  return `"${createHash("sha256").update(buffer).digest("base64url")}"`;
+}
+
+function requestHasEtag(req, etag: string): boolean {
+  const header = req.headers["if-none-match"];
+  const value = Array.isArray(header) ? header.join(",") : (header ?? "");
+  return value
+    .split(",")
+    .map((value) => value.trim())
+    .includes(etag);
+}
+
+function sendCachedImage(
+  req,
+  res,
+  buffer: Buffer,
+  fallbackContentType = "application/octet-stream"
+): void {
+  const etag = imageEtag(buffer);
+  res.setHeader("Cache-Control", revalidatedImageCacheControl);
+  res.setHeader("ETag", etag);
+  res.setHeader("Content-Length", buffer.length);
+  res.setHeader("Content-Type", detectImageMimeType(buffer) ?? fallbackContentType);
+  if (requestHasEtag(req, etag)) {
+    res.status(304).end();
+    return;
+  }
+  Readable.from(buffer).pipe(res);
+}
 
 // GET /api/hosts
 export async function handleGetHosts(_req, res) {
@@ -352,7 +385,7 @@ export async function handleGetAlbumCover(req, res) {
     return fail(res, "Invalid request");
   const album = await Album.findById(req.params.id, { cover: 1 }).exec();
   if (album?.cover) {
-    Readable.from(album.cover).pipe(res);
+    sendCachedImage(req, res, album.cover);
   } else {
     fail(res, "No cover image");
   }
@@ -419,14 +452,10 @@ export async function handleGetVideoCover(req, res) {
   if (req.params.id.length !== 12 && req.params.id.length !== 24)
     return fail(res, "Invalid request");
   const video = await Video.findById(req.params.id, { cover: 1 }).exec();
-  // Admins can replace artwork at this stable URL. Revalidate so clients do not
-  // keep showing the previous cover after a successful metadata save.
-  res.setHeader("Cache-Control", "no-cache");
   if (video?.cover) {
     const contentType = detectImageMimeType(video.cover);
     if (!contentType) return fail(res, "Unsupported cover image", 415);
-    res.setHeader("Content-Type", contentType);
-    Readable.from(video.cover).pipe(res);
+    sendCachedImage(req, res, video.cover, contentType);
   } else {
     fail(res, "No cover image", 404);
   }
@@ -452,9 +481,8 @@ export async function handleGetSongCover(req, res) {
   if (req.params.id.length !== 12 && req.params.id.length !== 24)
     return fail(res, "Invalid request");
   const song = await Song.findById(req.params.id).populate("album", { cover: 1 }).exec();
-  res.setHeader("Cache-Control", "public, max-age=86400");
   if (song?.album?.cover) {
-    Readable.from(song.album.cover).pipe(res);
+    sendCachedImage(req, res, song.album.cover);
   } else {
     fail(res, "No cover image");
   }
@@ -493,9 +521,7 @@ export async function handleGetArtistImage(req, res) {
   if (!name) return fail(res, "Artist name is required");
   const profile = await ArtistProfile.findOne({ name }, { image: 1, imageMimeType: 1 });
   if (!profile?.image) return fail(res, "No artist image", 404);
-  res.setHeader("Content-Type", profile.imageMimeType ?? "application/octet-stream");
-  res.setHeader("Cache-Control", "public, max-age=86400");
-  Readable.from(profile.image).pipe(res);
+  sendCachedImage(req, res, profile.image, profile.imageMimeType ?? "application/octet-stream");
 }
 
 // GET /api/search?q=...

@@ -138,16 +138,7 @@ function directPartFileNames(id: string, fileCount: number, fileExtension: strin
   });
 }
 
-async function handleDirectStreamManifest(req, res, mediaType: "audio" | "video") {
-  if (req.params.id.length !== 12 && req.params.id.length !== 24) {
-    return fail(res, "Invalid request");
-  }
-
-  const media =
-    mediaType === "audio"
-      ? await Song.findById(req.params.id).populate("hostingList").exec()
-      : await Video.findById(req.params.id).populate("hostingList").exec();
-
+export async function sendDirectStreamManifest(res, media, mediaType: "audio" | "video") {
   if (media == null) {
     return fail(res, mediaType === "audio" ? "Song not found" : "Video not found", 404);
   }
@@ -199,6 +190,19 @@ async function handleDirectStreamManifest(req, res, mediaType: "audio" | "video"
     files: directPartFileNames(id, media.fileCount, media.fileExtension),
     hosts: hostingList
   });
+}
+
+async function handleDirectStreamManifest(req, res, mediaType: "audio" | "video") {
+  if (req.params.id.length !== 12 && req.params.id.length !== 24) {
+    return fail(res, "Invalid request");
+  }
+
+  const media =
+    mediaType === "audio"
+      ? await Song.findById(req.params.id).populate("hostingList").exec()
+      : await Video.findById(req.params.id).populate("hostingList").exec();
+
+  return sendDirectStreamManifest(res, media, mediaType);
 }
 
 // GET /api/stream/direct/audio/:id

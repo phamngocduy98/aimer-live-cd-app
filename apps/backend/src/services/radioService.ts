@@ -354,17 +354,19 @@ export async function buildRadioState(now = new Date(), session?: SessionState |
 export async function addRadioQueueItem({
   mediaType,
   mediaId,
-  requestedBy
+  requestedBy,
+  canBypassDailyLimit = false
 }: {
   mediaType: RadioMediaType;
   mediaId: string;
   requestedBy?: string;
+  canBypassDailyLimit?: boolean;
 }) {
   const media = await mediaExists(mediaType, mediaId);
   if (!media || !Number.isFinite(media.duration) || media.duration <= 0) {
     return null;
   }
-  if (requestedBy && Types.ObjectId.isValid(requestedBy)) {
+  if (shouldApplyDailyRadioRequestLimit(requestedBy, canBypassDailyLimit)) {
     const { start, end } = dayBounds();
     const requestCount = await RadioQueueItem.countDocuments({
       requestedBy,
@@ -388,6 +390,13 @@ export async function addRadioQueueItem({
   }).exec();
 
   return { item, position };
+}
+
+export function shouldApplyDailyRadioRequestLimit(
+  requestedBy: string | undefined,
+  canBypassDailyLimit: boolean
+): boolean {
+  return Boolean(requestedBy && Types.ObjectId.isValid(requestedBy) && !canBypassDailyLimit);
 }
 
 export async function heartbeatRadioListener(clientId: string) {

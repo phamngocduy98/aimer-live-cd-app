@@ -1,4 +1,5 @@
 import { app, shell, BrowserWindow, ipcMain, dialog, safeStorage } from "electron";
+import type { Session } from "electron";
 import { join } from "path";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import icon from "../../resources/icon.png?asset";
@@ -12,6 +13,8 @@ let isInitializing = true;
 let log: any = { info: () => {}, error: () => {} };
 let directStreamBaseUrl: string | null = null;
 let stopDirectStreamServer: (() => Promise<void>) | null = null;
+const youtubeEmbedOrigin = "https://music.btxa.io.vn";
+const youtubeEmbedReferer = `${youtubeEmbedOrigin}/`;
 
 // Định nghĩa interface cho cấu hình
 interface AppConfig {
@@ -132,6 +135,30 @@ async function initializeApp(): Promise<void> {
   });
 }
 
+function registerYoutubeEmbedHeaders(session: Session): void {
+  session.webRequest.onBeforeSendHeaders(
+    {
+      urls: [
+        "https://www.youtube.com/*",
+        "https://youtube.com/*",
+        "https://*.youtube.com/*",
+        "https://www.youtube-nocookie.com/*",
+        "https://youtube-nocookie.com/*",
+        "https://*.youtube-nocookie.com/*"
+      ]
+    },
+    (details, callback) => {
+      callback({
+        requestHeaders: {
+          ...details.requestHeaders,
+          Referer: youtubeEmbedReferer,
+          Origin: youtubeEmbedOrigin
+        }
+      });
+    }
+  );
+}
+
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -148,6 +175,8 @@ function createWindow(): void {
       contextIsolation: true
     }
   });
+
+  registerYoutubeEmbedHeaders(mainWindow.webContents.session);
 
   mainWindow.on("ready-to-show", () => {
     mainWindow.show();

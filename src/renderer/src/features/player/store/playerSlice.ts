@@ -183,6 +183,13 @@ const playerSlice = createSlice({
     ) {
       const media = { ...action.payload.media, type: action.payload.mediaType } as MSong;
       const playFrom = { type: "radio" as const, label: "Radio", route: "/" };
+      const sameRadioSlot =
+        state.radio.enabled &&
+        state.radio.slotId === action.payload.slotId &&
+        state.playingTrack?._id === media._id &&
+        mediaType(state.playingTrack) === action.payload.mediaType;
+      const currentChapterIdx = sameRadioSlot ? state.currentChapterIdx : null;
+      const currentChapterDuration = sameRadioSlot ? state.currentChapterDuration : 0;
       state.radio = {
         enabled: true,
         listening: true,
@@ -212,8 +219,8 @@ const playerSlice = createSlice({
       state.originQueue = [];
       state.repeat = 0;
       state.chapters = isVideo(media) ? (media.chapters ?? []) : [];
-      state.currentChapterIdx = null;
-      state.currentChapterDuration = 0;
+      state.currentChapterIdx = currentChapterIdx;
+      state.currentChapterDuration = currentChapterDuration;
     },
     setRadioListening(state, action: PayloadAction<boolean>) {
       if (!state.radio.enabled) return;

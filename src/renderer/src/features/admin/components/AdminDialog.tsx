@@ -78,9 +78,9 @@ type DeleteTarget =
   | { type: "host"; item: AdminHost };
 
 export function AdminDialog({ open, onClose }: AdminDialogProps) {
-  const [tab, setTab] = React.useState<AdminTab>("songs");
+  const [tab, setTab] = React.useState<AdminTab>("radio");
   const [visitedTabs, setVisitedTabs] = React.useState<ReadonlySet<AdminTab>>(
-    () => new Set(["songs"])
+    () => new Set(["radio"])
   );
   const deleteSong = useDeleteAdminSong();
   const deleteVideo = useDeleteAdminVideo();

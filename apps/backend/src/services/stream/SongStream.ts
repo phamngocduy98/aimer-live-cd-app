@@ -222,7 +222,7 @@ export class SongStream {
         "Content-Length": range.end - range.start + 1,
         "content-range": `bytes ${range.start}-${range.end}/${info.size}`,
         "Content-Type": _contentType,
-        "cache-control": "public, max-age=60"
+        "cache-control": "private, max-age=86400"
       }
     };
     return { stream: multiStream!, metadata };
